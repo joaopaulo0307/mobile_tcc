@@ -1,11 +1,18 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:mobile_tcc/cadastro.dart';
+// ignore: unused_import
 import 'package:mobile_tcc/calendar.dart';
+// ignore: unused_import
 import 'package:mobile_tcc/financas.dart';
+// ignore: unused_import
 import 'package:mobile_tcc/lista_compras.dart';
+// ignore: unused_import
 import 'package:mobile_tcc/perfil.dart';
+// ignore: unused_import
 import 'package:mobile_tcc/to-do.dart';
+// ignore: unused_import
 import 'package:mobile_tcc/usuarios.dart';
 
 class HomePage extends StatefulWidget {
@@ -64,7 +71,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Colors.purple, Colors.deepPurple],
+                    colors: [Color.fromARGB(255, 79, 73, 196), Color.fromARGB(255, 81, 0, 255)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
