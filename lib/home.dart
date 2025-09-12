@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color.fromARGB(255, 79, 73, 196), Color.fromARGB(255, 81, 0, 255)],
+                    colors: [Color.fromARGB(255, 79, 73, 196), Color.fromARGB(255, 100, 38, 163)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
