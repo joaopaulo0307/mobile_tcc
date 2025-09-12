@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-// ignore: unused_import
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'cadastro.dart'; 
+import 'home.dart'; 
+import 'esqueci_senha.dart';
 
 void main() {
   runApp(const MyApp());
@@ -104,7 +105,7 @@ class LandingPage extends StatelessWidget {
                           decoration: InputDecoration(
                             hintText: "Email",
                             filled: true,
-                            fillColor: Colors.grey[300],
+                            fillColor: const Color(0xFF8F8F87),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide.none,
@@ -118,21 +119,25 @@ class LandingPage extends StatelessWidget {
                           decoration: InputDecoration(
                             hintText: "Senha",
                             filled: true,
-                            fillColor: Colors.grey[300],
+                            fillColor: const Color(0xFF8F8F87),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide.none,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 30),
                         Align(
                           alignment: Alignment.center,
                           child: GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const EsqueciSenha()),
+                              );
+                            },
                             child: const Text(
                               "Esqueci minha senha",
-                              
                               style: TextStyle(
                                 color: Colors.blueGrey,
                                 decoration: TextDecoration.underline,
@@ -157,7 +162,12 @@ class LandingPage extends StatelessWidget {
                           side: const BorderSide(color: Colors.transparent, width: 0), // Borda transparente
                           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30), // Mesmo padding do outro botão
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CadastroPage()),
+                          );
+                        },
                         child: const Text("CADASTRE-SE"),
                       ),
 
@@ -173,7 +183,12 @@ class LandingPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HomePage()),
+                          );
+                        },
                         child: const Text("ENTRAR"),
                       ),
                     ],
@@ -182,35 +197,31 @@ class LandingPage extends StatelessWidget {
               ),
             ),
 
-            // Aqui você pode adicionar o footer ou outras seções
-            Column(
-              children: [
-                Container(
-                  color: const Color(0xFF133A67),
-                  height: 100,
-                  child: const Center(
-                    child:
-                        Row(mainAxisAlignment: MainAxisAlignment.center,
-                         children: [
-                           Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Organize suas tarefas de forma simples",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "Contato | Sobre | Termos de Uso",
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                                ),
-                              ],
-                            ),
-                        ]
+            // RODAPÉ
+            Container(
+              color: const Color(0xFF133A67),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Texto principal
+                  const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Organize suas tarefas de forma simples",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Contato | Sobre | Termos de Uso",
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

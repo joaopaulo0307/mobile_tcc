@@ -1,4 +1,12 @@
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile_tcc/cadastro.dart';
+import 'package:mobile_tcc/calendar.dart';
+import 'package:mobile_tcc/financas.dart';
+import 'package:mobile_tcc/lista_compras.dart';
+import 'package:mobile_tcc/perfil.dart';
+import 'package:mobile_tcc/to-do.dart';
+import 'package:mobile_tcc/usuarios.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -146,10 +154,10 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: const [
-                        Icon(Icons.facebook, color: Colors.white),
-                        Icon(Icons.instagram, color: Colors.white),
-                        Icon(Icons.google, color: Colors.white),
-                        Icon(Icons.whatsapp, color: Colors.white),
+                        Icon(FontAwesomeIcons.facebook, color: Colors.white),
+                        Icon(FontAwesomeIcons.instagram, color: Colors.white),
+                        Icon(FontAwesomeIcons.google, color: Colors.white),
+                        Icon(FontAwesomeIcons.whatsapp, color: Colors.white),
                       ],
                     ),
                     const SizedBox(height: 10),
