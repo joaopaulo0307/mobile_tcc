@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void main() {
@@ -33,7 +34,7 @@ class LandingPage extends StatelessWidget {
             // HEADER
             Container(
               color: const Color(0xFF133A67),
-              height: 100,
+              height: 80,
               child: const Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
@@ -48,7 +49,7 @@ class LandingPage extends StatelessWidget {
 
             // CARROSSEL SIMPLES
             Container(
-              color: const Color(0xFF133A67),
+              color: const Color.fromARGB(255, 35, 36, 37),
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
@@ -84,19 +85,19 @@ class LandingPage extends StatelessWidget {
 
             // LOGIN
             Container(
-              color: const Color(0xFF133A67),
+              color: const Color.fromARGB(255, 35, 36, 37),
               padding: const EdgeInsets.symmetric(vertical: 30),
               child: Column(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEAE0C8),
+                      color: const Color.fromARGB(255, 55, 56, 57),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     width: 350,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         TextField(
                           controller: emailController,
@@ -125,115 +126,91 @@ class LandingPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: () {},
-                          child: const Text(
-                            "Esqueci minha senha",
-                            style: TextStyle(
-                              color: Colors.blueGrey,
-                              decoration: TextDecoration.underline,
+                        Align(
+                          alignment: Alignment.center,
+                          child: GestureDetector(
+                            onTap: () {},
+                            child: const Text(
+                              "Esqueci minha senha",
+                              
+                              style: TextStyle(
+                                color: Colors.blueGrey,
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                "CADASTRE-SE",
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF5A7E92),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () {},
-                              child: const Text("ENTRAR"),
-                            ),
-                          ],
-                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 20),
-                  const Text("ou continue com", style: TextStyle(color: Colors.white)),
-                  const SizedBox(height: 10),
+
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(FontAwesomeIcons.instagram, size: 28, color: Colors.white),
-                      SizedBox(width: 20),
-                      Icon(FontAwesomeIcons.facebook, size: 28, color: Colors.white),
-                      SizedBox(width: 20),
-                      Icon(FontAwesomeIcons.google, size: 28, color: Colors.white),
-                      SizedBox(width: 20),
-                      Icon(FontAwesomeIcons.whatsapp, size: 28, color: Colors.white),
+                    mainAxisAlignment: MainAxisAlignment.center, // Centraliza os botões horizontalmente
+                    children: [
+                      // Botão CADASTRAR
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.blue, // Cor do texto
+                          side: const BorderSide(color: Colors.transparent, width: 0), // Borda transparente
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30), // Mesmo padding do outro botão
+                        ),
+                        onPressed: () {},
+                        child: const Text("CADASTRE-SE"),
+                      ),
+
+                      const SizedBox(width: 10), // Espaçamento HORIZONTAL entre os botões
+
+                      // Botão ENTRAR
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5E83AE),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {},
+                        child: const Text("ENTRAR"),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
 
-            // RODAPÉ
-            Container(
-              color: const Color(0xFF133A67),
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Lado esquerdo
-                  Column(
-                    children: const [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white,
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        "Organize suas tarefas de forma simples",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
+            // Aqui você pode adicionar o footer ou outras seções
+            Column(
+              children: [
+                Container(
+                  color: const Color(0xFF133A67),
+                  height: 100,
+                  child: const Center(
+                    child:
+                        Row(mainAxisAlignment: MainAxisAlignment.center,
+                         children: [
+                           Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Organize suas tarefas de forma simples",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Contato | Sobre | Termos de Uso",
+                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                        ]
+                    ),
                   ),
-                  const Spacer(),
-                  // Lado direito
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Termos | Privacidade",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Contatos:",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: const [
-                          Icon(FontAwesomeIcons.instagram, color: Colors.white, size: 18),
-                          SizedBox(width: 10),
-                          Icon(FontAwesomeIcons.facebook, color: Colors.white, size: 18),
-                          SizedBox(width: 10),
-                          Icon(FontAwesomeIcons.google, color: Colors.white, size: 18),
-                          SizedBox(width: 10),
-                          Icon(FontAwesomeIcons.whatsapp, color: Colors.white, size: 18),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
