@@ -3,12 +3,14 @@ import 'cadastro.dart';
 import 'home.dart';
 import 'esqueci_senha.dart';
 import 'dart:ui'; 
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 // Cores constantes
 const Color primaryColor = Color(0xFF133A67);
 const Color secondaryColor = Color(0xFF5E83AE);
 const Color containerColor = Color.fromARGB(255, 55, 56, 57);
-const Color textFieldColor = Color(0xFF8F8F87);
+const Color textFieldColor = Colors.white;
 const Color textColor = Colors.white;
 const Color accentColor = Colors.blueGrey;
 
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
           final nome = ModalRoute.of(context)!.settings.arguments as String;
           return HomePage(nome: nome);
         },
-        '/esqueci_senha': (context) => const EsqueciSenha(),
+        '/esqueci_senha': (context) => const LoginSc(),
       },
     );
   }
@@ -67,6 +69,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
 
 
 // ------------------ FOOTER ------------------
+
 class Footer extends StatelessWidget {
   final String? text;
   final String? subText;
@@ -82,15 +85,45 @@ class Footer extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Avatar ou logo
+          const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.grey,
+          ),
+          const SizedBox(height: 10),
+
+          // Texto principal
           Text(
             text ?? "Organize suas tarefas de forma simples",
             style: const TextStyle(color: textColor, fontSize: 14),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
+
+          // Ícones de redes sociais
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              Icon(FontAwesomeIcons.facebook, color: Colors.white),
+              Icon(FontAwesomeIcons.instagram, color: Colors.white),
+              Icon(FontAwesomeIcons.google, color: Colors.white),
+              Icon(FontAwesomeIcons.whatsapp, color: Colors.white),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Texto secundário
           Text(
             subText ?? "Contato | Sobre | Termos de Uso",
-            style: const TextStyle(color: textColor, fontSize: 12),
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 5),
+
+          // Direitos reservados
+          const Text(
+            "© Todos os direitos reservados - 2025",
+            style: TextStyle(color: Colors.white70, fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],
@@ -98,6 +131,7 @@ class Footer extends StatelessWidget {
     );
   }
 }
+
 
 // ------------------ LANDING PAGE ------------------
 
@@ -182,7 +216,7 @@ class _LoginFormState extends State<LoginForm> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white, // Caixa sólida sem transparência
+          color:const Color.fromARGB(255, 79, 73, 72), // Caixa sólida sem transparência
           borderRadius: BorderRadius.circular(20),
         ),
         width: MediaQuery.of(context).size.width * 0.85,
@@ -197,7 +231,7 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: InputDecoration(
                   hintText: "Email",
                   filled: true,
-                  fillColor: Colors.white, // Caixa de texto sólida
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -217,7 +251,7 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: InputDecoration(
                   hintText: "Senha",
                   filled: true,
-                  fillColor: Colors.gray, // Caixa de texto sólida
+                  fillColor: Colors.white, // Caixa de texto sólida
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -240,7 +274,7 @@ class _LoginFormState extends State<LoginForm> {
                   child: const Text(
                     "Esqueci minha senha",
                     style: TextStyle(
-                      color: Colors.black, // Mudança para contraste com fundo claro
+                      color: Color(0xFF5E83AE), // Mudança para contraste com fundo claro
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -252,7 +286,7 @@ class _LoginFormState extends State<LoginForm> {
                 children: [
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
+                      foregroundColor: Color(0xFF5E83AE),
                       side: const BorderSide(color: Colors.black),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 25),
                     ),
