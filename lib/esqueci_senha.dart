@@ -10,7 +10,6 @@ const Color accentColor = Colors.blueGrey;
 const Color primaryColor = Color(0xFF133A67);
 
 
-
 // TELA PRINCIPAL DE LOGIN
 class LoginSc extends StatelessWidget {
   const LoginSc({super.key});
@@ -267,42 +266,7 @@ class SuccessModal extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            
-            // Divisor
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 20),
-            
-            // Termos e Privacidade
-            const Text(
-              'Termo | Privacidade',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 15),
-            
-            // Contatos
-            const Text(
-              'Contatos:',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 5),
-            
-            const Text(
-              'Ogustos nas tarefas de tema simples',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            
+                        
             // Botão de fechar
             ElevatedButton(
               onPressed: onPressed,
