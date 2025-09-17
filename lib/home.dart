@@ -16,16 +16,15 @@ import 'package:mobile_tcc/to-do.dart';
 import 'package:mobile_tcc/usuarios.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String nome; // recebe o nome do cadastro
+
+  const HomePage({super.key, required this.nome});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController _nomeController = TextEditingController();
-  String nome = "";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,7 +47,7 @@ class _HomePageState extends State<HomePage> {
                     Expanded(
                       child: TextField(
                         decoration: InputDecoration(
-                          hintText: "Hinted search text",
+                          hintText: "Pesquisar...",
                           filled: true,
                           fillColor: Colors.white,
                           prefixIcon: const Icon(Icons.search),
@@ -65,13 +64,16 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // Card de boas-vindas com campo para nome
+              // Card de boas-vindas
               Container(
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color.fromARGB(255, 79, 73, 196), Color.fromARGB(255, 100, 38, 163)],
+                    colors: [
+                      Color.fromARGB(255, 79, 73, 196),
+                      Color.fromARGB(255, 100, 38, 163)
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -80,30 +82,10 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextField(
-                      controller: _nomeController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: "Digite seu nome",
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.white70),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.white),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          nome = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
                     Text(
-                      nome.isNotEmpty ? "Olá, $nome" : "Olá!",
+                      widget.nome.isNotEmpty
+                          ? "Olá, ${widget.nome}"
+                          : "Olá!",
                       style: const TextStyle(
                         fontSize: 20,
                         color: Colors.white,
@@ -197,6 +179,7 @@ class _HomePageState extends State<HomePage> {
         text,
         style: const TextStyle(color: Colors.white),
       ),
+      
     );
   }
 }

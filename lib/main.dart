@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'cadastro.dart';
 import 'home.dart';
 import 'esqueci_senha.dart';
+import 'dart:ui'; 
 
-// Cores constantes para manter a consistência
+// Cores constantes
 const Color primaryColor = Color(0xFF133A67);
 const Color secondaryColor = Color(0xFF5E83AE);
-const Color backgroundColor = Color.fromARGB(255, 35, 36, 37);
 const Color containerColor = Color.fromARGB(255, 55, 56, 57);
 const Color textFieldColor = Color(0xFF8F8F87);
 const Color textColor = Colors.white;
 const Color accentColor = Colors.blueGrey;
 
 void main() {
-  runApp(const MyApp( ));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -27,86 +27,71 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LandingPage(),
         '/cadastro': (context) => const CadastroPage(),
-        '/home': (context) => const HomePage(),
+        '/home': (context) {
+          final nome = ModalRoute.of(context)!.settings.arguments as String;
+          return HomePage(nome: nome);
+        },
         '/esqueci_senha': (context) => const EsqueciSenha(),
       },
     );
   }
 }
 
-// Widget para o Header
-class Header extends StatelessWidget {
+// ------------------ HEADER ------------------
+class Header extends StatelessWidget implements PreferredSizeWidget {
   const Header({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: primaryColor,
-      height: 80,
-      child: const Align(
-        alignment: Alignment.centerLeft,
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: CircleAvatar(
-            radius: 20,
-            backgroundColor: Colors.white,
-            child: Text(
-              "TD",
-              style: TextStyle(
-                color: primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+    return AppBar(
+      backgroundColor: primaryColor,
+      elevation: 2,
+      centerTitle: false,
+      title: const CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.white,
+        child: Text(
+          "TD",
+          style: TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
   }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
 }
 
-// Widget para o Carrossel
-class CarouselSection extends StatelessWidget {
-  const CarouselSection({super.key});
+
+// ------------------ FOOTER ------------------
+class Footer extends StatelessWidget {
+  final String? text;
+  final String? subText;
+
+  const Footer({super.key, this.text, this.subText});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: backgroundColor,
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
+      color: primaryColor,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(
-              child: Text(
-                "CARROSSEL / BANNER",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          Text(
+            text ?? "Organize suas tarefas de forma simples",
+            style: const TextStyle(color: textColor, fontSize: 14),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              5,
-              (index) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: index == 0 ? Colors.orange : Colors.grey,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
+          const SizedBox(height: 8),
+          Text(
+            subText ?? "Contato | Sobre | Termos de Uso",
+            style: const TextStyle(color: textColor, fontSize: 12),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -114,7 +99,53 @@ class CarouselSection extends StatelessWidget {
   }
 }
 
-// Widget para o formulário de login
+// ------------------ LANDING PAGE ------------------
+
+class LandingPage extends StatelessWidget {
+  const LandingPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const Header(),
+      body: Stack(
+        children: [
+          // Imagem de fundo
+          SizedBox.expand(
+            child: Image.asset(
+              'lib/assets/images/fundo-tcc-mobile.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Filtro de desfoque + transparência
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // intensidade do desfoque
+              child: Container(
+                color: Colors.black.withOpacity(0.3), // camada semitransparente
+              ),
+            ),
+          ),
+          // Conteúdo centralizado
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  LoginForm(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const Footer(),
+    );
+  }
+}
+
+
+// ------------------ LOGIN FORM ------------------
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
 
@@ -136,183 +167,117 @@ class _LoginFormState extends State<LoginForm> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      // Login bem-sucedido, navegar para a página inicial
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(
+        context,
+        '/home',
+        arguments: _emailController.text,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: backgroundColor,
-      padding: const EdgeInsets.symmetric(vertical: 30),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: containerColor,
-                borderRadius: BorderRadius.circular(20),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white, // Caixa sólida sem transparência
+          borderRadius: BorderRadius.circular(20),
+        ),
+        width: MediaQuery.of(context).size.width * 0.85,
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  hintText: "Email",
+                  filled: true,
+                  fillColor: Colors.white, // Caixa de texto sólida
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Por favor, insira seu email';
+                  if (!value.contains('@')) return 'Por favor, insira um email válido';
+                  return null;
+                },
               ),
-              width: MediaQuery.of(context).size.width * 0.9,
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: "Senha",
+                  filled: true,
+                  fillColor: Colors.gray, // Caixa de texto sólida
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Por favor, insira sua senha';
+                  if (value.length < 6) return 'A senha deve ter pelo menos 6 caracteres';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/esqueci_senha');
+                  },
+                  child: const Text(
+                    "Esqueci minha senha",
+                    style: TextStyle(
+                      color: Colors.black, // Mudança para contraste com fundo claro
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      hintText: "Email",
-                      filled: true,
-                      fillColor: textFieldColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 25),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira seu email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Por favor, insira um email válido';
-                      }
-                      return null;
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/cadastro');
                     },
+                    child: const Text("CADASTRE-SE"),
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: "Senha",
-                      filled: true,
-                      fillColor: textFieldColor,
-                      border: OutlineInputBorder(
+                  const SizedBox(width: 15),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: secondaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira sua senha';
-                      }
-                      if (value.length < 6) {
-                        return 'A senha deve ter pelo menos 6 caracteres';
-                      }
-                      return null;
-                    },
+                    onPressed: _login,
+                    child: const Text("ENTRAR"),
                   ),
-                  const SizedBox(height: 30),
-                  Align(
-                    alignment: Alignment.center,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/esqueci_senha');
-                      },
-                      child: const Text(
-                        "Esqueci minha senha",
-                        style: TextStyle(
-                          color: accentColor,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Botão CADASTRAR
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                    side: const BorderSide(color: Colors.transparent, width: 0),
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/cadastro');
-                  },
-                  child: const Text("CADASTRE-SE"),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Botão ENTRAR
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: secondaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: _login,
-                  child: const Text("ENTRAR"),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Widget para o Footer
-class Footer extends StatelessWidget {
-  const Footer({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: primaryColor,
-      padding: const EdgeInsets.all(20),
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Organize suas tarefas de forma simples",
-              style: TextStyle(color: textColor),
-            ),
-            SizedBox(height: 8),
-            Text(
-              "Contato | Sobre | Termos de Uso",
-              style: TextStyle(color: textColor, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Página principal (LandingPage)
-class LandingPage extends StatelessWidget {
-  const LandingPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[900],
-      body: const SingleChildScrollView(
-        child: Column(
-          children: [
-            Header(),
-            CarouselSection(),
-            LoginForm(),
-            Footer(),
-          ],
+            ],
+          ),
         ),
       ),
     );
