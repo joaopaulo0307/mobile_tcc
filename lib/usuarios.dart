@@ -1,254 +1,180 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class Usuarios extends StatefulWidget {
+class Usuarios extends StatelessWidget {
   const Usuarios({super.key});
-
-  @override
-  State<Usuarios> createState() => _UsuariosPageState();
-}
-
-class _UsuariosPageState extends State<Usuarios> {
-  // Lista de membros (inicialmente vazia)
-  final List<Map<String, String>> _membros = [];
-
-  // Controladores para os campos de texto
-  final TextEditingController _nomeController = TextEditingController();
-  final TextEditingController _descricaoController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _descricaoController.dispose();
-    super.dispose();
-  }
-
-  // Função para adicionar um novo membro
-  void _adicionarMembro() {
-    final String nome = _nomeController.text.trim();
-    final String descricao = _descricaoController.text.trim();
-
-    if (nome.isNotEmpty) {
-      setState(() {
-        _membros.add({
-          'nome': nome,
-          'descricao': descricao,
-        });
-      });
-
-      // Limpar os campos após adicionar
-      _nomeController.clear();
-      _descricaoController.clear();
-
-      // Fechar o teclado se estiver aberto
-      FocusScope.of(context).unfocus();
-    }
-  }
-
-  // Função para remover um membro
-  void _removerMembro(int index) {
-    setState(() {
-      _membros.removeAt(index);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('Usuários'),
-        backgroundColor: Colors.blue[900],
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              // Navegar para outras páginas baseado na seleção
-              if (value == 'graficos') {
-                // Navigator.push(context, MaterialPageRoute(builder: (context) => GraficosPage()));
-              } else if (value == 'arquivo') {
-                // Navigator.push(context, MaterialPageRoute(builder: (context) => ArquivoTarefasPage()));
-              } else if (value == 'home') {
-                Navigator.pop(context);
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'graficos',
-                child: Text('Gráficos'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'usuarios',
-                child: Text('Usuários'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'arquivo',
-                child: Text('Arquivo de Tarefas'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'home',
-                child: Text('Home'),
-              ),
-            ],
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFF2E2E2E), // Fundo cinza escuro
       body: Column(
         children: [
-          // Cabeçalho
+          // HEADER
           Container(
+            color: const Color(0xFF133A67),
             padding: const EdgeInsets.all(16),
-            color: Colors.blue[800],
-            child: const Center(
-              child: Text(
-                'Tarefas',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey,
                 ),
-              ),
-            ),
-          ),
-
-          // Formulário para adicionar membros
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Card(
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Adicionar Membro',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _nomeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _descricaoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descrição',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _adicionarMembro,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text(
-                        '+ Add Membro',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Lista de membros
-          Expanded(
-            child: _membros.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Nenhum membro adicionado ainda.',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _membros.length,
-                    itemBuilder: (context, index) {
-                      final membro = _membros[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          title: Text(
-                            membro['nome']!,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(membro['descricao'] ?? ''),
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
-                            ),
-                            onPressed: () => _removerMembro(index),
-                          ),
-                        ),
-                      );
-                    },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _navItem("Tarefas"),
+                      _navItem("Gráficos"),
+                      _navItem("Usuários", isActive: true),
+                      _navItem("Home"),
+                    ],
                   ),
+                ),
+              ],
+            ),
           ),
 
-          // Rodapé
+          const SizedBox(height: 50),
+          const Text(
+            "Membros",
+            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 40),
+
+          // LISTA DE MEMBROS
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: List.generate(
+                5,
+                (index) => _membroCard(),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          // BOTÕES
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _actionButton("+ Add Membro"),
+              _actionButton("- Remover Membro"),
+            ],
+          ),
+
+          const Spacer(),
+
+          // FOOTER
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             color: Colors.blue[900],
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Termos | Privacidade',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.grey,
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Contatos:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  "Organize suas tarefas de forma simples",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.email, color: Colors.white),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.phone, color: Colors.white),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chat, color: Colors.white),
-                      onPressed: () {},
-                    ),
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: const [
+                    Icon(FontAwesomeIcons.facebook, color: Colors.white),
+                    Icon(FontAwesomeIcons.instagram, color: Colors.white),
+                    Icon(FontAwesomeIcons.google, color: Colors.white),
+                    Icon(FontAwesomeIcons.whatsapp, color: Colors.white),
                   ],
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  '© 2025 - Todos os direitos reservados',
+                  "Contato | Sobre | Termos de Uso",
                   style: TextStyle(color: Colors.white70, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 5),
+                const Text(
+                  "© Todos os direitos reservados - 2025",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // NAV ITEM
+  Widget _navItem(String title, {bool isActive = false}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            color: isActive ? Colors.blue[200] : Colors.white,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        if (isActive)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            height: 2,
+            width: 50,
+            color: Colors.white,
+          ),
+      ],
+    );
+  }
+
+  // CARD DE MEMBRO
+  Widget _membroCard() {
+    return Container(
+      width: 100,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF133A67),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: const [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: Colors.grey,
+          ),
+          SizedBox(height: 8),
+          Text("Nome", style: TextStyle(color: Colors.white)),
+          SizedBox(height: 4),
+          Text("Descrição", style: TextStyle(color: Colors.white70, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  // BOTÕES
+  Widget _actionButton(String text) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF133A67),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      onPressed: () {},
+      child: Text(text),
     );
   }
 }

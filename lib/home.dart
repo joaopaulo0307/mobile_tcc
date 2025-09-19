@@ -86,9 +86,10 @@ class _HomePageState extends State<HomePage> {
               ),
 
               // Card de boas-vindas
+              SizedBox(height: 70),
               Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.all(30),
+                padding: const EdgeInsets.all(80),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
@@ -118,6 +119,7 @@ class _HomePageState extends State<HomePage> {
               ),
 
               // Opções
+              SizedBox(height: 50),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Align(
@@ -146,6 +148,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 30),
 
               // Rodapé
+              SizedBox(height: 100),
               Container(
                 color: Colors.blue[900],
                 padding: const EdgeInsets.all(20),
