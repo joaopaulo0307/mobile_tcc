@@ -12,8 +12,7 @@ import 'package:mobile_tcc/lista_compras.dart';
 import 'package:mobile_tcc/perfil.dart';
 // ignore: unused_import
 import 'package:mobile_tcc/to-do.dart';
-// ignore: unused_import
-import 'package:mobile_tcc/usuarios.dart';
+import 'package:mobile_tcc/usuarios.dart'; // Mantida para a navegação
 
 class HomePage extends StatefulWidget {
   final String nome; // recebe o nome do cadastro
@@ -25,6 +24,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Mapa para controlar as ações de cada botão
+  final Map<String, Widget> _opcoes = {
+    "Criar Nova casa": Container(), // Substitua pelo widget apropriado
+    "Lar": Container(),
+    "Tarefas": Container(),
+    "Gastos": Container(),
+    "Usuários": Usuarios(), // Página de usuários
+    "Arq. de Tarefas": Container(),
+  };
+
+  void _navegarParaTela(String titulo) {
+    Widget tela = _opcoes[titulo] ?? Container();
+    
+    if (titulo == "Usuários") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Usuarios()),
+      );
+    }
+    // Adicione outras condições para outras telas aqui
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,12 +134,12 @@ class _HomePageState extends State<HomePage> {
                 runSpacing: 12,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildOptionButton(Icons.add_home, "Criar Nova casa"),
-                  _buildOptionButton(Icons.home, "Lar"),
-                  _buildOptionButton(Icons.task, "Tarefas"),
-                  _buildOptionButton(Icons.attach_money, "Gastos"),
-                  _buildOptionButton(Icons.people, "Usuários"),
-                  _buildOptionButton(Icons.archive, "Arq. de Tarefas"),
+                  _buildOptionButton(Icons.add_home, "Criar Nova casa", onPressed: () => _navegarParaTela("Criar Nova casa")),
+                  _buildOptionButton(Icons.home, "Lar", onPressed: () => _navegarParaTela("Lar")),
+                  _buildOptionButton(Icons.task, "Tarefas", onPressed: () => _navegarParaTela("Tarefas")),
+                  _buildOptionButton(Icons.attach_money, "Gastos", onPressed: () => _navegarParaTela("Gastos")),
+                  _buildOptionButton(Icons.people, "Usuários", onPressed: () => _navegarParaTela("Usuários")),
+                  _buildOptionButton(Icons.archive, "Arq. de Tarefas", onPressed: () => _navegarParaTela("Arq. de Tarefas")),
                 ],
               ),
 
@@ -164,7 +185,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  static Widget _buildOptionButton(IconData icon, String text) {
+  Widget _buildOptionButton(IconData icon, String text, {VoidCallback? onPressed}) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue[800],
@@ -173,13 +194,12 @@ class _HomePageState extends State<HomePage> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-      onPressed: () {},
+      onPressed: onPressed,
       icon: Icon(icon, color: Colors.white),
       label: Text(
         text,
         style: const TextStyle(color: Colors.white),
       ),
-      
     );
   }
 }
