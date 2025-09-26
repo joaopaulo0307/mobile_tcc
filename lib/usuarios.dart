@@ -7,9 +7,10 @@ class Usuarios extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2E2E2E), // Fundo cinza escuro
+      backgroundColor: const Color(0xFF2E2E2E), 
       body: Column(
         children: [
+          
           // HEADER
           Container(
             color: const Color(0xFF133A67),
@@ -43,7 +44,7 @@ class Usuarios extends StatelessWidget {
           ),
           const SizedBox(height: 40),
 
-          // LISTA DE MEMBROS
+   
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -57,7 +58,7 @@ class Usuarios extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          // BOTÕES
+      
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -116,7 +117,7 @@ class Usuarios extends StatelessWidget {
     );
   }
 
-  // NAV ITEM
+
   Widget _navItem(String title, {bool isActive = false}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -139,7 +140,7 @@ class Usuarios extends StatelessWidget {
     );
   }
 
-  // CARD DE MEMBRO
+
   Widget _membroCard() {
     return Container(
       width: 100,
@@ -164,7 +165,7 @@ class Usuarios extends StatelessWidget {
     );
   }
 
-  // BOTÕES
+
   Widget _actionButton(String text) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-// Cores globais
+
 const Color secondaryColor = Color(0xFF5E83AE);
 const Color containerColor = Color.fromARGB(255, 55, 56, 57);
 const Color textFieldColor = Colors.white;
@@ -10,7 +10,7 @@ const Color accentColor = Colors.blueGrey;
 const Color primaryColor = Color(0xFF133A67);
 
 
-// TELA PRINCIPAL DE LOGIN
+// TELA PRINCIPAL
 class LoginSc extends StatelessWidget {
   const LoginSc({super.key});
 
@@ -32,7 +32,7 @@ class LoginSc extends StatelessWidget {
   }
 }
 
-// CABEÇALHO
+// HEADER
 class Header extends StatelessWidget {
   const Header({super.key});
 
@@ -62,7 +62,7 @@ class Header extends StatelessWidget {
   }
 }
 
-// FORMULÁRIO DE LOGIN
+// FORMULÁRIO DE DADOS
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
 
@@ -229,7 +229,7 @@ class SuccessModal extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Ícone de sucesso
+       
             Container(
               width: 80,
               height: 80,
@@ -245,7 +245,7 @@ class SuccessModal extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             
-            // Título
+         
             const Text(
               'Enviado com sucesso',
               style: TextStyle(
@@ -255,8 +255,7 @@ class SuccessModal extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            
-            // Mensagem
+        
             const Text(
               'Siga os passos no email!',
               style: TextStyle(
@@ -267,7 +266,7 @@ class SuccessModal extends StatelessWidget {
             ),
             const SizedBox(height: 20),
                         
-            // Botão de fechar
+     
             ElevatedButton(
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
@@ -287,7 +286,7 @@ class SuccessModal extends StatelessWidget {
   }
 }
 
-// RODAPÉ
+ //FOOTER
 class Footer extends StatelessWidget {
   final String? text;
   final String? subText;
@@ -366,7 +365,7 @@ class EsqueciSenhaScreen extends StatelessWidget {
   }
 }
 
-// TELA DE CADASTRO
+
 class CadastroScreen extends StatelessWidget {
   const CadastroScreen({super.key});
 

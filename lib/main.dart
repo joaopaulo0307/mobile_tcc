@@ -6,7 +6,6 @@ import 'dart:ui';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
-// Cores constantes
 const Color primaryColor = Color(0xFF133A67);
 const Color secondaryColor = Color(0xFF5E83AE);
 const Color containerColor = Color.fromARGB(255, 55, 56, 57);
@@ -85,14 +84,14 @@ class Footer extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Avatar ou logo
+      
           const CircleAvatar(
             radius: 30,
             backgroundColor: Colors.grey,
           ),
           const SizedBox(height: 10),
 
-          // Texto principal
+        
           Text(
             text ?? "Organize suas tarefas de forma simples",
             style: const TextStyle(color: textColor, fontSize: 14),
@@ -100,7 +99,7 @@ class Footer extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Ícones de redes sociais
+  
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: const [
@@ -112,7 +111,6 @@ class Footer extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Texto secundário
           Text(
             subText ?? "Contato | Sobre | Termos de Uso",
             style: const TextStyle(color: Colors.white70, fontSize: 12),
@@ -120,7 +118,6 @@ class Footer extends StatelessWidget {
           ),
           const SizedBox(height: 5),
 
-          // Direitos reservados
           const Text(
             "© Todos os direitos reservados - 2025",
             style: TextStyle(color: Colors.white70, fontSize: 12),
@@ -151,7 +148,6 @@ class LandingPage extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          // Filtro de desfoque + transparência
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // intensidade do desfoque
@@ -160,7 +156,6 @@ class LandingPage extends StatelessWidget {
               ),
             ),
           ),
-          // Conteúdo centralizado
           Center(
             child: SingleChildScrollView(
               child: Column(

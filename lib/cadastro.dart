@@ -1,4 +1,4 @@
-// cadastro.dart
+
 import 'package:flutter/material.dart';
 
 class CadastroPage extends StatelessWidget {
@@ -15,7 +15,7 @@ class CadastroPage extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // Formulário de cadastro aqui
+   
             TextFormField(
               decoration: const InputDecoration(labelText: 'Nome'),
             ),
@@ -29,7 +29,7 @@ class CadastroPage extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Após cadastro, voltar para a página inicial
+     
                 Navigator.pop(context);
               },
               child: const Text('Cadastrar'),

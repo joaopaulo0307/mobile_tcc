@@ -12,7 +12,7 @@ import 'package:mobile_tcc/lista_compras.dart';
 import 'package:mobile_tcc/perfil.dart';
 // ignore: unused_import
 import 'package:mobile_tcc/to-do.dart';
-import 'package:mobile_tcc/usuarios.dart'; // Mantida para a navegação
+import 'package:mobile_tcc/usuarios.dart'; 
 
 class HomePage extends StatefulWidget {
   final String nome; // recebe o nome do cadastro
@@ -24,13 +24,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Mapa para controlar as ações de cada botão
+
   final Map<String, Widget> _opcoes = {
-    "Criar Nova casa": Container(), // Substitua pelo widget apropriado
+    "Criar Nova casa": Container(), 
     "Lar": Container(),
     "Tarefas": Container(),
     "Gastos": Container(),
-    "Usuários": Usuarios(), // Página de usuários
+    "Usuários": Usuarios(), 
     "Arq. de Tarefas": Container(),
   };
 
@@ -43,7 +43,6 @@ class _HomePageState extends State<HomePage> {
         MaterialPageRoute(builder: (context) => Usuarios()),
       );
     }
-    // Adicione outras condições para outras telas aqui
   }
 
   @override
@@ -85,11 +84,11 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // Card de boas-vindas
+      
               SizedBox(height: 70),
               Container(
                 margin: const EdgeInsets.all(30),
-                padding: const EdgeInsets.all(80),
+                padding: const EdgeInsets.all(70),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
@@ -118,8 +117,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // Opções
-              SizedBox(height: 50),
+              SizedBox(height: 40),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Align(
@@ -147,8 +145,7 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 30),
 
-              // Rodapé
-              SizedBox(height: 100),
+              SizedBox(height: 30),
               Container(
                 color: Colors.blue[900],
                 padding: const EdgeInsets.all(20),
