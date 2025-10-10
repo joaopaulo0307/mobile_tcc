@@ -26,10 +26,7 @@ class Usuarios extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _navItem("Tarefas"),
-                      _navItem("Gráficos"),
-                      _navItem("Usuários", isActive: true),
-                      _navItem("Home"),
+                  
                     ],
                   ),
                 ),

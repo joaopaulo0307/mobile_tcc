@@ -1,21 +1,9 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
-// ignore: unused_import
-import 'package:mobile_tcc/cadastro.dart';
-// ignore: unused_import
-import 'package:mobile_tcc/calendar.dart';
-// ignore: unused_import
-import 'package:mobile_tcc/financas.dart';
-// ignore: unused_import
-import 'package:mobile_tcc/lista_compras.dart';
-// ignore: unused_import
-import 'package:mobile_tcc/perfil.dart';
-// ignore: unused_import
-import 'package:mobile_tcc/to-do.dart';
-import 'package:mobile_tcc/usuarios.dart'; 
+import 'package:mobile_tcc/usuarios.dart';
 
 class HomePage extends StatefulWidget {
-  final String nome; // recebe o nome do cadastro
+  final String nome;
 
   const HomePage({super.key, required this.nome});
 
@@ -24,23 +12,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   final Map<String, Widget> _opcoes = {
-    "Criar Nova casa": Container(), 
-    "Lar": Container(),
-    "Tarefas": Container(),
-    "Gastos": Container(),
-    "Usuários": Usuarios(), 
-    "Arq. de Tarefas": Container(),
+    "Minhas Casas": Container(),
+    "Calendário": Container(),
+    "Econômico": Container(),
+    "Usuários": Usuarios(),
   };
 
   void _navegarParaTela(String titulo) {
-    Widget tela = _opcoes[titulo] ?? Container();
-    
-    if (titulo == "Usuários") {
+    if (_opcoes.containsKey(titulo)) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Usuarios()),
+        MaterialPageRoute(builder: (context) => _opcoes[titulo]!),
       );
     }
   }
@@ -48,157 +31,261 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Header
-              Container(
-                color: Colors.blue[900],
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Colors.grey,
-                      radius: 20,
+      backgroundColor: Colors.black,
+      drawer: Drawer(
+        backgroundColor: const Color.fromARGB(255, 40, 40, 40),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Color(0xFF0A347E),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 25,
+                    backgroundColor: Colors.grey,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.nome.isNotEmpty ? widget.nome : "Usuário",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Pesquisar...",
-                          filled: true,
-                          fillColor: Colors.white,
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 0),
+                  ),
+                ],
+              ),
+            ),
+            _drawerItem("HOME"),
+            _drawerItem("ECONÔMICO"),
+            _drawerItem("USUÁRIOS"),
+            const Divider(color: Colors.white24),
+            _drawerItem("MINHAS CASAS"),
+            _drawerItem("MEU PERFIL"),
+            _drawerItem("CONFIGURAÇÕES"),
+          ],
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ====== CABEÇALHO SUPERIOR ======
+            Container(
+              color: const Color(0xFF0A347E),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              child: Row(
+                children: [
+                  Builder(
+                    builder: (context) => IconButton(
+                      icon: const CircleAvatar(
+                        backgroundColor: Colors.grey,
+                        radius: 18,
+                      ),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: "Hinted search text",
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: const Color.fromARGB(255, 230, 230, 230),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-
-      
-              SizedBox(height: 70),
-              Container(
-                margin: const EdgeInsets.all(30),
-                padding: const EdgeInsets.all(70),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 79, 73, 196),
-                      Color.fromARGB(255, 100, 38, 163)
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.nome.isNotEmpty
-                          ? "Olá, ${widget.nome}"
-                          : "Olá!",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(height: 20),
+
+                    // ====== CARD ROXO ======
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF241F69),
+                            Color(0xFF502E96),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "quarta-feira, 4 de Maio",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Olá, ${widget.nome}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    // ====== TÍTULO “OPÇÕES” ======
+                    const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Opções",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const Divider(color: Colors.white38, indent: 20, endIndent: 20),
+
+                    // ====== BOTÕES DE OPÇÕES ======
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 20,
+                      runSpacing: 20,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _buildOptionButton("Usuários"),
+                        _buildOptionButton("Econômico"),
+                        _buildOptionButton("Calendário"),
+                        _buildOptionButton("Minhas Casas"),
+                      ],
+                    ),
+
+                    const Divider(
+                        color: Colors.white38, indent: 20, endIndent: 20),
+
+                    const SizedBox(height: 40),
+
+                    // ====== RODAPÉ ======
+                    Container(
+                      width: double.infinity,
+                      color: const Color(0xFF0A347E),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 25),
+                      child: Column(
+                        children: [
+                          const CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.grey,
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            "Organize suas tarefas de forma simples",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(FontAwesomeIcons.instagram,
+                                  color: Colors.white, size: 20),
+                              SizedBox(width: 20),
+                              Icon(FontAwesomeIcons.facebook,
+                                  color: Colors.white, size: 20),
+                              SizedBox(width: 20),
+                              Icon(FontAwesomeIcons.google,
+                                  color: Colors.white, size: 20),
+                              SizedBox(width: 20),
+                              Icon(FontAwesomeIcons.whatsapp,
+                                  color: Colors.white, size: 20),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            "© Todos os direitos reservados - 2025",
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 11),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-
-              SizedBox(height: 40),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Opções",
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                ),
-              ),
-
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildOptionButton(Icons.add_home, "Criar Nova casa", onPressed: () => _navegarParaTela("Criar Nova casa")),
-                  _buildOptionButton(Icons.home, "Lar", onPressed: () => _navegarParaTela("Lar")),
-                  _buildOptionButton(Icons.task, "Tarefas", onPressed: () => _navegarParaTela("Tarefas")),
-                  _buildOptionButton(Icons.attach_money, "Gastos", onPressed: () => _navegarParaTela("Gastos")),
-                  _buildOptionButton(Icons.people, "Usuários", onPressed: () => _navegarParaTela("Usuários")),
-                  _buildOptionButton(Icons.archive, "Arq. de Tarefas", onPressed: () => _navegarParaTela("Arq. de Tarefas")),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              SizedBox(height: 30),
-              Container(
-                color: Colors.blue[900],
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.grey,
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Organize suas tarefas de forma simples",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: const [
-                        Icon(FontAwesomeIcons.facebook, color: Colors.white),
-                        Icon(FontAwesomeIcons.instagram, color: Colors.white),
-                        Icon(FontAwesomeIcons.google, color: Colors.white),
-                        Icon(FontAwesomeIcons.whatsapp, color: Colors.white),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "© Todos os direitos reservados - 2025",
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildOptionButton(IconData icon, String text, {VoidCallback? onPressed}) {
-    return ElevatedButton.icon(
+  // ====== BOTÃO DE OPÇÃO ======
+  Widget _buildOptionButton(String text) {
+    return ElevatedButton(
+      onPressed: () => _navegarParaTela(text),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue[800],
+        backgroundColor: const Color(0xFF0A347E),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(30),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
       ),
-      onPressed: onPressed,
-      icon: Icon(icon, color: Colors.white),
-      label: Text(
+      child: Text(
         text,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    );
+  }
+
+  // ====== ITEM DO MENU LATERAL ======
+  Widget _drawerItem(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 55, 55, 55),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: ListTile(
+          title: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+          onTap: () => Navigator.pop(context),
+        ),
       ),
     );
   }
