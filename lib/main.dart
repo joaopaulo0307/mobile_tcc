@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'cadastro.dart';
+import 'acesso/cadastro.dart';
 import 'home.dart';
-import 'esqueci_senha.dart';
+import 'acesso/esqueci_senha.dart';
 import 'dart:ui'; 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 

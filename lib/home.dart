@@ -1,6 +1,6 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile_tcc/usuarios.dart';
+import 'package:mobile_tcc/acesso/usuarios.dart';
 
 class HomePage extends StatefulWidget {
   final String nome;
