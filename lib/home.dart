@@ -1,24 +1,117 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mobile_tcc/usuarios.dart';
+import 'package:mobile_tcc/economic/economico.dart';
+// Importe as outras páginas necessárias aqui
+// import 'package:mobile_tcc/calendario.dart';
+// import 'package:mobile_tcc/minhas_casas.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final String nome;
   const HomePage({super.key, required this.nome});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final Map<String, Widget> _opcoes = {
+    "HOME": const HomePage(nome: ""),
+    "ECONÔMICO": const Economico(),
+    "USUÁRIOS": const Usuarios(),
+    "MINHAS CASAS": Container(),
+    "MEU PERFIL": Container(),
+    "CONFIGURAÇÕES": Container(),
+  };
+
+  void _navegarParaTela(String titulo) {
+    if (_opcoes.containsKey(titulo)) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => _opcoes[titulo]!),
+      );
+    }
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: const Color.fromARGB(255, 60, 60, 60),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const SizedBox(height: 20),
+          const CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.grey,
+            child: Icon(Icons.person, color: Colors.white, size: 30),
+          ),
+          const SizedBox(height: 10),
+          const Divider(color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
+          _drawerItem("HOME", () => Navigator.pop(context)),
+          _drawerItem("ECONÔMICO", () {
+            Navigator.pop(context);
+            _navegarParaTela("ECONÔMICO");
+          }),
+          _drawerItem("USUÁRIOS", () {
+            Navigator.pop(context);
+            _navegarParaTela("USUÁRIOS");
+          }),
+          const Divider(color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
+          _drawerItem("MINHAS CASAS", () {
+            Navigator.pop(context);
+            _navegarParaTela("MINHAS CASAS");
+          }),
+          _drawerItem("MEU PERFIL", () => Navigator.pop(context)),
+          _drawerItem("CONFIGURAÇÕES", () => Navigator.pop(context)),
+        ],
+      ),
+    );
+  }
+
+  Widget _drawerItem(String title, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 35, 35, 35),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: ListTile(
+          dense: true,
+          title: Text(
+            title,
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+          ),
+          onTap: onTap,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      drawer: _buildDrawer(),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top bar
+            // Top bar com menu
             Container(
               color: const Color(0xFF1A3B6B),
               height: 50,
-              alignment: Alignment.centerLeft,
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: const Icon(Icons.menu, color: Colors.white),
+              child: Row(
+                children: [
+                  Builder(
+                    builder: (context) => IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.white),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -41,7 +134,7 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "Olá, $nome",
+                    "Olá, ${widget.nome}",
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -91,10 +184,10 @@ class HomePage extends StatelessWidget {
               runSpacing: 12,
               alignment: WrapAlignment.center,
               children: [
-                _buildOptionButton("Usuários", FontAwesomeIcons.user),
-                _buildOptionButton("Econômico", FontAwesomeIcons.moneyBill),
-                _buildOptionButton("Calendário", FontAwesomeIcons.calendar),
-                _buildOptionButton("Minhas Casas", FontAwesomeIcons.house),
+                _buildOptionButton("Usuários", FontAwesomeIcons.user, () => _navegarParaTela("USUÁRIOS")),
+                _buildOptionButton("Econômico", FontAwesomeIcons.moneyBill, () => _navegarParaTela("ECONÔMICO")),
+                _buildOptionButton("Calendário", FontAwesomeIcons.calendar, () => _navegarParaTela("CALENDÁRIO")),
+                _buildOptionButton("Minhas Casas", FontAwesomeIcons.house, () => _navegarParaTela("MINHAS CASAS")),
               ],
             ),
 
@@ -202,22 +295,25 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Botões de opções centralizados
-  static Widget _buildOptionButton(String text, IconData icon) {
-    return Container(
-      width: 150,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A3B6B),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
-          Text(text, style: const TextStyle(color: Colors.white)),
-        ],
+  // Botões de opções centralizados (agora com navegação)
+  Widget _buildOptionButton(String text, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 150,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A3B6B),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Text(text, style: const TextStyle(color: Colors.white)),
+          ],
+        ),
       ),
     );
   }
