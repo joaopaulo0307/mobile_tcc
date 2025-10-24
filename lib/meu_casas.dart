@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../acesso/auth_service.dart'; // Importar o AuthService
 
 class MeuCasas extends StatefulWidget {
   final String nome;
@@ -51,8 +52,42 @@ class _MeuCasasState extends State<MeuCasas> {
     );
   }
 
-  void _voltarParaLogin() {
-    Navigator.pushReplacementNamed(context, '/');
+  // MÉTODO ATUALIZADO: Fazer logout e voltar para login
+  Future<void> _fazerLogout() async {
+    try {
+      // Fechar o drawer primeiro
+      if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+        Navigator.pop(context);
+      }
+
+      // Mostrar loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF466A91)),
+          ),
+        ),
+      );
+
+      // Fazer logout no AuthService
+      await AuthService.logout();
+
+      // Fechar loading e navegar para login
+      if (mounted) {
+        Navigator.pop(context); // Fecha o loading
+        Navigator.pushReplacementNamed(context, '/');
+      }
+
+    } catch (e) {
+      // Em caso de erro, ainda tenta navegar para login
+      if (mounted) {
+        Navigator.pop(context); // Fecha o loading
+        Navigator.pushReplacementNamed(context, '/');
+      }
+      print('Erro durante logout: $e');
+    }
   }
 
   void _abrirPopupAdicionarCasa() {
@@ -309,10 +344,11 @@ class _MeuCasasState extends State<MeuCasas> {
           
           const Divider(color: Colors.white54),
           
+          // BOTÃO SAIR ATUALIZADO
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Sair', style: TextStyle(color: Colors.red)),
-            onTap: _voltarParaLogin,
+            onTap: _fazerLogout, // Agora chama o método de logout
           ),
           
           // Footer do Drawer

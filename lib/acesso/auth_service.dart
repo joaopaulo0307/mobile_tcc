@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   // MUDANÇA IMPORTANTE: Use seu IP real ou um serviço de teste
   static const String baseUrl = 'http://192.168.1.100:3000/api'; // ALTERE PARA SEU IP
-  // static const String baseUrl = 'https://jsonplaceholder.typicode.com'; // PARA TESTE
   static String? _token;
 
   // Getter para o token
@@ -61,12 +60,12 @@ class AuthService {
     print('Token e dados removidos');
   }
 
-  // Cadastro - APENAS CADASTRO, SEM LOGIN AUTOMÁTICO
+  // **CADASTRO CORRIGIDO - SEM TELEFONE**
   static Future<Map<String, dynamic>> cadastrar({
     required String nome,
     required String email,
     required String senha,
-    required String telefone,
+    // TELEFONE REMOVIDO
   }) async {
     try {
       print('Tentando cadastrar: $email');
@@ -90,15 +89,13 @@ class AuthService {
       await prefs.setStringList('usuarios_cadastrados', usuarios);
       
       // **IMPORTANTE**: Não salva token nem faz login automático
-      // Apenas retorna sucesso para o usuário fazer login manualmente
-      
       return {
         'success': true, 
         'message': 'Cadastro realizado com sucesso! Faça login para continuar.',
         'user': {
           'nome': nome,
           'email': email,
-          'telefone': telefone,
+          // TELEFONE REMOVIDO
         },
       };
 
@@ -111,16 +108,12 @@ class AuthService {
           'nome': nome,
           'email': email,
           'senha': senha,
-          'telefone': telefone,
+          // TELEFONE REMOVIDO
         }),
       ).timeout(const Duration(seconds: 10));
 
-      print('Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
-        // **IMPORTANTE**: Não faz login automático no cadastro
         return {
           'success': true, 
           'message': 'Cadastro realizado com sucesso! Faça login para continuar.',
@@ -138,7 +131,7 @@ class AuthService {
     }
   }
 
-  // Login - FAZ LOGIN E SALVA TOKEN/DADOS
+  // Login
   static Future<Map<String, dynamic>> login({
     required String email,
     required String senha,
@@ -160,13 +153,12 @@ class AuthService {
         final userData = {
           'nome': email.split('@')[0],
           'email': email,
-          'telefone': '(11) 99999-9999', // Simulado
           'id': DateTime.now().millisecondsSinceEpoch.toString(),
         };
         
         final token = 'simulated_token_${DateTime.now().millisecondsSinceEpoch}';
         
-        // **IMPORTANTE**: Salva token e dados apenas no login
+        // Salva token e dados apenas no login
         await _saveToken(token);
         await _saveUserData(userData);
         
@@ -186,29 +178,6 @@ class AuthService {
           'message': 'Senha incorreta'
         };
       }
-
-      // CÓDIGO ORIGINAL PARA BACKEND REAL (COMENTADO TEMPORARIAMENTE)
-      /*
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': email,
-          'senha': senha,
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        // **IMPORTANTE**: Salva token e dados apenas no login
-        await _saveToken(data['token']);
-        await _saveUserData(data['user']);
-        return {'success': true, 'user': data['user']};
-      } else {
-        final error = json.decode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Erro no login'};
-      }
-      */
     } on http.ClientException catch (e) {
       return {'success': false, 'message': 'Erro de conexão. Verifique se o servidor está rodando.'};
     } on Exception catch (e) {
@@ -237,59 +206,6 @@ class AuthService {
           'message': 'Email não cadastrado no sistema'
         };
       }
-      
-      // CÓDIGO ORIGINAL PARA BACKEND REAL (COMENTADO TEMPORARIAMENTE)
-      /*
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/esqueci-senha'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email}),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return {'success': true, 'message': 'Email de recuperação enviado!'};
-      } else {
-        final error = json.decode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Erro ao enviar email'};
-      }
-      */
-    } on Exception catch (e) {
-      return {'success': false, 'message': 'Erro: $e'};
-    }
-  }
-
-  // Redefinir senha - VERSÃO SIMULADA
-  static Future<Map<String, dynamic>> redefinirSenha({
-    required String token,
-    required String novaSenha,
-  }) async {
-    try {
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Simular redefinição de senha bem-sucedida
-      return {
-        'success': true, 
-        'message': 'Senha redefinida com sucesso!'
-      };
-      
-      // CÓDIGO ORIGINAL PARA BACKEND REAL (COMENTADO TEMPORARIAMENTE)
-      /*
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/redefinir-senha'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'token': token,
-          'novaSenha': novaSenha,
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return {'success': true, 'message': 'Senha redefinida com sucesso!'};
-      } else {
-        final error = json.decode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Erro ao redefinir senha'};
-      }
-      */
     } on Exception catch (e) {
       return {'success': false, 'message': 'Erro: $e'};
     }
@@ -352,15 +268,6 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
       return usuarios.any((user) => user.contains(email));
-      
-      // Para backend real:
-      /*
-      final response = await http.get(
-        Uri.parse('$baseUrl/auth/verificar-email/$email'),
-      ).timeout(const Duration(seconds: 10));
-      
-      return response.statusCode == 200;
-      */
     } catch (e) {
       return false;
     }

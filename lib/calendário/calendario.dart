@@ -104,6 +104,42 @@ class _CalendarioPageState extends State<CalendarioPage> {
     return dayTasks.any((task) => task['done'] == false);
   }
 
+  void _removeTask(int day, int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF133C74),
+        title: const Text(
+          'Remover tarefa',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Deseja remover esta tarefa?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                tasksByDay[day]!.removeAt(index);
+                if (tasksByDay[day]!.isEmpty) {
+                  tasksByDay.remove(day);
+                }
+              });
+              Navigator.of(context).pop();
+            },
+            child: const Text('Remover',
+                style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedDay = dates[selectedDayIndex];
@@ -225,8 +261,20 @@ class _CalendarioPageState extends State<CalendarioPage> {
                                       task['description'] ?? '',
                                       style: const TextStyle(color: Colors.white70),
                                     ),
-                                    trailing: const Icon(Icons.edit,
-                                        color: Colors.white),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.edit,
+                                            color: Colors.white),
+                                        const SizedBox(width: 10),
+                                        GestureDetector(
+                                          onTap: () =>
+                                              _removeTask(selectedDay, index),
+                                          child: const Icon(Icons.delete,
+                                              color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -244,7 +292,6 @@ class _CalendarioPageState extends State<CalendarioPage> {
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Column(
                 children: [
-                  // Logo fictício (pode substituir por Image.asset)
                   const CircleAvatar(
                     radius: 28,
                     backgroundColor: Colors.white,
@@ -262,8 +309,6 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 16),
-
-                  // Ícones sociais
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [

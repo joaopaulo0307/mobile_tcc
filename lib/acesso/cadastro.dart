@@ -12,7 +12,6 @@ class CadastroPage extends StatefulWidget {
 class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _telefoneController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
   final TextEditingController _confirmarSenhaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -37,7 +36,6 @@ class _CadastroPageState extends State<CadastroPage> {
         nome: _nomeController.text.trim(),
         email: _emailController.text.trim().toLowerCase(),
         senha: _senhaController.text,
-        telefone: _telefoneController.text.trim(),
       );
 
       if (!mounted) return;
@@ -45,7 +43,7 @@ class _CadastroPageState extends State<CadastroPage> {
       if (result['success'] == true) {
         _mostrarSucesso(result['message']);
         
-        // **ALTERAÇÃO AQUI**: Navegar de volta para login após cadastro
+        // Navegar de volta para login após cadastro
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) {
           Navigator.pop(context); // Volta para a tela de login
@@ -103,18 +101,6 @@ class _CadastroPageState extends State<CadastroPage> {
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
     if (!emailRegex.hasMatch(value)) {
       return 'Por favor, insira um email válido';
-    }
-    return null;
-  }
-
-  String? _validarTelefone(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Por favor, insira seu telefone';
-    }
-    final phoneRegex = RegExp(r'^[0-9]{10,11}$');
-    final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-    if (!phoneRegex.hasMatch(digitsOnly)) {
-      return 'Por favor, insira um telefone válido (10 ou 11 dígitos)';
     }
     return null;
   }
@@ -227,26 +213,6 @@ class _CadastroPageState extends State<CadastroPage> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                             validator: _validarEmail,
-                          ),
-                          const SizedBox(height: 12),
-                          
-                          // Campo Telefone
-                          TextFormField(
-                            controller: _telefoneController,
-                            keyboardType: TextInputType.phone,
-                            textInputAction: TextInputAction.next,
-                            decoration: InputDecoration(
-                              labelText: "Telefone",
-                              labelStyle: const TextStyle(color: Colors.black54),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            ),
-                            validator: _validarTelefone,
                           ),
                           const SizedBox(height: 12),
                           
@@ -388,7 +354,6 @@ class _CadastroPageState extends State<CadastroPage> {
   void dispose() {
     _nomeController.dispose();
     _emailController.dispose();
-    _telefoneController.dispose();
     _senhaController.dispose();
     _confirmarSenhaController.dispose();
     super.dispose();
