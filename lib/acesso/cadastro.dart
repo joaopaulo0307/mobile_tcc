@@ -20,40 +20,52 @@ class _CadastroPageState extends State<CadastroPage> {
   bool _obscureSenha = true;
   bool _obscureConfirmarSenha = true;
 
-  void _cadastrar() async {
-    if (_formKey.currentState!.validate()) {
-      if (_senhaController.text != _confirmarSenhaController.text) {
-        _mostrarErro('As senhas não coincidem');
-        return;
-      }
+  Future<void> _cadastrar() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      setState(() {
-        _isLoading = true;
-      });
+    if (_senhaController.text != _confirmarSenhaController.text) {
+      _mostrarErro('As senhas não coincidem');
+      return;
+    }
 
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
       final result = await AuthService.cadastrar(
-        nome: _nomeController.text,
-        email: _emailController.text,
+        nome: _nomeController.text.trim(),
+        email: _emailController.text.trim().toLowerCase(),
         senha: _senhaController.text,
-        telefone: _telefoneController.text,
+        telefone: _telefoneController.text.trim(),
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
 
       if (result['success'] == true) {
         _mostrarSucesso(result['message']);
+        
         // Navegar para minhas casas após cadastro bem-sucedido
-        Future.delayed(const Duration(seconds: 2), () {
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
           Navigator.pushReplacementNamed(
             context,
             '/minhas_casas',
-            arguments: _nomeController.text,
+            arguments: result['user']?['nome'] ?? _nomeController.text,
           );
-        });
+        }
       } else {
         _mostrarErro(result['message']);
+      }
+    } catch (e) {
+      if (mounted) {
+        _mostrarErro('Erro inesperado: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -63,7 +75,7 @@ class _CadastroPageState extends State<CadastroPage> {
       SnackBar(
         backgroundColor: Colors.red,
         content: Text(mensagem),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -73,9 +85,52 @@ class _CadastroPageState extends State<CadastroPage> {
       SnackBar(
         backgroundColor: Colors.green,
         content: Text(mensagem),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
+  }
+
+  String? _validarNome(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira seu nome completo';
+    }
+    if (value.length < 3) {
+      return 'O nome deve ter pelo menos 3 caracteres';
+    }
+    return null;
+  }
+
+  String? _validarEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira seu email';
+    }
+    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    if (!emailRegex.hasMatch(value)) {
+      return 'Por favor, insira um email válido';
+    }
+    return null;
+  }
+
+  String? _validarTelefone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira seu telefone';
+    }
+    final phoneRegex = RegExp(r'^[0-9]{10,11}$');
+    final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
+    if (!phoneRegex.hasMatch(digitsOnly)) {
+      return 'Por favor, insira um telefone válido (10 ou 11 dígitos)';
+    }
+    return null;
+  }
+
+  String? _validarSenha(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira sua senha';
+    }
+    if (value.length < 6) {
+      return 'A senha deve ter pelo menos 6 caracteres';
+    }
+    return null;
   }
 
   @override
@@ -97,6 +152,9 @@ class _CadastroPageState extends State<CadastroPage> {
             child: Image.asset(
               'lib/assets/images/fundo-tcc-mobile.png',
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(color: const Color(0xFF133A67));
+              },
             ),
           ),
           Positioned.fill(
@@ -140,9 +198,10 @@ class _CadastroPageState extends State<CadastroPage> {
                           // Campo Nome
                           TextFormField(
                             controller: _nomeController,
+                            textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                               labelText: "Nome completo",
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelStyle: const TextStyle(color: Colors.black54),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -151,12 +210,7 @@ class _CadastroPageState extends State<CadastroPage> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira seu nome';
-                              }
-                              return null;
-                            },
+                            validator: _validarNome,
                           ),
                           const SizedBox(height: 12),
                           
@@ -164,9 +218,10 @@ class _CadastroPageState extends State<CadastroPage> {
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                               labelText: "Email",
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelStyle: const TextStyle(color: Colors.black54),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -175,15 +230,7 @@ class _CadastroPageState extends State<CadastroPage> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira seu email';
-                              }
-                              if (!value.contains('@')) {
-                                return 'Por favor, insira um email válido';
-                              }
-                              return null;
-                            },
+                            validator: _validarEmail,
                           ),
                           const SizedBox(height: 12),
                           
@@ -191,9 +238,10 @@ class _CadastroPageState extends State<CadastroPage> {
                           TextFormField(
                             controller: _telefoneController,
                             keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                               labelText: "Telefone",
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelStyle: const TextStyle(color: Colors.black54),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -202,12 +250,7 @@ class _CadastroPageState extends State<CadastroPage> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira seu telefone';
-                              }
-                              return null;
-                            },
+                            validator: _validarTelefone,
                           ),
                           const SizedBox(height: 12),
                           
@@ -215,9 +258,10 @@ class _CadastroPageState extends State<CadastroPage> {
                           TextFormField(
                             controller: _senhaController,
                             obscureText: _obscureSenha,
+                            textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                               labelText: "Senha",
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelStyle: const TextStyle(color: Colors.black54),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -237,15 +281,7 @@ class _CadastroPageState extends State<CadastroPage> {
                                 },
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira sua senha';
-                              }
-                              if (value.length < 6) {
-                                return 'A senha deve ter pelo menos 6 caracteres';
-                              }
-                              return null;
-                            },
+                            validator: _validarSenha,
                           ),
                           const SizedBox(height: 12),
                           
@@ -253,9 +289,10 @@ class _CadastroPageState extends State<CadastroPage> {
                           TextFormField(
                             controller: _confirmarSenhaController,
                             obscureText: _obscureConfirmarSenha,
+                            textInputAction: TextInputAction.done,
                             decoration: InputDecoration(
                               labelText: "Confirmar senha",
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelStyle: const TextStyle(color: Colors.black54),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -284,6 +321,7 @@ class _CadastroPageState extends State<CadastroPage> {
                               }
                               return null;
                             },
+                            onFieldSubmitted: (_) => _cadastrar(),
                           ),
                           const SizedBox(height: 20),
                           
