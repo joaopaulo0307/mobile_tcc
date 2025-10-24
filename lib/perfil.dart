@@ -2,18 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mobile_tcc/home.dart';
-import 'package:mobile_tcc/main.dart';
-import 'package:mobile_tcc/meu_casas.dart';
-import 'package:mobile_tcc/usuarios.dart';
-import 'package:mobile_tcc/economic/economico.dart';
-import 'package:mobile_tcc/economic/historico.dart';
-import 'package:mobile_tcc/calendário/calendario.dart';
-import 'package:mobile_tcc/calendário/to-do.dart';
 
 class Perfil extends StatefulWidget {
-  final String userEmail; // Recebe o e-mail do login
-  const Perfil({super.key, required this.userEmail});
+  final String userEmail; // E-mail do usuário
+  final List<String> tarefasRealizadas; // Lista de tarefas feitas
+
+  const Perfil({
+    super.key,
+    required this.userEmail,
+    required this.tarefasRealizadas,
+  });
 
   @override
   State<Perfil> createState() => _PerfilPageState();
@@ -22,16 +20,9 @@ class Perfil extends StatefulWidget {
 class _PerfilPageState extends State<Perfil> {
   File? _fotoPerfil;
   String nomeUsuario = "";
-
-  // Controllers para campos de texto discretos
-  final TextEditingController cargoController = TextEditingController();
-  final TextEditingController organizacaoController = TextEditingController();
-  final TextEditingController membrosController = TextEditingController(text: "Miguel, Danilo");
-  final TextEditingController trabalhou1 = TextEditingController();
-  final TextEditingController trabalhou2 = TextEditingController();
-  final TextEditingController trabalhou3 = TextEditingController();
-  final TextEditingController trabalhou4 = TextEditingController();
   final TextEditingController descricaoController = TextEditingController();
+
+  int tarefasVisiveis = 3; // Quantas tarefas mostrar inicialmente
 
   Future<void> _selecionarFoto() async {
     final ImagePicker picker = ImagePicker();
@@ -46,12 +37,14 @@ class _PerfilPageState extends State<Perfil> {
   @override
   void initState() {
     super.initState();
-    // Simula nome do usuário a partir do e-mail
     nomeUsuario = widget.userEmail.split('@')[0];
   }
 
   @override
   Widget build(BuildContext context) {
+    final totalTarefas = widget.tarefasRealizadas.length;
+    final mostrarTodas = tarefasVisiveis >= totalTarefas;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F1C2F),
       body: SingleChildScrollView(
@@ -80,10 +73,9 @@ class _PerfilPageState extends State<Perfil> {
                     Text(
                       nomeUsuario,
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 5),
                     TextButton(
@@ -97,13 +89,14 @@ class _PerfilPageState extends State<Perfil> {
                 ),
               ),
             ),
-            // Corpo da página
+
+            // Corpo
             Container(
               color: Colors.black,
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // Seção "Sobre"
+                  // Seção Sobre
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF1E1E1E),
@@ -123,29 +116,6 @@ class _PerfilPageState extends State<Perfil> {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Icon(Icons.work, color: Colors.white70),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: CustomTextField(
-                                  controller: cargoController, hint: "Seu cargo"),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.apartment, color: Colors.white70),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: CustomTextField(
-                                  controller: organizacaoController,
-                                  hint: "Sua organização"),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
                             const Icon(Icons.email, color: Colors.white70),
                             const SizedBox(width: 8),
                             Expanded(
@@ -156,21 +126,12 @@ class _PerfilPageState extends State<Perfil> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.group, color: Colors.white70),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: CustomTextField(
-                                  controller: membrosController, hint: "Membros"),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 20),
+
                   // Seção Trabalhou
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,26 +158,48 @@ class _PerfilPageState extends State<Perfil> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CustomTextField(
-                                controller: trabalhou1, hint: "insira texto"),
-                            CustomTextField(
-                                controller: trabalhou2, hint: "insira texto"),
-                            CustomTextField(
-                                controller: trabalhou3, hint: "insira texto"),
-                            CustomTextField(
-                                controller: trabalhou4, hint: "insira texto"),
-                            const SizedBox(height: 6),
-                            const Text(
-                              "Mostrar mais",
-                              style: TextStyle(
-                                  color: Colors.lightBlueAccent, fontSize: 12),
-                            ),
+                            if (widget.tarefasRealizadas.isEmpty)
+                              const Text(
+                                "Nenhuma tarefa realizada ainda",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            for (int i = 0;
+                                i < (mostrarTodas ? totalTarefas : tarefasVisiveis);
+                                i++)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Text(
+                                  "• ${widget.tarefasRealizadas[i]}",
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                              ),
+                            if (totalTarefas > 3)
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    tarefasVisiveis =
+                                        mostrarTodas ? 3 : totalTarefas;
+                                  });
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text(
+                                    mostrarTodas ? "Mostrar menos" : "Mostrar mais",
+                                    style: const TextStyle(
+                                        color: Colors.lightBlueAccent,
+                                        fontSize: 12),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 20),
+
                   // Seção Descrição
                   const Align(
                     alignment: Alignment.centerLeft,
@@ -230,14 +213,18 @@ class _PerfilPageState extends State<Perfil> {
                   ),
                   const SizedBox(height: 6),
                   CustomTextField(
-                      controller: descricaoController, hint: "Insira um texto"),
+                    controller: descricaoController,
+                    hint: "Insira um texto",
+                  ),
+
                   const SizedBox(height: 30),
+
                   // Rodapé
                   Column(
                     children: [
                       const SizedBox(height: 10),
                       Image.asset(
-                        'assets/logo.png', // coloque sua logo aqui
+                        'assets/logo.png',
                         height: 40,
                       ),
                       const SizedBox(height: 10),
@@ -275,7 +262,7 @@ class _PerfilPageState extends State<Perfil> {
   }
 }
 
-// Widget para campos discretos
+// Campo discreto reutilizável
 class CustomTextField extends StatelessWidget {
   final String hint;
   final TextEditingController controller;
@@ -303,4 +290,3 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-      

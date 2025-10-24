@@ -18,19 +18,27 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Inicializa o mapa de telas (agora o Perfil recebe o nome do usuário)
+    // Inicializa o mapa de telas (não colocamos HomePage dentro de HomePage)
     _opcoes = {
-      "HOME": HomePage(nome: widget.nome),
+      "HOME": Container(), // Pode ser apenas a tela atual
       "ECONÔMICO": const Economico(),
       "USUÁRIOS": const Usuarios(),
       "MINHAS CASAS": Container(),
-      "MEU PERFIL": Perfil(userEmail: "${widget.nome}@exemplo.com"),
+      "MEU PERFIL": Perfil(
+        userEmail: "${widget.nome}@exemplo.com",
+        tarefasRealizadas: [
+          "Comprar materiais",
+          "Enviar relatório",
+          "Limpar a casa",
+          "Passear com o cachorro"
+        ],
+      ),
       "CONFIGURAÇÕES": Container(),
     };
   }
 
   void _navegarParaTela(String titulo) {
-    if (_opcoes.containsKey(titulo)) {
+    if (_opcoes.containsKey(titulo) && titulo != "HOME") {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => _opcoes[titulo]!),
@@ -51,7 +59,8 @@ class _HomePageState extends State<HomePage> {
             child: Icon(Icons.person, color: Colors.white, size: 30),
           ),
           const SizedBox(height: 10),
-          const Divider(color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
+          const Divider(
+              color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
           _drawerItem("HOME", () {
             Navigator.pop(context);
           }),
@@ -63,7 +72,8 @@ class _HomePageState extends State<HomePage> {
             Navigator.pop(context);
             _navegarParaTela("USUÁRIOS");
           }),
-          const Divider(color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
+          const Divider(
+              color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
           _drawerItem("MINHAS CASAS", () {
             Navigator.pop(context);
             _navegarParaTela("MINHAS CASAS");
@@ -93,7 +103,8 @@ class _HomePageState extends State<HomePage> {
           dense: true,
           title: Text(
             title,
-            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
           ),
           onTap: onTap,
         ),
@@ -195,10 +206,14 @@ class _HomePageState extends State<HomePage> {
               runSpacing: 12,
               alignment: WrapAlignment.center,
               children: [
-                _buildOptionButton("Usuários", FontAwesomeIcons.user, () => _navegarParaTela("USUÁRIOS")),
-                _buildOptionButton("Econômico", FontAwesomeIcons.moneyBill, () => _navegarParaTela("ECONÔMICO")),
-                _buildOptionButton("Minhas Casas", FontAwesomeIcons.house, () => _navegarParaTela("MINHAS CASAS")),
-                _buildOptionButton("Perfil", FontAwesomeIcons.userTie, () => _navegarParaTela("MEU PERFIL")),
+                _buildOptionButton("Usuários", FontAwesomeIcons.user,
+                    () => _navegarParaTela("USUÁRIOS")),
+                _buildOptionButton("Econômico", FontAwesomeIcons.moneyBill,
+                    () => _navegarParaTela("ECONÔMICO")),
+                _buildOptionButton("Minhas Casas", FontAwesomeIcons.house,
+                    () => _navegarParaTela("MINHAS CASAS")),
+                _buildOptionButton("Perfil", FontAwesomeIcons.userTie,
+                    () => _navegarParaTela("MEU PERFIL")),
               ],
             ),
 
