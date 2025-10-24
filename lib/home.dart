@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mobile_tcc/calend%C3%A1rio/calendario.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/economic/economico.dart';
 import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/meu_casas.dart';
+
 
 class HomePage extends StatefulWidget {
   final String nome;
@@ -30,6 +32,7 @@ class _HomePageState extends State<HomePage> {
     _opcoes = {
       "ECONÔMICO": const Economico(),
       "USUÁRIOS": const Usuarios(),
+      "CALENDÁRIO": const CalendarPage(),
       "MINHAS CASAS": MeuCasas(nome: widget.nome),
       "MEU PERFIL": Perfil(
         userEmail: "${widget.nome}@exemplo.com",
