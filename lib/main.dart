@@ -5,7 +5,7 @@ import 'acesso/esqueci_senha.dart';
 import 'dart:ui'; 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_tcc/meu_casas.dart';
-import 'services/auth_service.dart'; // Adicione esta importação
+import 'acesso/auth_service.dart'; // Adicione esta importação
 
 const Color primaryColor = Color(0xFF133A67);
 const Color secondaryColor = Color(0xFF5E83AE);

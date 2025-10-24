@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_tcc/home.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class CalendarioPage extends StatefulWidget {
   const CalendarioPage({super.key});
@@ -9,11 +10,10 @@ class CalendarioPage extends StatefulWidget {
 }
 
 class _CalendarioPageState extends State<CalendarioPage> {
-  int selectedDayIndex = 3; // Dia selecionado (quarta-feira)
+  int selectedDayIndex = 3;
   final List<String> days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   final List<int> dates = [18, 19, 20, 21, 22, 23, 24];
 
-  // Estrutura: { 21: [ {name, description, done}, {...} ] }
   final Map<int, List<Map<String, dynamic>>> tasksByDay = {};
 
   void _openAddTaskDialog() {
@@ -111,125 +111,184 @@ class _CalendarioPageState extends State<CalendarioPage> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            children: [
-              const Text(
-                'Calendário',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(days.length, (index) {
-                  final bool isSelected = index == selectedDayIndex;
-                  final int dayNumber = dates[index];
-                  final bool hasIncomplete = _hasIncompleteTasks(dayNumber);
-
-                  Color circleColor;
-                  if (isSelected) {
-                    circleColor = const Color(0xFF5E83AE); // azul selecionado
-                  } else if (hasIncomplete) {
-                    circleColor = Colors.red; // vermelho se houver pendências
-                  } else {
-                    circleColor = Colors.transparent;
-                  }
-
-                  return GestureDetector(
-                    onTap: () => setState(() => selectedDayIndex = index),
-                    child: Column(
-                      children: [
-                        Text(
-                          days[index],
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: circleColor,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white24,
-                              width: 1,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              dayNumber.toString(),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Calendário',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: currentTasks.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Nenhuma tarefa adicionada',
-                          style: TextStyle(color: Colors.white54),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: currentTasks.length,
-                        itemBuilder: (context, index) {
-                          final task = currentTasks[index];
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF5E83AE),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ListTile(
-                              leading: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    task['done'] = !(task['done'] as bool);
-                                  });
-                                },
-                                child: Container(
-                                  width: 22,
-                                  height: 22,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: task['done']
-                                        ? Colors.green
-                                        : Colors.grey,
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(days.length, (index) {
+                        final bool isSelected = index == selectedDayIndex;
+                        final int dayNumber = dates[index];
+                        final bool hasIncomplete = _hasIncompleteTasks(dayNumber);
+
+                        Color circleColor;
+                        if (isSelected) {
+                          circleColor = const Color(0xFF5E83AE);
+                        } else if (hasIncomplete) {
+                          circleColor = Colors.red;
+                        } else {
+                          circleColor = Colors.transparent;
+                        }
+
+                        return GestureDetector(
+                          onTap: () => setState(() => selectedDayIndex = index),
+                          child: Column(
+                            children: [
+                              Text(
+                                days[index],
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: circleColor,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.white24,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    dayNumber.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                              title: Text(
-                                task['name'],
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  decoration: task['done']
-                                      ? TextDecoration.lineThrough
-                                      : TextDecoration.none,
-                                ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: currentTasks.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Nenhuma tarefa adicionada',
+                                style: TextStyle(color: Colors.white54),
                               ),
-                              subtitle: Text(
-                                task['description'] ?? '',
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                              trailing:
-                                  const Icon(Icons.edit, color: Colors.white),
+                            )
+                          : ListView.builder(
+                              itemCount: currentTasks.length,
+                              itemBuilder: (context, index) {
+                                final task = currentTasks[index];
+                                return Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF5E83AE),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: ListTile(
+                                    leading: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          task['done'] = !(task['done'] as bool);
+                                        });
+                                      },
+                                      child: Container(
+                                        width: 22,
+                                        height: 22,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: task['done']
+                                              ? Colors.green
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      task['name'],
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        decoration: task['done']
+                                            ? TextDecoration.lineThrough
+                                            : TextDecoration.none,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      task['description'] ?? '',
+                                      style: const TextStyle(color: Colors.white70),
+                                    ),
+                                    trailing: const Icon(Icons.edit,
+                                        color: Colors.white),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+
+            // --- FOOTER ---
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF133C74),
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  // Logo fictício (pode substituir por Image.asset)
+                  const CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      'Logo',
+                      style: TextStyle(
+                        color: Color(0xFF133C74),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Organize suas tarefas de forma simples',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Ícones sociais
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(FontAwesomeIcons.instagram,
+                          color: Colors.white, size: 22),
+                      SizedBox(width: 18),
+                      Icon(FontAwesomeIcons.facebook,
+                          color: Colors.white, size: 22),
+                      SizedBox(width: 18),
+                      Icon(FontAwesomeIcons.google,
+                          color: Colors.white, size: 22),
+                      SizedBox(width: 18),
+                      Icon(FontAwesomeIcons.whatsapp,
+                          color: Colors.white, size: 22),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '© Todos os direitos reservados - 2025',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(

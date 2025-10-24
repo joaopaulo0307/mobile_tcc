@@ -1,6 +1,7 @@
-// lib/acesso/esqueci_senha.dart
+
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../acesso/auth_service.dart';
+import 'dart:ui';
 
 class EsqueciSenhaPage extends StatefulWidget {
   const EsqueciSenhaPage({super.key});

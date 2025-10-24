@@ -1,6 +1,6 @@
-// lib/acesso/cadastro.dart
 import 'package:flutter/material.dart';
 import '../acesso/auth_service.dart';
+import 'dart:ui';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -17,6 +17,8 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController _confirmarSenhaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _obscureSenha = true;
+  bool _obscureConfirmarSenha = true;
 
   void _cadastrar() async {
     if (_formKey.currentState!.validate()) {
@@ -124,10 +126,23 @@ class _CadastroPageState extends State<CadastroPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          const Text(
+                            'Criar Nova Conta',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 20),
+                          
+                          // Campo Nome
                           TextFormField(
                             controller: _nomeController,
                             decoration: InputDecoration(
-                              hintText: "Nome completo",
+                              labelText: "Nome completo",
+                              labelStyle: const TextStyle(color: Colors.white70),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -137,15 +152,21 @@ class _CadastroPageState extends State<CadastroPage> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Por favor, insira seu nome';
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira seu nome';
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 12),
+                          
+                          // Campo Email
                           TextFormField(
                             controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
-                              hintText: "Email",
+                              labelText: "Email",
+                              labelStyle: const TextStyle(color: Colors.white70),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -155,16 +176,24 @@ class _CadastroPageState extends State<CadastroPage> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Por favor, insira seu email';
-                              if (!value.contains('@')) return 'Por favor, insira um email válido';
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira seu email';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Por favor, insira um email válido';
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 12),
+                          
+                          // Campo Telefone
                           TextFormField(
                             controller: _telefoneController,
+                            keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
-                              hintText: "Telefone",
+                              labelText: "Telefone",
+                              labelStyle: const TextStyle(color: Colors.white70),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -174,16 +203,21 @@ class _CadastroPageState extends State<CadastroPage> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Por favor, insira seu telefone';
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira seu telefone';
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 12),
+                          
+                          // Campo Senha
                           TextFormField(
                             controller: _senhaController,
-                            obscureText: true,
+                            obscureText: _obscureSenha,
                             decoration: InputDecoration(
-                              hintText: "Senha",
+                              labelText: "Senha",
+                              labelStyle: const TextStyle(color: Colors.white70),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -191,19 +225,37 @@ class _CadastroPageState extends State<CadastroPage> {
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureSenha ? Icons.visibility : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureSenha = !_obscureSenha;
+                                  });
+                                },
+                              ),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Por favor, insira sua senha';
-                              if (value.length < 6) return 'A senha deve ter pelo menos 6 caracteres';
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira sua senha';
+                              }
+                              if (value.length < 6) {
+                                return 'A senha deve ter pelo menos 6 caracteres';
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 12),
+                          
+                          // Campo Confirmar Senha
                           TextFormField(
                             controller: _confirmarSenhaController,
-                            obscureText: true,
+                            obscureText: _obscureConfirmarSenha,
                             decoration: InputDecoration(
-                              hintText: "Confirmar senha",
+                              labelText: "Confirmar senha",
+                              labelStyle: const TextStyle(color: Colors.white70),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -211,13 +263,31 @@ class _CadastroPageState extends State<CadastroPage> {
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmarSenha ? Icons.visibility : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureConfirmarSenha = !_obscureConfirmarSenha;
+                                  });
+                                },
+                              ),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Por favor, confirme sua senha';
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, confirme sua senha';
+                              }
+                              if (value != _senhaController.text) {
+                                return 'As senhas não coincidem';
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 20),
+                          
+                          // Botão de Cadastro
                           if (_isLoading)
                             const Center(
                               child: CircularProgressIndicator(
@@ -233,17 +303,39 @@ class _CadastroPageState extends State<CadastroPage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
+                                elevation: 2,
                               ),
                               onPressed: _cadastrar,
-                              child: const Text('CADASTRAR'),
+                              child: const Text(
+                                'CADASTRAR',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text(
-                              'Já tem uma conta? Faça login',
-                              style: TextStyle(color: Color(0xFF5E83AE)),
-                            ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Link para login
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Já tem uma conta?',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text(
+                                  'Faça login',
+                                  style: TextStyle(
+                                    color: Color(0xFF5E83AE),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -256,5 +348,15 @@ class _CadastroPageState extends State<CadastroPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _emailController.dispose();
+    _telefoneController.dispose();
+    _senhaController.dispose();
+    _confirmarSenhaController.dispose();
+    super.dispose();
   }
 }
