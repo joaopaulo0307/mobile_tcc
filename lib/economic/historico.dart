@@ -1,200 +1,155 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_tcc/economic/economico.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
-class Historico extends StatefulWidget {
-  const Historico({super.key});
+class HistoricoPage extends StatefulWidget {
+  const HistoricoPage({super.key});
 
   @override
-  State<Historico> createState() => _HistoricoState();
+  State<HistoricoPage> createState() => _HistoricoPageState();
 }
 
-class _HistoricoState extends State<Historico> {
-  String periodoSelecionado = '7 dias';
+class _HistoricoPageState extends State<HistoricoPage> {
+  // Botão selecionado: 7, 15 ou 30 dias
+  int selecionado = 7;
 
-  // Dados de exemplo do histórico
-  final List<Map<String, dynamic>> historicoTransacoes = [
-    {
-      'data': 'Hoje',
-      'transacoes': [
-        {'valor': 'RS: 50,00', 'descricao': 'Res Supermercades'},
-        {'valor': 'RS: 50,00', 'descricao': 'Propelas a Divina'},
-      ]
-    },
-    {
-      'data': 'Ortean',
-      'transacoes': [
-        {'valor': 'RS: 50,00', 'descricao': 'Res Supermercades'},
-        {'valor': 'RS: 50,00', 'descricao': 'Propelas a Divina'},
-      ]
-    },
-    {
-      'data': 'Antoentem',
-      'transacoes': [
-        {'valor': 'RS: 50,00', 'descricao': 'Res Supermercades'},
-      ]
-    },
-    {
-      'data': '30/02',
-      'transacoes': [
-        {'valor': 'RS: 50,00', 'descricao': 'Res Supermercades'},
-        {'valor': 'RS: 50,00', 'descricao': 'Propelas a Divina'},
-      ]
-    },
-  ];
+  // Lista simulada de despesas (exemplo)
+  final Map<String, List<Map<String, String>>> historico = {
+    "Hoje": [
+      {"valor": "R\$ 50,00", "local": "Boa Supermercados"},
+      {"valor": "R\$ 50,00", "local": "Papelaria Divina"},
+    ],
+    "Ontem": [
+      {"valor": "R\$ 50,00", "local": "Boa Supermercados"},
+      {"valor": "R\$ 50,00", "local": "Papelaria Divina"},
+    ],
+    "Anteontem": [
+      {"valor": "R\$ 50,00", "local": "Boa Supermercados"},
+    ],
+    "30/09": [
+      {"valor": "R\$ 50,00", "local": "Boa Supermercados"},
+      {"valor": "R\$ 50,00", "local": "Papelaria Divina"},
+    ],
+    "29/09": [],
+  };
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A3B6B),
-        title: const Text(
-          'HISTÓRICO',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+  Widget _buildPeriodoButton(String label, int dias) {
+    final bool ativo = selecionado == dias;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => selecionado = dias),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: ativo ? const Color(0xFF133A67) : const Color(0xFF446B9F),
+            borderRadius: BorderRadius.circular(6),
           ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Filtros de período
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildPeriodoFilter('Últimos 7 dias'),
-                  _buildPeriodoFilter('Últimos 15 dias'),
-                  _buildPeriodoFilter('Últimos 30 dias'),
-                ],
-              ),
-              
-              const SizedBox(height: 20),
-              const Divider(color: Colors.white54),
-              const SizedBox(height: 20),
-
-              // Lista de transações
-              ...historicoTransacoes.map((grupo) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Data
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        '${grupo['data']}:',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    
-                    // Transações
-                    ...(grupo['transacoes'] as List).map((transacao) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8, left: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              transacao['valor'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              transacao['descricao'],
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    
-                    const SizedBox(height: 16),
-                  ],
-                );
-              }).toList(),
-
-              const SizedBox(height: 20),
-              const Divider(color: Colors.white54),
-              const SizedBox(height: 20),
-
-              // Rodapé
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: const Column(
-                  children: [
-                    Text(
-                      'Órgansos suas tarefas de forma simples',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Todos os direitos reservados - 2025',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPeriodoFilter(String periodo) {
-    bool isSelected = periodoSelecionado == periodo;
-    
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          periodoSelecionado = periodo;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A3B6B) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF1A3B6B) : Colors.white54,
-          ),
+  Widget _buildRegistro(String valor, String local) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF446B9F),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(valor, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(local, style: const TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecao(String titulo, List<Map<String, String>> itens) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Text(
+          "$titulo:",
+          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
         ),
-        child: Text(
-          periodo,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
+        const SizedBox(height: 6),
+        ...itens.map((i) => _buildRegistro(i["valor"]!, i["local"]!)),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1F1F1F),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF133A67),
+        centerTitle: true,
+        title: const Text("HISTÓRICO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          children: [
+            // Botões de filtro de período
+            Row(
+              children: [
+                _buildPeriodoButton("Últimos 7 dias", 7),
+                const SizedBox(width: 6),
+                _buildPeriodoButton("Últimos 15 dias", 15),
+                const SizedBox(width: 6),
+                _buildPeriodoButton("Últimos 30 dias", 30),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Lista de históricos por dia
+            ...historico.entries.map((entry) => _buildSecao(entry.key, entry.value)).toList(),
+
+            const SizedBox(height: 40),
+
+            // Rodapé igual ao do app
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF133A67),
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: const [
+                  Text("Organize suas tarefas de forma simples",
+                      style: TextStyle(color: Colors.white)),
+                  SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.facebook, color: Colors.white),
+                      SizedBox(width: 16),
+                      Icon(FontAwesomeIcons.instagram, color: Colors.white),
+                      const SizedBox(width: 16),
+                      Icon(FontAwesomeIcons.whatsapp, color: Colors.white),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Text("© Todos os direitos reservados - 2025",
+                      style: TextStyle(color: Colors.white70, fontSize: 12)),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

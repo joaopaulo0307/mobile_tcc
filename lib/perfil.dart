@@ -11,8 +11,6 @@ import 'package:mobile_tcc/economic/historico.dart';
 import 'package:mobile_tcc/calendário/calendario.dart';
 import 'package:mobile_tcc/calendário/to-do.dart';
 
-
-
 class Perfil extends StatefulWidget {
   final String userEmail; // Recebe o e-mail do login
   const Perfil({super.key, required this.userEmail});
@@ -24,6 +22,16 @@ class Perfil extends StatefulWidget {
 class _PerfilPageState extends State<Perfil> {
   File? _fotoPerfil;
   String nomeUsuario = "";
+
+  // Controllers para campos de texto discretos
+  final TextEditingController cargoController = TextEditingController();
+  final TextEditingController organizacaoController = TextEditingController();
+  final TextEditingController membrosController = TextEditingController(text: "Miguel, Danilo");
+  final TextEditingController trabalhou1 = TextEditingController();
+  final TextEditingController trabalhou2 = TextEditingController();
+  final TextEditingController trabalhou3 = TextEditingController();
+  final TextEditingController trabalhou4 = TextEditingController();
+  final TextEditingController descricaoController = TextEditingController();
 
   Future<void> _selecionarFoto() async {
     final ImagePicker picker = ImagePicker();
@@ -45,12 +53,13 @@ class _PerfilPageState extends State<Perfil> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1C2F), // Azul escuro do fundo
+      backgroundColor: const Color(0xFF0F1C2F),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Cabeçalho com foto e nome
             Container(
-              color: const Color(0xFF142F47), // Azul mais claro
+              color: const Color(0xFF142F47),
               padding: const EdgeInsets.only(top: 60, bottom: 30),
               child: Center(
                 child: Column(
@@ -88,6 +97,7 @@ class _PerfilPageState extends State<Perfil> {
                 ),
               ),
             ),
+            // Corpo da página
             Container(
               color: Colors.black,
               padding: const EdgeInsets.all(20),
@@ -103,27 +113,34 @@ class _PerfilPageState extends State<Perfil> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Sobre",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold)),
+                        const Text(
+                          "Sobre",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 10),
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.work, color: Colors.white70),
-                            SizedBox(width: 8),
-                            Text("Seu cargo",
-                                style: TextStyle(color: Colors.white70)),
+                            const Icon(Icons.work, color: Colors.white70),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: CustomTextField(
+                                  controller: cargoController, hint: "Seu cargo"),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.apartment, color: Colors.white70),
-                            SizedBox(width: 8),
-                            Text("Sua Organização",
-                                style: TextStyle(color: Colors.white70)),
+                            const Icon(Icons.apartment, color: Colors.white70),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: CustomTextField(
+                                  controller: organizacaoController,
+                                  hint: "Sua organização"),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -131,17 +148,23 @@ class _PerfilPageState extends State<Perfil> {
                           children: [
                             const Icon(Icons.email, color: Colors.white70),
                             const SizedBox(width: 8),
-                            Text(widget.userEmail,
-                                style: const TextStyle(color: Colors.white70)),
+                            Expanded(
+                              child: Text(
+                                widget.userEmail,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.group, color: Colors.white70),
-                            SizedBox(width: 8),
-                            Text("Membros: Miguel, Danilo",
-                                style: TextStyle(color: Colors.white70)),
+                            const Icon(Icons.group, color: Colors.white70),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: CustomTextField(
+                                  controller: membrosController, hint: "Membros"),
+                            ),
                           ],
                         ),
                       ],
@@ -152,14 +175,18 @@ class _PerfilPageState extends State<Perfil> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Trabalhou",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Trabalhou",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(height: 4),
-                      const Text("As pessoas só veem o que podem acessar",
-                          style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      const Text(
+                        "As pessoas só veem o que podem acessar",
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
                       const SizedBox(height: 10),
                       Container(
                         decoration: BoxDecoration(
@@ -167,22 +194,23 @@ class _PerfilPageState extends State<Perfil> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         padding: const EdgeInsets.all(12),
-                        child: const Column(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("• insira texto",
-                                style: TextStyle(color: Colors.white70)),
-                            Text("• insira texto",
-                                style: TextStyle(color: Colors.white70)),
-                            Text("• insira texto",
-                                style: TextStyle(color: Colors.white70)),
-                            Text("• insira texto",
-                                style: TextStyle(color: Colors.white70)),
-                            SizedBox(height: 6),
-                            Text("Mostrar mais",
-                                style: TextStyle(
-                                    color: Colors.lightBlueAccent,
-                                    fontSize: 12)),
+                            CustomTextField(
+                                controller: trabalhou1, hint: "insira texto"),
+                            CustomTextField(
+                                controller: trabalhou2, hint: "insira texto"),
+                            CustomTextField(
+                                controller: trabalhou3, hint: "insira texto"),
+                            CustomTextField(
+                                controller: trabalhou4, hint: "insira texto"),
+                            const SizedBox(height: 6),
+                            const Text(
+                              "Mostrar mais",
+                              style: TextStyle(
+                                  color: Colors.lightBlueAccent, fontSize: 12),
+                            ),
                           ],
                         ),
                       ),
@@ -192,26 +220,17 @@ class _PerfilPageState extends State<Perfil> {
                   // Seção Descrição
                   const Align(
                     alignment: Alignment.centerLeft,
-                    child: Text("Descrição",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "Insira um texto",
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: const Color(0xFF2B2B2B),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
+                    child: Text(
+                      "Descrição",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
+                  const SizedBox(height: 6),
+                  CustomTextField(
+                      controller: descricaoController, hint: "Insira um texto"),
                   const SizedBox(height: 30),
                   // Rodapé
                   Column(
@@ -255,3 +274,33 @@ class _PerfilPageState extends State<Perfil> {
     );
   }
 }
+
+// Widget para campos discretos
+class CustomTextField extends StatelessWidget {
+  final String hint;
+  final TextEditingController controller;
+
+  const CustomTextField(
+      {super.key, required this.hint, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white70, fontSize: 14),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
+          filled: true,
+          fillColor: Colors.transparent,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        ),
+      ),
+    );
+  }
+}
+
+      
