@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mobile_tcc/usuarios.dart';
-import 'package:mobile_tcc/economic/economico.dart';
-import 'package:mobile_tcc/perfil.dart';
+import 'meu_casas.dart';
 
 class HomePage extends StatefulWidget {
   final String nome;
@@ -18,12 +16,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Inicializa o mapa de telas (não colocamos HomePage dentro de HomePage)
     _opcoes = {
-      "HOME": Container(), // Pode ser apenas a tela atual
       "ECONÔMICO": const Economico(),
       "USUÁRIOS": const Usuarios(),
-      "MINHAS CASAS": Container(),
+      "MINHAS CASAS": const MeuCasasPage(),
       "MEU PERFIL": Perfil(
         userEmail: "${widget.nome}@exemplo.com",
         tarefasRealizadas: [
@@ -38,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _navegarParaTela(String titulo) {
-    if (_opcoes.containsKey(titulo) && titulo != "HOME") {
+    if (_opcoes.containsKey(titulo)) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => _opcoes[titulo]!),
@@ -61,32 +57,30 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 10),
           const Divider(
               color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
-          _drawerItem("HOME", () {
-            Navigator.pop(context);
-          }),
-          _drawerItem("ECONÔMICO", () {
-            Navigator.pop(context);
-            _navegarParaTela("ECONÔMICO");
-          }),
-          _drawerItem("USUÁRIOS", () {
-            Navigator.pop(context);
-            _navegarParaTela("USUÁRIOS");
-          }),
+          _drawerItem("ECONÔMICO", () => _navegarComDrawer("ECONÔMICO")),
+          _drawerItem("USUÁRIOS", () => _navegarComDrawer("USUÁRIOS")),
+          _drawerItem("CALENDÁRIO", () => _mostrarEmDesenvolvimento()),
           const Divider(
               color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
-          _drawerItem("MINHAS CASAS", () {
-            Navigator.pop(context);
-            _navegarParaTela("MINHAS CASAS");
-          }),
-          _drawerItem("MEU PERFIL", () {
-            Navigator.pop(context);
-            _navegarParaTela("MEU PERFIL");
-          }),
-          _drawerItem("CONFIGURAÇÕES", () {
-            Navigator.pop(context);
-            _navegarParaTela("CONFIGURAÇÕES");
-          }),
+          _drawerItem("MINHAS CASAS", () => _navegarComDrawer("MINHAS CASAS")),
+          _drawerItem("MEU PERFIL", () => _navegarComDrawer("MEU PERFIL")),
+          _drawerItem("CONFIGURAÇÕES", () => _navegarComDrawer("CONFIGURAÇÕES")),
         ],
+      ),
+    );
+  }
+
+  void _navegarComDrawer(String titulo) {
+    Navigator.pop(context);
+    _navegarParaTela(titulo);
+  }
+
+  void _mostrarEmDesenvolvimento() {
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Funcionalidade em desenvolvimento'),
+        backgroundColor: Color(0xFF133C74),
       ),
     );
   }
@@ -263,7 +257,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Widgets auxiliares
   Widget _buildDateChip(String dia, String numero) {
     return Container(
       width: 60,
@@ -328,6 +321,70 @@ class _HomePageState extends State<HomePage> {
             Icon(icon, color: Colors.white, size: 16),
             const SizedBox(width: 8),
             Text(text, style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Classes placeholder para as outras telas
+class Economico extends StatelessWidget {
+  const Economico({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF133C74),
+        title: const Text('Econômico'),
+      ),
+      body: const Center(child: Text('Tela Econômico')),
+    );
+  }
+}
+
+class Usuarios extends StatelessWidget {
+  const Usuarios({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF133C74),
+        title: const Text('Usuários'),
+      ),
+      body: const Center(child: Text('Tela Usuários')),
+    );
+  }
+}
+
+class Perfil extends StatelessWidget {
+  final String userEmail;
+  final List<String> tarefasRealizadas;
+
+  const Perfil({
+    super.key,
+    required this.userEmail,
+    required this.tarefasRealizadas,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF133C74),
+        title: const Text('Meu Perfil'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Email: $userEmail'),
+            const SizedBox(height: 20),
+            const Text('Tarefas Realizadas:'),
+            ...tarefasRealizadas.map((tarefa) => Text('- $tarefa')),
           ],
         ),
       ),

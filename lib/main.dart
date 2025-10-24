@@ -4,7 +4,7 @@ import 'home.dart';
 import 'acesso/esqueci_senha.dart';
 import 'dart:ui'; 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:mobile_tcc/meu_casas.dart';
 
 const Color primaryColor = Color(0xFF133A67);
 const Color secondaryColor = Color(0xFF5E83AE);
@@ -13,7 +13,9 @@ const Color textFieldColor = Colors.white;
 const Color textColor = Colors.white;
 const Color accentColor = Colors.blueGrey;
 
-void main() {
+// ✅ Incrementado apenas o necessário:
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // garante inicialização do Flutter
   runApp(const MyApp());
 }
 
@@ -66,9 +68,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(60);
 }
 
-
 // ------------------ FOOTER ------------------
-
 class Footer extends StatelessWidget {
   final String? text;
   final String? subText;
@@ -84,22 +84,17 @@ class Footer extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-      
           const CircleAvatar(
             radius: 30,
             backgroundColor: Colors.grey,
           ),
           const SizedBox(height: 10),
-
-        
           Text(
             text ?? "Organize suas tarefas de forma simples",
             style: const TextStyle(color: textColor, fontSize: 14),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-
-  
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: const [
@@ -110,14 +105,12 @@ class Footer extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-
           Text(
             subText ?? "Contato | Sobre | Termos de Uso",
             style: const TextStyle(color: Colors.white70, fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 5),
-
           const Text(
             "© Todos os direitos reservados - 2025",
             style: TextStyle(color: Colors.white70, fontSize: 12),
@@ -129,9 +122,7 @@ class Footer extends StatelessWidget {
   }
 }
 
-
 // ------------------ LANDING PAGE ------------------
-
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
@@ -150,9 +141,9 @@ class LandingPage extends StatelessWidget {
           ),
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // intensidade do desfoque
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: Colors.black.withOpacity(0.3), // camada semitransparente
+                color: Colors.black.withOpacity(0.3),
               ),
             ),
           ),
@@ -172,7 +163,6 @@ class LandingPage extends StatelessWidget {
     );
   }
 }
-
 
 // ------------------ LOGIN FORM ------------------
 class LoginForm extends StatefulWidget {
@@ -211,7 +201,7 @@ class _LoginFormState extends State<LoginForm> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color:const Color.fromARGB(255, 79, 73, 72), // Caixa sólida sem transparência
+          color: const Color.fromARGB(255, 79, 73, 72),
           borderRadius: BorderRadius.circular(20),
         ),
         width: MediaQuery.of(context).size.width * 0.85,
@@ -231,7 +221,8 @@ class _LoginFormState extends State<LoginForm> {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Por favor, insira seu email';
@@ -246,12 +237,13 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: InputDecoration(
                   hintText: "Senha",
                   filled: true,
-                  fillColor: Colors.white, // Caixa de texto sólida
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Por favor, insira sua senha';
@@ -269,7 +261,7 @@ class _LoginFormState extends State<LoginForm> {
                   child: const Text(
                     "Esqueci minha senha",
                     style: TextStyle(
-                      color: Color(0xFF5E83AE), // Mudança para contraste com fundo claro
+                      color: Color(0xFF5E83AE),
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -283,7 +275,10 @@ class _LoginFormState extends State<LoginForm> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Color(0xFF5E83AE),
                       side: const BorderSide(color: Colors.black),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 25),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 25,
+                      ),
                     ),
                     onPressed: () {
                       Navigator.pushNamed(context, '/cadastro');
@@ -295,7 +290,10 @@ class _LoginFormState extends State<LoginForm> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: secondaryColor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 30,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
