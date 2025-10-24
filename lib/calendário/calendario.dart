@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_tcc/home.dart';
 
-void main() {
-  runApp(const CalendarioPage());
-}
-
 class CalendarioPage extends StatefulWidget {
   const CalendarioPage({super.key});
 

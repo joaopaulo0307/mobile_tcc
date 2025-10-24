@@ -45,14 +45,10 @@ class _CadastroPageState extends State<CadastroPage> {
       if (result['success'] == true) {
         _mostrarSucesso(result['message']);
         
-        // Navegar para minhas casas após cadastro bem-sucedido
+        // **ALTERAÇÃO AQUI**: Navegar de volta para login após cadastro
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) {
-          Navigator.pushReplacementNamed(
-            context,
-            '/minhas_casas',
-            arguments: result['user']?['nome'] ?? _nomeController.text,
-          );
+          Navigator.pop(context); // Volta para a tela de login
         }
       } else {
         _mostrarErro(result['message']);
