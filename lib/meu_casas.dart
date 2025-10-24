@@ -10,6 +10,13 @@ class MeuCasas extends StatefulWidget {
 
 class _MeuCasasState extends State<MeuCasas> {
   final List<Map<String, String>> _casas = [];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    print('MeuCasas iniciado para: ${widget.nome}');
+  }
 
   void _adicionarCasa(String nome, String endereco) {
     setState(() {
@@ -31,6 +38,8 @@ class _MeuCasasState extends State<MeuCasas> {
   }
 
   void _entrarNaCasa(String nomeCasa, String endereco) {
+    print('Entrando na casa: $nomeCasa');
+    
     Navigator.pushReplacementNamed(
       context,
       '/home',
@@ -40,6 +49,10 @@ class _MeuCasasState extends State<MeuCasas> {
         'endereco': endereco,
       },
     );
+  }
+
+  void _voltarParaLogin() {
+    Navigator.pushReplacementNamed(context, '/');
   }
 
   void _abrirPopupAdicionarCasa() {
@@ -233,6 +246,107 @@ class _MeuCasasState extends State<MeuCasas> {
     );
   }
 
+  // Drawer lateral
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: const Color(0xFF1A3B6B),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          // Header do Drawer
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: Color(0xFF133A67),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, color: Color(0xFF133A67)),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  widget.nome,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "${_casas.length} casa(s)",
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          
+          // Menu do Drawer
+          ListTile(
+            leading: const Icon(Icons.home, color: Colors.white),
+            title: const Text('Minhas Casas', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context); // Fecha o drawer
+            },
+          ),
+          
+          ListTile(
+            leading: const Icon(Icons.person, color: Colors.white),
+            title: const Text('Meu Perfil', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              // Aqui você pode adicionar navegação para o perfil se quiser
+            },
+          ),
+          
+          ListTile(
+            leading: const Icon(Icons.settings, color: Colors.white),
+            title: const Text('Configurações', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              // Aqui você pode adicionar navegação para configurações
+            },
+          ),
+          
+          const Divider(color: Colors.white54),
+          
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Sair', style: TextStyle(color: Colors.red)),
+            onTap: _voltarParaLogin,
+          ),
+          
+          // Footer do Drawer
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const Text(
+                  "Alarma",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  "Organize suas residências",
+                  style: TextStyle(color: Colors.white54, fontSize: 10),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "© 2025 Todos os direitos reservados",
+                  style: TextStyle(color: Colors.white54, fontSize: 8),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCasaCard(int index) {
     final casa = _casas[index];
     return Card(
@@ -260,18 +374,25 @@ class _MeuCasasState extends State<MeuCasas> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.black,
+      drawer: _buildDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A3B6B),
         title: const Text("MINHAS CASAS", style: TextStyle(color: Colors.white)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/'),
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: Center(child: Text("Olá, ${widget.nome}", style: const TextStyle(color: Colors.white70))),
+            child: Center(
+              child: Text(
+                "Olá, ${widget.nome}", 
+                style: const TextStyle(color: Colors.white70)
+              ),
+            ),
           ),
         ],
       ),
@@ -280,7 +401,7 @@ class _MeuCasasState extends State<MeuCasas> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.home, color: Colors.white70, size: 60),
+                  const Icon(Icons.home, color: Colors.white70, size: 60),
                   const SizedBox(height: 16),
                   const Text(
                     "Nenhuma casa cadastrada",
@@ -290,6 +411,14 @@ class _MeuCasasState extends State<MeuCasas> {
                   const Text(
                     "Toque no + para adicionar sua primeira casa",
                     style: TextStyle(color: Colors.white54),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF466A91),
+                    ),
+                    onPressed: _abrirPopupAdicionarCasa,
+                    child: const Text('Adicionar Primeira Casa', style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -301,7 +430,11 @@ class _MeuCasasState extends State<MeuCasas> {
                 children: [
                   Text(
                     "Suas Casas (${_casas.length})",
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white, 
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
