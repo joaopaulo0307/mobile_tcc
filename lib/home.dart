@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/economic/economico.dart';
-// Importe as outras páginas necessárias aqui
-// import 'package:mobile_tcc/calendario.dart';
-// import 'package:mobile_tcc/minhas_casas.dart';
 import 'package:mobile_tcc/perfil.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,14 +13,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final Map<String, Widget> _opcoes = {
-    "HOME": const HomePage(nome: ""),
-    "ECONÔMICO": const Economico(),
-    "USUÁRIOS": const Usuarios(),
-    "MINHAS CASAS": Container(),
-    "MEU PERFIL": Container(),
-    "CONFIGURAÇÕES": Container(),
-  };
+  late final Map<String, Widget> _opcoes;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa o mapa de telas (agora o Perfil recebe o nome do usuário)
+    _opcoes = {
+      "HOME": HomePage(nome: widget.nome),
+      "ECONÔMICO": const Economico(),
+      "USUÁRIOS": const Usuarios(),
+      "MINHAS CASAS": Container(),
+      "MEU PERFIL": Perfil(userEmail: "${widget.nome}@exemplo.com"),
+      "CONFIGURAÇÕES": Container(),
+    };
+  }
 
   void _navegarParaTela(String titulo) {
     if (_opcoes.containsKey(titulo)) {
@@ -48,7 +52,9 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 10),
           const Divider(color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
-          _drawerItem("HOME", () => Navigator.pop(context)),
+          _drawerItem("HOME", () {
+            Navigator.pop(context);
+          }),
           _drawerItem("ECONÔMICO", () {
             Navigator.pop(context);
             _navegarParaTela("ECONÔMICO");
@@ -62,8 +68,14 @@ class _HomePageState extends State<HomePage> {
             Navigator.pop(context);
             _navegarParaTela("MINHAS CASAS");
           }),
-          _drawerItem("MEU PERFIL", () => Navigator.pop(context)),
-          _drawerItem("CONFIGURAÇÕES", () => Navigator.pop(context)),
+          _drawerItem("MEU PERFIL", () {
+            Navigator.pop(context);
+            _navegarParaTela("MEU PERFIL");
+          }),
+          _drawerItem("CONFIGURAÇÕES", () {
+            Navigator.pop(context);
+            _navegarParaTela("CONFIGURAÇÕES");
+          }),
         ],
       ),
     );
@@ -97,7 +109,7 @@ class _HomePageState extends State<HomePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top bar com menu
+            // Top bar
             Container(
               color: const Color(0xFF1A3B6B),
               height: 50,
@@ -117,7 +129,7 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 16),
 
-            // Card de boas-vindas (mais largo)
+            // Card de boas-vindas
             Container(
               width: double.infinity,
               margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -130,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "quarta-feira, 4 de Maio",
+                    "sexta-feira, 24 de outubro",
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
@@ -147,16 +159,14 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 24),
 
-            // Linha da data e tarefas
+            // Data e tarefas
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDateChip("Qua", "4"), // campo da data menor
+                  _buildDateChip("Sex", "24"),
                   const SizedBox(width: 12),
-
-                  // Tarefas (mesma largura e alinhadas)
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -173,7 +183,7 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 24),
 
-            // Opções centralizadas
+            // Opções
             const Divider(color: Colors.white54),
             const SizedBox(height: 8),
             const Text("Opções",
@@ -187,8 +197,8 @@ class _HomePageState extends State<HomePage> {
               children: [
                 _buildOptionButton("Usuários", FontAwesomeIcons.user, () => _navegarParaTela("USUÁRIOS")),
                 _buildOptionButton("Econômico", FontAwesomeIcons.moneyBill, () => _navegarParaTela("ECONÔMICO")),
-                _buildOptionButton("Calendário", FontAwesomeIcons.calendar, () => _navegarParaTela("CALENDÁRIO")),
                 _buildOptionButton("Minhas Casas", FontAwesomeIcons.house, () => _navegarParaTela("MINHAS CASAS")),
+                _buildOptionButton("Perfil", FontAwesomeIcons.userTie, () => _navegarParaTela("MEU PERFIL")),
               ],
             ),
 
@@ -238,7 +248,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Campo de data (menor)
+  // Widgets auxiliares
   Widget _buildDateChip(String dia, String numero) {
     return Container(
       width: 60,
@@ -249,14 +259,11 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Column(
         children: [
-          Text(
-            dia,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(dia,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Container(
             width: 28,
@@ -266,21 +273,17 @@ class _HomePageState extends State<HomePage> {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: Text(
-              numero,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text(numero,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  // Botão de tarefa (igual largura)
   Widget _buildTaskButton(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -289,14 +292,11 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white, fontSize: 13),
-      ),
+      child: Text(text,
+          style: const TextStyle(color: Colors.white, fontSize: 13)),
     );
   }
 
-  // Botões de opções centralizados (agora com navegação)
   Widget _buildOptionButton(String text, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,

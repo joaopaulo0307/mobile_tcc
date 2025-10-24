@@ -13,15 +13,15 @@ import 'package:mobile_tcc/calendário/to-do.dart';
 
 
 
-class PerfilPage extends StatefulWidget {
+class Perfil extends StatefulWidget {
   final String userEmail; // Recebe o e-mail do login
-  const PerfilPage({super.key, required this.userEmail});
+  const Perfil({super.key, required this.userEmail});
 
   @override
-  State<PerfilPage> createState() => _PerfilPageState();
+  State<Perfil> createState() => _PerfilPageState();
 }
 
-class _PerfilPageState extends State<PerfilPage> {
+class _PerfilPageState extends State<Perfil> {
   File? _fotoPerfil;
   String nomeUsuario = "";
 
