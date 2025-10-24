@@ -3,11 +3,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/economic/economico.dart';
 import 'package:mobile_tcc/perfil.dart';
-import 'package:mobile_tcc/meu_casas.dart'; 
+import 'package:mobile_tcc/meu_casas.dart';
 
 class HomePage extends StatefulWidget {
   final String nome;
-  const HomePage({super.key, required this.nome});
+  final String casaSelecionada;
+  final String casaEndereco;
+  
+  const HomePage({
+    super.key, 
+    required this.nome, 
+    required this.casaSelecionada,
+    required this.casaEndereco,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -19,11 +27,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Inicializa o mapa de telas (não colocamos HomePage dentro de HomePage)
     _opcoes = {
       "ECONÔMICO": const Economico(),
       "USUÁRIOS": const Usuarios(),
-      "MINHAS CASAS": const MeuCasas(),
+      "MINHAS CASAS": MeuCasas(nome: widget.nome),
       "MEU PERFIL": Perfil(
         userEmail: "${widget.nome}@exemplo.com",
         tarefasRealizadas: [
@@ -48,69 +55,51 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildDrawer() {
     return Drawer(
-      backgroundColor: const Color.fromARGB(255, 60, 60, 60),
+      backgroundColor: const Color(0xFF1A3B6B),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const SizedBox(height: 20),
-          const CircleAvatar(
-            radius: 25,
-            backgroundColor: Colors.grey,
-            child: Icon(Icons.person, color: Colors.white, size: 30),
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: Color(0xFF133A67),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, color: Color(0xFF133A67)),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  widget.nome,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                Text(
+                  widget.casaSelecionada,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          const Divider(
-              color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
-          _drawerItem("ECONÔMICO", () {
-            Navigator.pop(context);
-            _navegarParaTela("ECONÔMICO");
-          }),
-          _drawerItem("USUÁRIOS", () {
-            Navigator.pop(context);
-            _navegarParaTela("USUÁRIOS");
-          }),
-          _drawerItem("CALENDÁRIO", () {
-            Navigator.pop(context);
-            _navegarParaTela("CALENDÁRIO");
-          }),
-          const Divider(
-              color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
-          _drawerItem("MINHAS CASAS", () {
-            Navigator.pop(context);
-            _navegarParaTela("MINHAS CASAS");
-          }),
-          
-          _drawerItem("MEU PERFIL", () {
-            Navigator.pop(context);
-            _navegarParaTela("MEU PERFIL");
-          }),
-          _drawerItem("CONFIGURAÇÕES", () {
-            Navigator.pop(context);
-            _navegarParaTela("CONFIGURAÇÕES");
-          }),
+          _drawerItem("ECONÔMICO", Icons.attach_money, () => _navegarParaTela("ECONÔMICO")),
+          _drawerItem("USUÁRIOS", Icons.people, () => _navegarParaTela("USUÁRIOS")),
+          _drawerItem("CALENDÁRIO", Icons.calendar_today, () => _navegarParaTela("CALENDÁRIO")),
+          const Divider(color: Colors.white54),
+          _drawerItem("MINHAS CASAS", Icons.home, () => _navegarParaTela("MINHAS CASAS")),
+          _drawerItem("MEU PERFIL", Icons.person, () => _navegarParaTela("MEU PERFIL")),
+          _drawerItem("CONFIGURAÇÕES", Icons.settings, () => _navegarParaTela("CONFIGURAÇÕES")),
         ],
       ),
     );
   }
 
-  Widget _drawerItem(String title, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 35, 35, 35),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: ListTile(
-          dense: true,
-          title: Text(
-            title,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
-          ),
-          onTap: onTap,
-        ),
-      ),
+  Widget _drawerItem(String title, IconData icon, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onTap: onTap,
     );
   }
 
@@ -119,37 +108,27 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.black,
       drawer: _buildDrawer(),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1A3B6B),
+        title: Text(widget.casaSelecionada, style: const TextStyle(color: Colors.white)),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top bar
-            Container(
-              color: const Color(0xFF1A3B6B),
-              height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  Builder(
-                    builder: (context) => IconButton(
-                      icon: const Icon(Icons.menu, color: Colors.white),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
-                    ),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
             // Card de boas-vindas
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
+              margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: const Color(0xFF27226D),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,31 +141,85 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     "Olá, ${widget.nome}",
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Casa: ${widget.casaSelecionada}",
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  Text(
+                    widget.casaEndereco,
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
-
-            // Data e tarefas
+            // Tarefas do dia
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDateChip("Sex", "24"),
+                  Container(
+                    width: 60,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2C4A77),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      children: [
+                        Text("SEX", style: TextStyle(color: Colors.white.withOpacity(0.8))),
+                        const SizedBox(height: 6),
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF102B4E),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text("24", style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildTaskButton("PASSEAR COM O CACHORRO"),
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF466A91),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "PASSEAR COM O CACHORRO",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 8),
-                        _buildTaskButton("COMPRAR ARROZ"),
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF466A91),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "COMPRAR ARROZ",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -195,122 +228,30 @@ class _HomePageState extends State<HomePage> {
             ),
 
             const SizedBox(height: 24),
-
-            // Opções
             const Divider(color: Colors.white54),
-            const SizedBox(height: 8),
-            const Text("Opções",
-                style: TextStyle(color: Colors.white, fontSize: 16)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            const Text("Opções", style: TextStyle(color: Colors.white, fontSize: 18)),
+            const SizedBox(height: 16),
 
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              alignment: WrapAlignment.center,
-              children: [
-                _buildOptionButton("Usuários", FontAwesomeIcons.user,
-                    () => _navegarParaTela("USUÁRIOS")),
-                _buildOptionButton("Econômico", FontAwesomeIcons.moneyBill,
-                    () => _navegarParaTela("ECONÔMICO")),
-                _buildOptionButton("Minhas Casas", FontAwesomeIcons.house,
-                    () => _navegarParaTela("MINHAS CASAS")),
-                _buildOptionButton("Perfil", FontAwesomeIcons.userTie,
-                    () => _navegarParaTela("MEU PERFIL")),
-              ],
-            ),
-
-            const SizedBox(height: 40),
-
-            // Rodapé
-            Container(
-              color: const Color(0xFF1A3B6B),
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              width: double.infinity,
-              child: Column(
-                children: const [
-                  Text("Alarma",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
-                  SizedBox(height: 4),
-                  Text(
-                    "Organize suas tarefas de forma simples",
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                  SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(FontAwesomeIcons.instagram, color: Colors.white),
-                      SizedBox(width: 16),
-                      Icon(FontAwesomeIcons.facebook, color: Colors.white),
-                      SizedBox(width: 16),
-                      Icon(FontAwesomeIcons.google, color: Colors.white),
-                      SizedBox(width: 16),
-                      Icon(FontAwesomeIcons.whatsapp, color: Colors.white),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "© Todos os direitos reservados – 2025",
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
+            // Grid de opções
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _buildOptionButton("Usuários", FontAwesomeIcons.users, () => _navegarParaTela("USUÁRIOS")),
+                  _buildOptionButton("Econômico", FontAwesomeIcons.chartLine, () => _navegarParaTela("ECONÔMICO")),
+                  _buildOptionButton("Minhas Casas", FontAwesomeIcons.home, () => _navegarParaTela("MINHAS CASAS")),
+                  _buildOptionButton("Perfil", FontAwesomeIcons.user, () => _navegarParaTela("MEU PERFIL")),
                 ],
               ),
             ),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
-    );
-  }
-
-  // Widgets auxiliares
-  Widget _buildDateChip(String dia, String numero) {
-    return Container(
-      width: 60,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2C4A77),
-        borderRadius: BorderRadius.circular(40),
-      ),
-      child: Column(
-        children: [
-          Text(dia,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          Container(
-            width: 28,
-            height: 28,
-            decoration: const BoxDecoration(
-              color: Color(0xFF102B4E),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(numero,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTaskButton(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF466A91),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      alignment: Alignment.center,
-      child: Text(text,
-          style: const TextStyle(color: Colors.white, fontSize: 13)),
     );
   }
 
@@ -319,16 +260,15 @@ class _HomePageState extends State<HomePage> {
       onTap: onTap,
       child: Container(
         width: 150,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: const Color(0xFF1A3B6B),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
           children: [
-            Icon(icon, color: Colors.white, size: 16),
-            const SizedBox(width: 8),
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 8),
             Text(text, style: const TextStyle(color: Colors.white)),
           ],
         ),

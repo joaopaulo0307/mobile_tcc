@@ -13,9 +13,8 @@ const Color textFieldColor = Colors.white;
 const Color textColor = Colors.white;
 const Color accentColor = Colors.blueGrey;
 
-// ✅ Incrementado apenas o necessário:
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // garante inicialização do Flutter
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -30,9 +29,17 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LandingPage(),
         '/cadastro': (context) => const CadastroPage(),
-        '/home': (context) {
+        '/minhas_casas': (context) {
           final nome = ModalRoute.of(context)!.settings.arguments as String;
-          return HomePage(nome: nome);
+          return MeuCasas(nome: nome);
+        },
+        '/home': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return HomePage(
+            nome: args['nome'], 
+            casaSelecionada: args['casa'],
+            casaEndereco: args['endereco'],
+          );
         },
         '/esqueci_senha': (context) => const LoginSc(),
       },
@@ -186,10 +193,11 @@ class _LoginFormState extends State<LoginForm> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
+      final nome = _emailController.text.split('@')[0];
       Navigator.pushReplacementNamed(
         context,
-        '/meu_casas',
-        arguments: _emailController.text,
+        '/minhas_casas',
+        arguments: nome,
       );
     }
   }
