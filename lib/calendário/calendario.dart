@@ -1,32 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_tcc/home.dart';
 
-
-class calend extends StatelessWidget {
-  const calend({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Calendário',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF2C2C2C),
-      ),
-      home: const CalendarPage(),
-    );
-  }
-}
-
-class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+class CalendarioPage extends StatefulWidget {
+  const CalendarioPage({super.key});
 
   @override
-  State<CalendarPage> createState() => _CalendarPageState();
+  State<CalendarioPage> createState() => _CalendarioPageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> {
-  int selectedDayIndex = 3; // Quarta-feira (índice 3)
+class _CalendarioPageState extends State<CalendarioPage> {
+  int selectedDayIndex = 3; // Dia selecionado (quarta-feira)
   final List<String> days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   final List<int> dates = [18, 19, 20, 21, 22, 23, 24];
 
@@ -39,104 +22,108 @@ class _CalendarPageState extends State<CalendarPage> {
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF133C74),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Nome',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white38),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              backgroundColor: const Color(0xFF133C74),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: descriptionController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Descrição',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white38),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      selectedDate == null
-                          ? 'Selecione uma data'
-                          : 'Data: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
-                      style: const TextStyle(color: Colors.white70),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Nome',
+                        labelStyle: TextStyle(color: Colors.white70),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white38),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.calendar_today, color: Colors.white),
-                    onPressed: () async {
-                      final DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2030),
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          selectedDate = picked;
-                        });
-                        Navigator.of(context).pop();
-                        _openAddTaskDialog();
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5E83AE),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onPressed: () {
-                    if (nameController.text.isNotEmpty) {
-                      setState(() {
-                        tasks.add({
-                          'name': nameController.text,
-                          'description': descriptionController.text,
-                          'date': selectedDate,
-                        });
-                      });
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: const Text(
-                    'Criar',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: descriptionController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Descrição',
+                        labelStyle: TextStyle(color: Colors.white70),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white38),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedDate == null
+                                ? 'Selecione uma data'
+                                : 'Data: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today, color: Colors.white),
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2030),
+                            );
+                            if (picked != null) {
+                              setStateDialog(() => selectedDate = picked);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5E83AE),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () {
+                          if (nameController.text.isNotEmpty) {
+                            setState(() {
+                              tasks.add({
+                                'name': nameController.text,
+                                'description': descriptionController.text,
+                                'date': selectedDate,
+                              });
+                            });
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        child: const Text(
+                          'Criar',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
-              )
-            ],
-          ),
-        ),
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -161,7 +148,10 @@ class _CalendarPageState extends State<CalendarPage> {
                     onTap: () => setState(() => selectedDayIndex = index),
                     child: Column(
                       children: [
-                        Text(days[index]),
+                        Text(
+                          days[index],
+                          style: const TextStyle(color: Colors.white),
+                        ),
                         const SizedBox(height: 4),
                         Container(
                           width: 40,
@@ -176,7 +166,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             child: Text(
                               dates[index].toString(),
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.white70,
+                                color: Colors.black, // Preto como solicitado
                                 fontWeight: isSelected
                                     ? FontWeight.bold
                                     : FontWeight.normal,

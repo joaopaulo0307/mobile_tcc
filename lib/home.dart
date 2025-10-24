@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
     _opcoes = {
       "ECONÔMICO": const Economico(),
       "USUÁRIOS": const Usuarios(),
-      "CALENDÁRIO": const CalendarPage(),
+      "CALENDÁRIO": const CalendarioPage(),
       "MINHAS CASAS": MeuCasas(nome: widget.nome),
       "MEU PERFIL": Perfil(
         userEmail: "${widget.nome}@exemplo.com",
@@ -245,8 +245,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   _buildOptionButton("Usuários", FontAwesomeIcons.users, () => _navegarParaTela("USUÁRIOS")),
                   _buildOptionButton("Econômico", FontAwesomeIcons.chartLine, () => _navegarParaTela("ECONÔMICO")),
-                  _buildOptionButton("Minhas Casas", FontAwesomeIcons.home, () => _navegarParaTela("MINHAS CASAS")),
-                  _buildOptionButton("Perfil", FontAwesomeIcons.user, () => _navegarParaTela("MEU PERFIL")),
+                  _buildOptionButton("Calendário", FontAwesomeIcons.user, () => _navegarParaTela("CALENDÁRIO")),
                 ],
               ),
             ),
