@@ -188,7 +188,7 @@ class _LoginFormState extends State<LoginForm> {
     if (_formKey.currentState!.validate()) {
       Navigator.pushReplacementNamed(
         context,
-        '/home',
+        '/meu_casas',
         arguments: _emailController.text,
       );
     }

@@ -1,14 +1,40 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
-class MeuCasasPage extends StatefulWidget {
-  const MeuCasasPage({super.key});
+class MeuCasas extends StatefulWidget {
+  const MeuCasas({super.key});
 
   @override
-  State<MeuCasasPage> createState() => _MeuCasasPageState();
+  State<MeuCasas> createState() => _MeuCasasState();
 }
 
-class _MeuCasasPageState extends State<MeuCasasPage> {
+class _MeuCasasState extends State<MeuCasas>
+    with SingleTickerProviderStateMixin {
   final List<Map<String, String>> _casas = [];
+
+  // Controlador para a animação do brilho
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicializa o controlador de animação
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
+
+    _animation = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   void _adicionarCasa(String nome, String endereco) {
     setState(() {
@@ -42,7 +68,8 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
           nomeController: nomeController,
           enderecoController: enderecoController,
           onConfirmar: () {
-            if (nomeController.text.isNotEmpty && enderecoController.text.isNotEmpty) {
+            if (nomeController.text.isNotEmpty &&
+                enderecoController.text.isNotEmpty) {
               _adicionarCasa(nomeController.text, enderecoController.text);
               Navigator.pop(context);
             }
@@ -54,7 +81,8 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
 
   void _abrirPopupEditarCasa(int index) {
     final nomeController = TextEditingController(text: _casas[index]['nome']);
-    final enderecoController = TextEditingController(text: _casas[index]['endereco']);
+    final enderecoController =
+        TextEditingController(text: _casas[index]['endereco']);
 
     showDialog(
       context: context,
@@ -65,7 +93,8 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
           nomeController: nomeController,
           enderecoController: enderecoController,
           onConfirmar: () {
-            if (nomeController.text.isNotEmpty && enderecoController.text.isNotEmpty) {
+            if (nomeController.text.isNotEmpty &&
+                enderecoController.text.isNotEmpty) {
               _editarCasa(index, nomeController.text, enderecoController.text);
               Navigator.pop(context);
             }
@@ -83,11 +112,15 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
     required VoidCallback onConfirmar,
   }) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF133C74),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: const Color(0xFF1A3B6B),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         titulo,
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold,
+            fontSize: 18
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -98,26 +131,30 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
             decoration: const InputDecoration(
               labelText: "Nome da casa",
               labelStyle: TextStyle(color: Colors.white70),
-              enabledBorder: UnderlineInputBorder(
+              enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white54),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           TextField(
             controller: enderecoController,
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
               labelText: "Endereço",
               labelStyle: TextStyle(color: Colors.white70),
-              enabledBorder: UnderlineInputBorder(
+              enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white54),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
             ),
           ),
@@ -125,15 +162,27 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
       ),
       actions: [
         TextButton(
-          child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
+          child: const Text(
+            "Cancelar", 
+            style: TextStyle(color: Colors.white70, fontSize: 14)
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF466A91),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           onPressed: onConfirmar,
           child: const Text(
             "Confirmar",
-            style: TextStyle(color: Color(0xFF133C74), fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.white, 
+              fontWeight: FontWeight.bold,
+              fontSize: 14
+            ),
           ),
         ),
       ],
@@ -143,7 +192,7 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
   void _mostrarMenuOpcoes(int index) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF133C74),
+      backgroundColor: const Color(0xFF1A3B6B),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -155,7 +204,10 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.edit, color: Colors.white),
-                title: const Text('Editar', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Editar', 
+                  style: TextStyle(color: Colors.white)
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _abrirPopupEditarCasa(index);
@@ -163,7 +215,10 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Excluir', style: TextStyle(color: Colors.red)),
+                title: const Text(
+                  'Excluir', 
+                  style: TextStyle(color: Colors.red)
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _removerCasa(index);
@@ -176,82 +231,193 @@ class _MeuCasasPageState extends State<MeuCasasPage> {
     );
   }
 
+  Widget _buildPlaceholderCard() {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF27226D),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white24, width: 1),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.home_work_outlined,
+                  color: Colors.white70,
+                  size: 50,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Nenhuma casa cadastrada",
+                  style: TextStyle(
+                    color: Colors.white70, 
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Toque no botão + para adicionar sua primeira casa",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCasaCard(int index) {
+    final casa = _casas[index];
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF27226D),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: const BoxDecoration(
+            color: Color(0xFF466A91),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.home,
+            color: Colors.white,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          casa['nome']!,
+          style: const TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold,
+            fontSize: 16
+          ),
+        ),
+        subtitle: Text(
+          casa['endereco']!,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12
+          ),
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.more_vert, color: Colors.white),
+          onPressed: () => _mostrarMenuOpcoes(index),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF133C74),
-        title: const Text("MINHAS CASAS", style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF1A3B6B),
+        title: const Text(
+          "MINHAS CASAS",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 18
+          ),
+        ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        elevation: 0,
       ),
-      body: Container(
-        color: Colors.black,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Residências:",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Suas Residências",
+              style: TextStyle(
+                color: Colors.white, 
+                fontWeight: FontWeight.bold, 
+                fontSize: 20
               ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _casas.isEmpty
-                    ? const Center(
-                        child: Text(
-                          "Nenhuma casa cadastrada\nClique no + para adicionar",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: _casas.length,
-                        itemBuilder: (context, index) {
-                          final casa = _casas[index];
-                          return Card(
-                            color: const Color(0xFF6C8ED0),
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            child: ListTile(
-                              title: Text(
-                                casa['nome']!,
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                              ),
-                              subtitle: Text(
-                                casa['endereco']!,
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.more_vert, color: Colors.white),
-                                onPressed: () => _mostrarMenuOpcoes(index),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _casas.isEmpty ? "Nenhuma casa cadastrada" : "${_casas.length} casa(s) cadastrada(s)",
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: _casas.isEmpty
+                  ? _buildPlaceholderCard()
+                  : ListView.builder(
+                      itemCount: _casas.length,
+                      itemBuilder: (context, index) {
+                        return _buildCasaCard(index);
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF133C74),
+        backgroundColor: const Color(0xFF466A91),
         onPressed: _abrirPopupAdicionarCasa,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white, size: 24),
       ),
       bottomNavigationBar: Container(
-        color: const Color(0xFF133C74),
-        padding: const EdgeInsets.all(12),
-        child: const Center(
-          child: Text(
-            "© Todos os direitos reservados - 2025",
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
+        color: const Color(0xFF1A3B6B),
+        padding: const EdgeInsets.all(16),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Alarma",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              "Organize suas residências de forma simples",
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "© Todos os direitos reservados - 2025",
+              style: TextStyle(color: Colors.white54, fontSize: 10),
+            ),
+          ],
         ),
       ),
     );
