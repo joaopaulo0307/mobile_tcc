@@ -5,6 +5,7 @@ import 'package:mobile_tcc/economic/economico.dart';
 // Importe as outras páginas necessárias aqui
 // import 'package:mobile_tcc/calendario.dart';
 // import 'package:mobile_tcc/minhas_casas.dart';
+import 'package:mobile_tcc/perfil.dart';
 
 class HomePage extends StatefulWidget {
   final String nome;
