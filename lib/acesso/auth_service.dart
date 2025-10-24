@@ -4,8 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  // MUDANÇA IMPORTANTE: Use seu IP real ou um serviço de teste
-  static const String baseUrl = 'http://192.168.1.100:3000/api'; // ALTERE PARA SEU IP
+  static const String baseUrl = 'http://192.168.1.100:3000/api';
   static String? _token;
 
   // Getter para o token
@@ -60,23 +59,22 @@ class AuthService {
     print('Token e dados removidos');
   }
 
-  // **CADASTRO CORRIGIDO - SEM TELEFONE**
+  // Cadastro - Salva o nome real do usuário
   static Future<Map<String, dynamic>> cadastrar({
     required String nome,
     required String email,
     required String senha,
-    // TELEFONE REMOVIDO
   }) async {
     try {
-      print('Tentando cadastrar: $email');
+      print('Tentando cadastrar: $email - Nome: $nome');
       
-      // SIMULAÇÃO TEMPORÁRIA - REMOVA QUANDO O BACKEND ESTIVER PRONTO
+      // SIMULAÇÃO TEMPORÁRIA
       await Future.delayed(const Duration(seconds: 2));
       
-      // Simular validação de email único
       final prefs = await SharedPreferences.getInstance();
       final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
       
+      // Verificar se email já existe
       if (usuarios.any((user) => user.contains(email))) {
         return {
           'success': false, 
@@ -84,54 +82,34 @@ class AuthService {
         };
       }
       
+      // Criar dados do usuário com nome real
+      final userData = {
+        'nome': nome, // NOME REAL DO USUÁRIO
+        'email': email,
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      };
+      
+      // Salvar dados do usuário para uso no login
+      await prefs.setString('user_data_$email', json.encode(userData));
+      
       // Adicionar à lista de usuários cadastrados
       usuarios.add('$email|${DateTime.now().millisecondsSinceEpoch}');
       await prefs.setStringList('usuarios_cadastrados', usuarios);
       
-      // **IMPORTANTE**: Não salva token nem faz login automático
+      print('Usuário cadastrado com sucesso: $nome');
+      
       return {
         'success': true, 
         'message': 'Cadastro realizado com sucesso! Faça login para continuar.',
-        'user': {
-          'nome': nome,
-          'email': email,
-          // TELEFONE REMOVIDO
-        },
+        'user': userData,
       };
 
-      // CÓDIGO ORIGINAL PARA BACKEND REAL (COMENTADO TEMPORARIAMENTE)
-      /*
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/cadastro'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'nome': nome,
-          'email': email,
-          'senha': senha,
-          // TELEFONE REMOVIDO
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 201) {
-        final data = json.decode(response.body);
-        return {
-          'success': true, 
-          'message': 'Cadastro realizado com sucesso! Faça login para continuar.',
-          'user': data['user']
-        };
-      } else {
-        final error = json.decode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Erro no cadastro'};
-      }
-      */
-    } on http.ClientException catch (e) {
-      return {'success': false, 'message': 'Erro de conexão. Verifique se o servidor está rodando.'};
-    } on Exception catch (e) {
+    } catch (e) {
       return {'success': false, 'message': 'Erro: $e'};
     }
   }
 
-  // Login
+  // Login - Retorna o nome real do cadastro
   static Future<Map<String, dynamic>> login({
     required String email,
     required String senha,
@@ -139,34 +117,49 @@ class AuthService {
     try {
       print('Tentando login: $email');
       
-      // SIMULAÇÃO TEMPORÁRIA - REMOVA QUANDO O BACKEND ESTIVER PRONTO
+      // SIMULAÇÃO TEMPORÁRIA
       await Future.delayed(const Duration(seconds: 2));
       
-      // Verificar se o usuário foi cadastrado (simulação)
       final prefs = await SharedPreferences.getInstance();
       final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
       
+      // Verificar se usuário existe
       final usuarioCadastrado = usuarios.any((user) => user.contains(email));
       
-      // Simular credenciais válidas (apenas para usuários cadastrados com senha >= 6)
       if (usuarioCadastrado && senha.length >= 6) {
-        final userData = {
-          'nome': email.split('@')[0],
-          'email': email,
-          'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        };
+        // Buscar dados reais do cadastro
+        final userDataCadastrado = prefs.getString('user_data_$email');
+        
+        Map<String, dynamic> userData;
+        
+        if (userDataCadastrado != null) {
+          // Usar dados reais do cadastro
+          userData = json.decode(userDataCadastrado);
+          print('Nome real do usuário: ${userData['nome']}');
+        } else {
+          // Fallback se não encontrar dados (não deveria acontecer)
+          userData = {
+            'nome': email.split('@')[0],
+            'email': email,
+            'id': DateTime.now().millisecondsSinceEpoch.toString(),
+          };
+          print('Usando nome fallback: ${userData['nome']}');
+        }
         
         final token = 'simulated_token_${DateTime.now().millisecondsSinceEpoch}';
         
-        // Salva token e dados apenas no login
+        // Salvar token e dados para sessão
         await _saveToken(token);
         await _saveUserData(userData);
+        
+        print('Login bem-sucedido para: ${userData['nome']}');
         
         return {
           'success': true, 
           'user': userData,
           'message': 'Login realizado com sucesso!'
         };
+        
       } else if (!usuarioCadastrado) {
         return {
           'success': false, 
@@ -178,19 +171,17 @@ class AuthService {
           'message': 'Senha incorreta'
         };
       }
-    } on http.ClientException catch (e) {
-      return {'success': false, 'message': 'Erro de conexão. Verifique se o servidor está rodando.'};
-    } on Exception catch (e) {
+      
+    } catch (e) {
       return {'success': false, 'message': 'Erro: $e'};
     }
   }
 
-  // Esqueci senha - VERSÃO SIMULADA
+  // Esqueci senha
   static Future<Map<String, dynamic>> esqueciSenha(String email) async {
     try {
       await Future.delayed(const Duration(seconds: 2));
       
-      // Verificar se o email existe (simulação)
       final prefs = await SharedPreferences.getInstance();
       final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
       final usuarioExiste = usuarios.any((user) => user.contains(email));
@@ -206,7 +197,7 @@ class AuthService {
           'message': 'Email não cadastrado no sistema'
         };
       }
-    } on Exception catch (e) {
+    } catch (e) {
       return {'success': false, 'message': 'Erro: $e'};
     }
   }
@@ -231,45 +222,43 @@ class AuthService {
         return savedData;
       }
       
-      // Se não tiver dados salvos, tenta buscar da API
-      if (_token != null) {
-        final response = await http.get(
-          Uri.parse('$baseUrl/auth/me'),
-          headers: {'Authorization': 'Bearer $_token'},
-        ).timeout(const Duration(seconds: 10));
-
-        if (response.statusCode == 200) {
-          final userData = json.decode(response.body);
-          await _saveUserData(userData);
-          return userData;
-        } else {
-          await removeToken();
-          return {};
-        }
-      }
       return {};
     } catch (e) {
       print('Erro ao obter dados do usuário: $e');
-      // Em caso de erro, retorna dados salvos ou vazio
       return await _getUserData();
     }
   }
 
-  // Logout - limpa todos os dados
+  // Logout
   static Future<void> logout() async {
     await removeToken();
     print('Logout realizado com sucesso');
   }
 
-  // Verificar se email já está cadastrado (para uso no cadastro)
+  // Verificar se email já está cadastrado
   static Future<bool> isEmailCadastrado(String email) async {
     try {
-      // Simulação - verifica na lista local
       final prefs = await SharedPreferences.getInstance();
       final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
       return usuarios.any((user) => user.contains(email));
     } catch (e) {
       return false;
+    }
+  }
+
+  // Obter nome do usuário pelo email
+  static Future<String?> getNomeUsuario(String email) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userDataCadastrado = prefs.getString('user_data_$email');
+      
+      if (userDataCadastrado != null) {
+        final userData = json.decode(userDataCadastrado);
+        return userData['nome'];
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 }

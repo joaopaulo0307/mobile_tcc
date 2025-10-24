@@ -52,7 +52,6 @@ class MyApp extends StatelessWidget {
         },
         '/esqueci_senha': (context) => const EsqueciSenhaPage(),
       },
-      // Adicionando tratamento de erro global
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
@@ -271,6 +270,7 @@ class _LoginFormState extends State<LoginForm> {
       if (!mounted) return;
 
       if (result['success'] == true) {
+        // CORREÇÃO: Usar o nome retornado pelo AuthService
         final String nome = result['user']?['nome'] ?? 
                            _emailController.text.split('@')[0];
         print('Login bem-sucedido: $nome');
