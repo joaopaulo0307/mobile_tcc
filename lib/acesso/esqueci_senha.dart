@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../acesso/auth_service.dart';
 import 'dart:ui';
@@ -16,17 +15,17 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
   bool _isLoading = false;
   bool _emailEnviado = false;
 
-  void _enviarEmailRecuperacao() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _enviarEmailRecuperacao() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      final result = await AuthService.esqueciSenha(_emailController.text);
+    setState(() {
+      _isLoading = true;
+    });
 
-      setState(() {
-        _isLoading = false;
-      });
+    try {
+      final result = await AuthService.esqueciSenha(_emailController.text.trim());
+
+      if (!mounted) return;
 
       if (result['success'] == true) {
         setState(() {
@@ -36,6 +35,16 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
       } else {
         _mostrarErro(result['message']);
       }
+    } catch (e) {
+      if (mounted) {
+        _mostrarErro('Erro inesperado: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -44,7 +53,7 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
       SnackBar(
         backgroundColor: Colors.red,
         content: Text(mensagem),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -54,9 +63,13 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
       SnackBar(
         backgroundColor: Colors.green,
         content: Text(mensagem),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
+  }
+
+  void _voltarParaLogin() {
+    Navigator.pop(context);
   }
 
   @override
@@ -68,7 +81,7 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
         title: const Text('RECUPERAR SENHA', style: TextStyle(color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _voltarParaLogin,
         ),
       ),
       body: Stack(
@@ -78,6 +91,9 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
             child: Image.asset(
               'lib/assets/images/fundo-tcc-mobile.png',
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(color: const Color(0xFF133A67));
+              },
             ),
           ),
           Positioned.fill(
@@ -116,6 +132,8 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
                             const SizedBox(height: 20),
                             TextFormField(
                               controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.done,
                               decoration: InputDecoration(
                                 hintText: "Email",
                                 filled: true,
@@ -127,10 +145,15 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) return 'Por favor, insira seu email';
-                                if (!value.contains('@')) return 'Por favor, insira um email válido';
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira seu email';
+                                }
+                                if (!value.contains('@') || !value.contains('.')) {
+                                  return 'Por favor, insira um email válido';
+                                }
                                 return null;
                               },
+                              onFieldSubmitted: (_) => _enviarEmailRecuperacao(),
                             ),
                             const SizedBox(height: 20),
                             if (_isLoading)
@@ -165,9 +188,9 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 10),
-                            const Text(
-                              'Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.',
-                              style: TextStyle(color: Colors.white70, fontSize: 14),
+                            Text(
+                              'Verifique sua caixa de entrada ($_emailController.text) e siga as instruções para redefinir sua senha.',
+                              style: const TextStyle(color: Colors.white70, fontSize: 14),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 20),
@@ -180,18 +203,19 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: _voltarParaLogin,
                               child: const Text('VOLTAR AO LOGIN'),
                             ),
                           ],
                           const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text(
-                              'Voltar ao login',
-                              style: TextStyle(color: Color(0xFF5E83AE)),
+                          if (!_emailEnviado)
+                            TextButton(
+                              onPressed: _voltarParaLogin,
+                              child: const Text(
+                                'Voltar ao login',
+                                style: TextStyle(color: Color(0xFF5E83AE)),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -203,5 +227,11 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
   }
 }

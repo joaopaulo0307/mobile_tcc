@@ -19,8 +19,9 @@ void main() async {
   
   try {
     await AuthService.initialize();
+    print('App inicializado com sucesso');
   } catch (e) {
-    print('Erro na inicialização: $e');
+    print('Erro na inicialização do app: $e');
   }
   
   runApp(const MyApp());
@@ -50,6 +51,13 @@ class MyApp extends StatelessWidget {
           );
         },
         '/esqueci_senha': (context) => const EsqueciSenhaPage(),
+      },
+      // Adicionando tratamento de erro global
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: child!,
+        );
       },
     );
   }
@@ -153,6 +161,7 @@ class LandingPage extends StatelessWidget {
               'lib/assets/images/fundo-tcc-mobile.png',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
+                print('Erro ao carregar imagem de fundo: $error');
                 return Container(color: primaryColor);
               },
             ),
@@ -220,6 +229,7 @@ class _LoginFormState extends State<LoginForm> {
         if (!mounted) return;
 
         if (userData.isNotEmpty && userData['nome'] != null) {
+          print('Login automático realizado para: ${userData['nome']}');
           _navegarParaMinhasCasas(userData['nome']);
           return;
         }
@@ -261,8 +271,9 @@ class _LoginFormState extends State<LoginForm> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        final String nome = result['user']['nome'] ?? 
+        final String nome = result['user']?['nome'] ?? 
                            _emailController.text.split('@')[0];
+        print('Login bem-sucedido: $nome');
         _navegarParaMinhasCasas(nome);
       } else {
         _mostrarErro(result['message'] ?? 'Erro desconhecido no login');
@@ -285,7 +296,7 @@ class _LoginFormState extends State<LoginForm> {
       SnackBar(
         backgroundColor: Colors.red,
         content: Text(mensagem),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -302,8 +313,18 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     if (_verificandoLogin) {
       return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(secondaryColor),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(secondaryColor),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Verificando login...',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
         ),
       );
     }
