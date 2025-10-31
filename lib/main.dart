@@ -6,6 +6,8 @@ import 'acesso/cadastro.dart';
 import 'acesso/esqueci_senha.dart';
 import 'home.dart';
 import 'dart:ui';
+import 'config.dart';
+
 
 const Color primaryColor = Color(0xFF133A67);
 const Color secondaryColor = Color(0xFF5E83AE);
@@ -51,6 +53,8 @@ class MyApp extends StatelessWidget {
           );
         },
         '/esqueci_senha': (context) => const EsqueciSenhaPage(),
+        '/config': (context) => const ConfigPage(),
+
       },
       builder: (context, child) {
         return MediaQuery(

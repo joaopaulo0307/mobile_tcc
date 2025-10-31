@@ -5,7 +5,7 @@ import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/economic/economico.dart';
 import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/meu_casas.dart';
-
+import 'package:mobile_tcc/config.dart';
 
 class HomePage extends StatefulWidget {
   final String nome;

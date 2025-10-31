@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../acesso/auth_service.dart'; // Importar o AuthService
+import '../acesso/auth_service.dart'; 
+import 'package:mobile_tcc/home.dart';
 
 class MeuCasas extends StatefulWidget {
   final String nome;
@@ -19,16 +20,15 @@ class _MeuCasasState extends State<MeuCasas> {
     print('MeuCasas iniciado para: ${widget.nome}');
   }
 
-  void _adicionarCasa(String nome, String endereco) {
+  void _adicionarCasa(String nome) {
     setState(() {
-      _casas.add({'nome': nome, 'endereco': endereco});
+      _casas.add({'nome': nome});
     });
   }
 
-  void _editarCasa(int index, String novoNome, String novoEndereco) {
+  void _editarCasa(int index, String novoNome) {
     setState(() {
       _casas[index]['nome'] = novoNome;
-      _casas[index]['endereco'] = novoEndereco;
     });
   }
 
@@ -38,29 +38,24 @@ class _MeuCasasState extends State<MeuCasas> {
     });
   }
 
-  void _entrarNaCasa(String nomeCasa, String endereco) {
+  void _entrarNaCasa(String nomeCasa) {
     print('Entrando na casa: $nomeCasa');
-    
     Navigator.pushReplacementNamed(
       context,
       '/home',
       arguments: {
         'nome': widget.nome,
         'casa': nomeCasa,
-        'endereco': endereco,
       },
     );
   }
 
-  // MÉTODO ATUALIZADO: Fazer logout e voltar para login
   Future<void> _fazerLogout() async {
     try {
-      // Fechar o drawer primeiro
       if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
         Navigator.pop(context);
       }
 
-      // Mostrar loading
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -71,19 +66,15 @@ class _MeuCasasState extends State<MeuCasas> {
         ),
       );
 
-      // Fazer logout no AuthService
       await AuthService.logout();
 
-      // Fechar loading e navegar para login
       if (mounted) {
-        Navigator.pop(context); // Fecha o loading
+        Navigator.pop(context);
         Navigator.pushReplacementNamed(context, '/');
       }
-
     } catch (e) {
-      // Em caso de erro, ainda tenta navegar para login
       if (mounted) {
-        Navigator.pop(context); // Fecha o loading
+        Navigator.pop(context);
         Navigator.pushReplacementNamed(context, '/');
       }
       print('Erro durante logout: $e');
@@ -92,7 +83,6 @@ class _MeuCasasState extends State<MeuCasas> {
 
   void _abrirPopupAdicionarCasa() {
     final nomeController = TextEditingController();
-    final enderecoController = TextEditingController();
 
     showDialog(
       context: context,
@@ -103,44 +93,24 @@ class _MeuCasasState extends State<MeuCasas> {
           title: const Text(
             "Adicionar Casa",
             style: TextStyle(
-              color: Colors.white, 
+              color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 18
+              fontSize: 18,
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nomeController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: "Nome da casa",
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white54),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
+          content: TextField(
+            controller: nomeController,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: "Nome da casa",
+              labelStyle: TextStyle(color: Colors.white70),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white54),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: enderecoController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: "Endereço",
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white54),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
               ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -152,8 +122,8 @@ class _MeuCasasState extends State<MeuCasas> {
                 backgroundColor: const Color(0xFF466A91),
               ),
               onPressed: () {
-                if (nomeController.text.isNotEmpty && enderecoController.text.isNotEmpty) {
-                  _adicionarCasa(nomeController.text, enderecoController.text);
+                if (nomeController.text.isNotEmpty) {
+                  _adicionarCasa(nomeController.text);
                   Navigator.pop(context);
                 }
               },
@@ -167,7 +137,6 @@ class _MeuCasasState extends State<MeuCasas> {
 
   void _abrirPopupEditarCasa(int index) {
     final nomeController = TextEditingController(text: _casas[index]['nome']);
-    final enderecoController = TextEditingController(text: _casas[index]['endereco']);
 
     showDialog(
       context: context,
@@ -178,44 +147,24 @@ class _MeuCasasState extends State<MeuCasas> {
           title: const Text(
             "Editar Casa",
             style: TextStyle(
-              color: Colors.white, 
+              color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 18
+              fontSize: 18,
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nomeController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: "Nome da casa",
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white54),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
+          content: TextField(
+            controller: nomeController,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: "Nome da casa",
+              labelStyle: TextStyle(color: Colors.white70),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white54),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: enderecoController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: "Endereço",
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white54),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
               ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -227,8 +176,8 @@ class _MeuCasasState extends State<MeuCasas> {
                 backgroundColor: const Color(0xFF466A91),
               ),
               onPressed: () {
-                if (nomeController.text.isNotEmpty && enderecoController.text.isNotEmpty) {
-                  _editarCasa(index, nomeController.text, enderecoController.text);
+                if (nomeController.text.isNotEmpty) {
+                  _editarCasa(index, nomeController.text);
                   Navigator.pop(context);
                 }
               },
@@ -255,7 +204,7 @@ class _MeuCasasState extends State<MeuCasas> {
                 title: const Text('Entrar na Casa', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(context);
-                  _entrarNaCasa(_casas[index]['nome']!, _casas[index]['endereco']!);
+                  _entrarNaCasa(_casas[index]['nome']!);
                 },
               ),
               ListTile(
@@ -281,14 +230,12 @@ class _MeuCasasState extends State<MeuCasas> {
     );
   }
 
-  // Drawer lateral
   Widget _buildDrawer() {
     return Drawer(
       backgroundColor: const Color(0xFF1A3B6B),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // Header do Drawer
           DrawerHeader(
             decoration: const BoxDecoration(
               color: Color(0xFF133A67),
@@ -314,69 +261,26 @@ class _MeuCasasState extends State<MeuCasas> {
               ],
             ),
           ),
-          
-          // Menu do Drawer
           ListTile(
             leading: const Icon(Icons.home, color: Colors.white),
             title: const Text('Minhas Casas', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context); // Fecha o drawer
-            },
+            onTap: () => Navigator.pop(context),
           ),
-          
           ListTile(
             leading: const Icon(Icons.person, color: Colors.white),
             title: const Text('Meu Perfil', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context);
-              // Aqui você pode adicionar navegação para o perfil se quiser
-            },
+            onTap: () => Navigator.pop(context),
           ),
-          
           ListTile(
             leading: const Icon(Icons.settings, color: Colors.white),
             title: const Text('Configurações', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context);
-              // Aqui você pode adicionar navegação para configurações
-            },
+            onTap: () => Navigator.pop(context),
           ),
-          
           const Divider(color: Colors.white54),
-          
-          // BOTÃO SAIR ATUALIZADO
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Sair', style: TextStyle(color: Colors.red)),
-            onTap: _fazerLogout, // Agora chama o método de logout
-          ),
-          
-          // Footer do Drawer
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const Text(
-                  "Alarma",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  "Organize suas residências",
-                  style: TextStyle(color: Colors.white54, fontSize: 10),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "© 2025 Todos os direitos reservados",
-                  style: TextStyle(color: Colors.white54, fontSize: 8),
-                ),
-              ],
-            ),
+            onTap: _fazerLogout,
           ),
         ],
       ),
@@ -394,15 +298,11 @@ class _MeuCasasState extends State<MeuCasas> {
           casa['nome']!,
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          casa['endereco']!,
-          style: const TextStyle(color: Colors.white70),
-        ),
         trailing: IconButton(
           icon: const Icon(Icons.more_vert, color: Colors.white),
           onPressed: () => _mostrarMenuOpcoes(index),
         ),
-        onTap: () => _entrarNaCasa(casa['nome']!, casa['endereco']!),
+        onTap: () => _entrarNaCasa(casa['nome']!),
       ),
     );
   }
@@ -425,8 +325,8 @@ class _MeuCasasState extends State<MeuCasas> {
             padding: const EdgeInsets.only(right: 16),
             child: Center(
               child: Text(
-                "Olá, ${widget.nome}", 
-                style: const TextStyle(color: Colors.white70)
+                "Olá, ${widget.nome}",
+                style: const TextStyle(color: Colors.white70),
               ),
             ),
           ),
@@ -467,9 +367,9 @@ class _MeuCasasState extends State<MeuCasas> {
                   Text(
                     "Suas Casas (${_casas.length})",
                     style: const TextStyle(
-                      color: Colors.white, 
-                      fontSize: 18, 
-                      fontWeight: FontWeight.bold
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 16),
