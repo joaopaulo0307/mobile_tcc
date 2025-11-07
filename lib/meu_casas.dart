@@ -12,16 +12,7 @@ class MeuCasas extends StatefulWidget {
 }
 
 class _MeuCasasState extends State<MeuCasas> {
-  final List<Map<String, String>> _casas = [
-    {
-      'nome': 'Mens da casa',
-      'endereco': 'Endereço',
-    },
-    {
-      'nome': 'Nome da casa',
-      'endereco': 'Endereço',
-    }
-  ];
+  final List<Map<String, String>> _casas = [];
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _enderecoController = TextEditingController();
 
@@ -80,14 +71,6 @@ class _MeuCasasState extends State<MeuCasas> {
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF133A67),
                                 fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              casa['endereco']!,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
                               ),
                             ),
                           ],
@@ -159,13 +142,6 @@ class _MeuCasasState extends State<MeuCasas> {
               ),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _enderecoController,
-              decoration: const InputDecoration(
-                labelText: 'Endereço',
-                border: OutlineInputBorder(),
-              ),
-            ),
           ],
         ),
         actions: [
@@ -194,7 +170,6 @@ class _MeuCasasState extends State<MeuCasas> {
       setState(() {
         _casas.add({
           'nome': _nomeController.text.trim(),
-          'endereco': _enderecoController.text.trim(),
         });
       });
       Navigator.pop(context);
@@ -216,13 +191,11 @@ class _MeuCasasState extends State<MeuCasas> {
 
   void _limparCampos() {
     _nomeController.clear();
-    _enderecoController.clear();
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
-    _enderecoController.dispose();
     super.dispose();
   }
 }

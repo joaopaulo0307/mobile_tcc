@@ -1,4 +1,4 @@
-// services/user_service.dart
+
 class UserService {
   static String _userEmail = "usuario@exemplo.com";
   static List<String> _tarefasRealizadas = [];
