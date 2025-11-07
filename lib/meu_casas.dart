@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../acesso/auth_service.dart'; 
+import 'package:mobile_tcc/acesso/auth_service.dart';
+import 'package:mobile_tcc/main.dart';
 import 'package:mobile_tcc/home.dart';
 
 class MeuCasas extends StatefulWidget {
   final String nome;
+
   const MeuCasas({super.key, required this.nome});
 
   @override
@@ -14,15 +16,18 @@ class _MeuCasasState extends State<MeuCasas> {
   final List<Map<String, String>> _casas = [];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  @override
-  void initState() {
-    super.initState();
-    print('MeuCasas iniciado para: ${widget.nome}');
-  }
-
+  // ✅ Adiciona uma nova casa e volta para a home
   void _adicionarCasa(String nome) {
     setState(() {
-      _casas.add({'nome': nome});
+      _casas.add({
+        'nome': nome,
+        'endereco': 'Endereço não informado',
+      });
+    });
+
+    Navigator.pop(context, {
+    'nomeCasa': nome,
+    'enderecoCasa': 'Endereço não informado',
     });
   }
 
@@ -38,16 +43,17 @@ class _MeuCasasState extends State<MeuCasas> {
     });
   }
 
+  // ✅ Ao entrar numa casa, volta para a home com os dados
   void _entrarNaCasa(String nomeCasa) {
-    print('Entrando na casa: $nomeCasa');
-    Navigator.pushReplacementNamed(
-      context,
-      '/home',
-      arguments: {
-        'nome': widget.nome,
-        'casa': nomeCasa,
-      },
-    );
+    final endereco = _casas.firstWhere(
+      (c) => c['nome'] == nomeCasa,
+      orElse: () => {'endereco': 'Endereço não informado'},
+    )['endereco'];
+
+    Navigator.pop(context, {
+      'nomeCasa': nomeCasa,
+      'enderecoCasa': endereco,
+    });
   }
 
   Future<void> _fazerLogout() async {
@@ -60,9 +66,7 @@ class _MeuCasasState extends State<MeuCasas> {
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF466A91)),
-          ),
+          child: CircularProgressIndicator(),
         ),
       );
 
@@ -77,210 +81,127 @@ class _MeuCasasState extends State<MeuCasas> {
         Navigator.pop(context);
         Navigator.pushReplacementNamed(context, '/');
       }
-      print('Erro durante logout: $e');
     }
   }
 
   void _abrirPopupAdicionarCasa() {
-    final nomeController = TextEditingController();
+    final controller = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1A3B6B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text(
-            "Adicionar Casa",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A3B6B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text(
+          "Adicionar Casa",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: "Nome da casa",
+            labelStyle: TextStyle(color: Colors.white70),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
             ),
           ),
-          content: TextField(
-            controller: nomeController,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: "Nome da casa",
-              labelStyle: TextStyle(color: Colors.white70),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white54),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white),
-              ),
-            ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
+            onPressed: () => Navigator.pop(context),
           ),
-          actions: [
-            TextButton(
-              child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF466A91),
-              ),
-              onPressed: () {
-                if (nomeController.text.isNotEmpty) {
-                  _adicionarCasa(nomeController.text);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text("Confirmar", style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                Navigator.pop(context);
+                _adicionarCasa(controller.text);
+              }
+            },
+            child: const Text("Confirmar"),
+          )
+        ],
+      ),
     );
   }
 
   void _abrirPopupEditarCasa(int index) {
-    final nomeController = TextEditingController(text: _casas[index]['nome']);
+    final controller = TextEditingController(text: _casas[index]['nome']);
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1A3B6B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text(
-            "Editar Casa",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A3B6B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text(
+          "Editar Casa",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: "Nome da casa",
+            labelStyle: TextStyle(color: Colors.white70),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
             ),
           ),
-          content: TextField(
-            controller: nomeController,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: "Nome da casa",
-              labelStyle: TextStyle(color: Colors.white70),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white54),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white),
-              ),
-            ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Cancelar", style: TextStyle(color: Colors.white)),
+            onPressed: () => Navigator.pop(context),
           ),
-          actions: [
-            TextButton(
-              child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF466A91),
-              ),
-              onPressed: () {
-                if (nomeController.text.isNotEmpty) {
-                  _editarCasa(index, nomeController.text);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text("Confirmar", style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
+          ElevatedButton(
+            onPressed: () {
+              _editarCasa(index, controller.text);
+              Navigator.pop(context);
+            },
+            child: const Text("Salvar"),
+          )
+        ],
+      ),
     );
   }
 
-  void _mostrarMenuOpcoes(int index) {
+  void _mostrarOpcoesCasa(int index) {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1A3B6B),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.home, color: Colors.white),
-                title: const Text('Entrar na Casa', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _entrarNaCasa(_casas[index]['nome']!);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.edit, color: Colors.white),
-                title: const Text('Editar', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _abrirPopupEditarCasa(index);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Excluir', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _removerCasa(index);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: const Color(0xFF1A3B6B),
-      child: ListView(
-        padding: EdgeInsets.zero,
+      builder: (_) => Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Color(0xFF133A67),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, color: Color(0xFF133A67)),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  widget.nome,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "${_casas.length} casa(s)",
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
           ListTile(
             leading: const Icon(Icons.home, color: Colors.white),
-            title: const Text('Minhas Casas', style: TextStyle(color: Colors.white)),
-            onTap: () => Navigator.pop(context),
+            title: const Text("Entrar", style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              _entrarNaCasa(_casas[index]['nome']!);
+            },
           ),
           ListTile(
-            leading: const Icon(Icons.person, color: Colors.white),
-            title: const Text('Meu Perfil', style: TextStyle(color: Colors.white)),
-            onTap: () => Navigator.pop(context),
+            leading: const Icon(Icons.edit, color: Colors.white),
+            title: const Text("Editar", style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              _abrirPopupEditarCasa(index);
+            },
           ),
           ListTile(
-            leading: const Icon(Icons.settings, color: Colors.white),
-            title: const Text('Configurações', style: TextStyle(color: Colors.white)),
-            onTap: () => Navigator.pop(context),
-          ),
-          const Divider(color: Colors.white54),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Sair', style: TextStyle(color: Colors.red)),
-            onTap: _fazerLogout,
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: const Text("Excluir", style: TextStyle(color: Colors.red)),
+            onTap: () {
+              Navigator.pop(context);
+              _removerCasa(index);
+            },
           ),
         ],
       ),
@@ -288,21 +209,19 @@ class _MeuCasasState extends State<MeuCasas> {
   }
 
   Widget _buildCasaCard(int index) {
-    final casa = _casas[index];
     return Card(
       color: const Color(0xFF27226D),
-      margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         leading: const Icon(Icons.home, color: Colors.white),
         title: Text(
-          casa['nome']!,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          _casas[index]['nome']!,
+          style: const TextStyle(color: Colors.white),
         ),
         trailing: IconButton(
           icon: const Icon(Icons.more_vert, color: Colors.white),
-          onPressed: () => _mostrarMenuOpcoes(index),
+          onPressed: () => _mostrarOpcoesCasa(index),
         ),
-        onTap: () => _entrarNaCasa(casa['nome']!),
+        onTap: () => _entrarNaCasa(_casas[index]['nome']!),
       ),
     );
   }
@@ -312,81 +231,55 @@ class _MeuCasasState extends State<MeuCasas> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.black,
-      drawer: _buildDrawer(),
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF1A3B6B),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            const CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, size: 35, color: Colors.black),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              widget.nome,
+              style: const TextStyle(color: Colors.white, fontSize: 18),
+            ),
+            const Divider(color: Colors.white54),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text("Sair", style: TextStyle(color: Colors.red)),
+              onTap: _fazerLogout,
+            )
+          ],
+        ),
+      ),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A3B6B),
-        title: const Text("MINHAS CASAS", style: TextStyle(color: Colors.white)),
+        title: const Text("Minhas Casas"),
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
+          icon: const Icon(Icons.menu),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Text(
-                "Olá, ${widget.nome}",
-                style: const TextStyle(color: Colors.white70),
-              ),
-            ),
-          ),
-        ],
       ),
-      body: _casas.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.home, color: Colors.white70, size: 60),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Nenhuma casa cadastrada",
-                    style: TextStyle(color: Colors.white70, fontSize: 18),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Toque no + para adicionar sua primeira casa",
-                    style: TextStyle(color: Colors.white54),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF466A91),
-                    ),
-                    onPressed: _abrirPopupAdicionarCasa,
-                    child: const Text('Adicionar Primeira Casa', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Suas Casas (${_casas.length})",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _casas.length,
-                      itemBuilder: (context, index) => _buildCasaCard(index),
-                    ),
-                  ),
-                ],
-              ),
-            ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF466A91),
+        child: const Icon(Icons.add),
         onPressed: _abrirPopupAdicionarCasa,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
+      body: _casas.isEmpty
+          ? const Center(
+              child: Text(
+                "Nenhuma casa cadastrada",
+                style: TextStyle(color: Colors.white70, fontSize: 18),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _casas.length,
+              itemBuilder: (_, i) => _buildCasaCard(i),
+            ),
     );
   }
 }

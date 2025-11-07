@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Para feedback tátil
+import 'package:mobile_tcc/home.dart';
+import 'package:mobile_tcc/main.dart';
 
 // 🔹 Cores do app (mantidas iguais às do main.dart)
 const Color primaryColor = Color(0xFF133A67);

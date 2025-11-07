@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mobile_tcc/calend%C3%A1rio/calendario.dart';
+import 'package:mobile_tcc/calendário/calendario.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/economic/economico.dart';
 import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/meu_casas.dart';
-import 'package:mobile_tcc/config.dart';
 
 class HomePage extends StatefulWidget {
   final String nome;
   final String casaSelecionada;
-  final String casaEndereco;
-  
+
   const HomePage({
-    super.key, 
-    required this.nome, 
+    super.key,
+    required this.nome,
     required this.casaSelecionada,
-    required this.casaEndereco,
   });
 
   @override
@@ -24,31 +21,46 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late String _casaAtual;
   late final Map<String, Widget> _opcoes;
 
   @override
   void initState() {
     super.initState();
+    _casaAtual = widget.casaSelecionada;
+
     _opcoes = {
       "ECONÔMICO": const Economico(),
       "USUÁRIOS": const Usuarios(),
       "CALENDÁRIO": const CalendarioPage(),
-      "MINHAS CASAS": MeuCasas(nome: widget.nome),
       "MEU PERFIL": Perfil(
         userEmail: "${widget.nome}@exemplo.com",
         tarefasRealizadas: [
           "Comprar materiais",
           "Enviar relatório",
           "Limpar a casa",
-          "Passear com o cachorro"
+          "Passear com o cachorro",
         ],
       ),
       "CONFIGURAÇÕES": Container(),
     };
   }
 
-  void _navegarParaTela(String titulo) {
-    if (_opcoes.containsKey(titulo) && titulo != "HOME") {
+  Future<void> _navegarParaTela(String titulo) async {
+    if (titulo == "MINHAS CASAS") {
+      final resultado = await Navigator.push(
+        context,
+        MaterialPageRoute(
+         builder: (context) => MeuCasas(nome: widget.nome),  // ALTERADO AQUI
+        ),
+      );
+
+      if (resultado != null && resultado is Map<String, String>) {
+        setState(() {
+          _casaAtual = resultado['nomeCasa'] ?? _casaAtual;
+        });
+      }
+    } else if (_opcoes.containsKey(titulo)) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => _opcoes[titulo]!),
@@ -63,9 +75,7 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Color(0xFF133A67),
-            ),
+            decoration: const BoxDecoration(color: Color(0xFF133A67)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -75,14 +85,10 @@ class _HomePageState extends State<HomePage> {
                   child: Icon(Icons.person, color: Color(0xFF133A67)),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  widget.nome,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                Text(
-                  widget.casaSelecionada,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
+                Text(widget.nome,
+                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                Text(_casaAtual,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
               ],
             ),
           ),
@@ -113,7 +119,7 @@ class _HomePageState extends State<HomePage> {
       drawer: _buildDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A3B6B),
-        title: Text(widget.casaSelecionada, style: const TextStyle(color: Colors.white)),
+        title: Text(_casaAtual, style: const TextStyle(color: Colors.white)),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
@@ -124,7 +130,6 @@ class _HomePageState extends State<HomePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Card de boas-vindas
             Container(
               width: double.infinity,
               margin: const EdgeInsets.all(16),
@@ -136,33 +141,21 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "sexta-feira, 24 de outubro",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
+                  const Text("sexta-feira, 24 de outubro",
+                      style: TextStyle(color: Colors.white70, fontSize: 14)),
                   const SizedBox(height: 4),
-                  Text(
-                    "Olá, ${widget.nome}",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold
-                    ),
-                  ),
+                  Text("Olá, ${widget.nome}",
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(
-                    "Casa: ${widget.casaSelecionada}",
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  Text(
-                    widget.casaEndereco,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
-                  ),
+                  Text("Casa: $_casaAtual",
+                      style: const TextStyle(color: Colors.white70, fontSize: 14)),
+
                 ],
               ),
             ),
-
-            // Tarefas do dia
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -177,7 +170,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: Column(
                       children: [
-                        Text("SEX", style: TextStyle(color: Colors.white.withOpacity(0.8))),
+                        Text("SEX",
+                            style: TextStyle(color: Colors.white.withOpacity(0.8))),
+
                         const SizedBox(height: 6),
                         Container(
                           width: 28,
@@ -196,64 +191,50 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: Column(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF466A91),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              "PASSEAR COM O CACHORRO",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
+                        _taskCard("PASSEAR COM O CACHORRO"),
                         const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF466A91),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              "COMPRAR ARROZ",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
+                        _taskCard("COMPRAR ARROZ"),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
             const Divider(color: Colors.white54),
             const SizedBox(height: 16),
             const Text("Opções", style: TextStyle(color: Colors.white, fontSize: 18)),
             const SizedBox(height: 16),
-
-            // Grid de opções
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Wrap(
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  _buildOptionButton("Usuários", FontAwesomeIcons.users, () => _navegarParaTela("USUÁRIOS")),
-                  _buildOptionButton("Econômico", FontAwesomeIcons.chartLine, () => _navegarParaTela("ECONÔMICO")),
-                  _buildOptionButton("Calendário", FontAwesomeIcons.user, () => _navegarParaTela("CALENDÁRIO")),
+                  _buildOptionButton("Usuários", FontAwesomeIcons.users,
+                      () => _navegarParaTela("USUÁRIOS")),
+                  _buildOptionButton("Econômico", FontAwesomeIcons.chartLine,
+                      () => _navegarParaTela("ECONÔMICO")),
+                  _buildOptionButton("Calendário", FontAwesomeIcons.calendar,
+                      () => _navegarParaTela("CALENDÁRIO")),
                 ],
               ),
             ),
-
             const SizedBox(height: 40),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _taskCard(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF466A91),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(child: Text(text, style: const TextStyle(color: Colors.white))),
     );
   }
 
