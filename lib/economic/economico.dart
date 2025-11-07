@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:mobile_tcc/config.dart';
+import 'package:mobile_tcc/home.dart';
+import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/usuarios.dart';
+import 'package:mobile_tcc/meu_casas.dart';
 import 'historico.dart'; // Import da tela de histórico
 
 class Economico extends StatefulWidget {
@@ -31,13 +35,12 @@ class _EconomicoState extends State<Economico> {
   void initState() {
     super.initState();
     _opcoesDrawer.addAll({
-      "HOME": Container(), // substitua por sua HomePage se desejar
-      "ECONÔMICO": const Economico(),
+      "HOME": /home(), // substitua por sua HomePage se desejar
       "HISTÓRICO": const HistoricoPage(),
       "USUÁRIOS": const Usuarios(),
-      "MINHAS CASAS": Container(),
-      "MEU PERFIL": Container(),
-      "CONFIGURAÇÕES": Container(),
+      "MINHAS CASAS": MeuCasas(),
+      "MEU PERFIL": const PerfilPage(),
+      "CONFIGURAÇÕES": const ConfigPage(),
     });
   }
 
@@ -90,7 +93,6 @@ class _EconomicoState extends State<Economico> {
           const SizedBox(height: 10),
           const Divider(color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
           _drawerItem("HOME", () => _navegarParaTela("HOME")),
-          _drawerItem("ECONÔMICO", () => _navegarParaTela("ECONÔMICO")),
           _drawerItem("HISTÓRICO", () => _navegarParaTela("HISTÓRICO")),
           _drawerItem("USUÁRIOS", () => _navegarParaTela("USUÁRIOS")),
           const Divider(color: Colors.white54, thickness: 1, indent: 25, endIndent: 25),
@@ -402,7 +404,6 @@ class _EconomicoState extends State<Economico> {
           const SizedBox(height: 20),
           Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
             _smallInfoBox('Renda', 'R\$ 1800,00'),
-            _smallInfoBox('Investimento', 'R\$ 1800,00'),
             _smallInfoBox('Gastos', 'R\$ 1800,00'),
           ]),
           const SizedBox(height: 20),

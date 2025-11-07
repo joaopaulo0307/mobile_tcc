@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Para feedback tátil
-import 'package:mobile_tcc/home.dart';
-import 'package:mobile_tcc/main.dart';
-
-// 🔹 Cores do app (mantidas iguais às do main.dart)
-const Color primaryColor = Color(0xFF133A67);
-const Color secondaryColor = Color(0xFF5E83AE);
-const Color backgroundLight = Color(0xFFF0E8D5);
+import 'package:flutter/services.dart';
+import '../serviços/theme_service.dart';
 
 class ConfigPage extends StatefulWidget {
   const ConfigPage({super.key});
@@ -21,205 +15,257 @@ class _ConfigPageState extends State<ConfigPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundLight,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        title: const Text(
-          'Opções gerais',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+        title: const Text('Configurações'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-
-      // ------------------ CONTEÚDO ------------------
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        children: [
-          // ---------- SEÇÃO: NOTIFICAÇÕES ----------
-          ListTile(
-            leading: const Icon(Icons.notifications, color: primaryColor),
-            title: const Text(
-              'Notificações',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: const Text('Ativar/desativar sons e alertas'),
-            trailing: Switch(
-              value: notificacoesAtivas,
-              thumbColor: WidgetStateProperty.resolveWith<Color>(
-                (states) => notificacoesAtivas ? secondaryColor : Colors.grey,
-              ),
-              trackColor: WidgetStateProperty.resolveWith<Color>(
-                (states) => notificacoesAtivas
-                    ? secondaryColor.withOpacity(0.4)
-                    : Colors.grey.shade400,
-              ),
-              onChanged: (valor) {
-                HapticFeedback.lightImpact(); // vibração leve
-                setState(() {
-                  notificacoesAtivas = valor;
-                });
-              },
-            ),
-          ),
-          const Divider(),
-
-          // ---------- SEÇÃO: IDIOMA ----------
-          ListTile(
-            leading: const Icon(Icons.language, color: primaryColor),
-            title: const Text('Idioma'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Text('Português'),
-                Icon(Icons.keyboard_arrow_down),
-              ],
-            ),
-            onTap: () {
-              HapticFeedback.selectionClick();
-              showModalBottomSheet(
-                context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                builder: (context) => _idiomaSheet(context),
-              );
-            },
-          ),
-          const Divider(),
-
-          // ---------- SEÇÃO: PRIVACIDADE ----------
-          ListTile(
-            leading: const Icon(Icons.lock, color: primaryColor),
-            title: const Text('Privacidade'),
-            onTap: () {
-              HapticFeedback.selectionClick();
-            },
-          ),
-          const Divider(thickness: 1),
-
-          // ---------- SEÇÃO: CONTA ----------
-          const Padding(
-            padding: EdgeInsets.fromLTRB(8, 12, 8, 6),
-            child: Text(
-              'Conta',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.edit, color: primaryColor),
-            title: const Text('Editar perfil'),
-            onTap: () {
-              HapticFeedback.selectionClick();
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.vpn_key, color: primaryColor),
-            title: const Text('Alterar senha'),
-            onTap: () {
-              HapticFeedback.selectionClick();
-            },
-          ),
-          const Divider(thickness: 1),
-
-          // ---------- SEÇÃO: SOBRE O APP ----------
-          const Padding(
-            padding: EdgeInsets.fromLTRB(8, 12, 8, 6),
-            child: Text(
-              'Sobre o app',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-          const ListTile(
-            leading: Icon(Icons.lightbulb_outline, color: primaryColor),
-            title: Text('Versão do aplicativo'),
-            subtitle: Text('1.0.0'),
-          ),
-          const Divider(),
-          ListTile(
-            leading:
-                const Icon(Icons.description_outlined, color: primaryColor),
-            title: const Text('Termos e Política'),
-            onTap: () {
-              HapticFeedback.selectionClick();
-            },
-          ),
-
-          const SizedBox(height: 24),
-
-          // ---------- BOTÃO SAIR ----------
-          Center(
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: secondaryColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                HapticFeedback.mediumImpact();
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.exit_to_app, color: Colors.white),
-              label: const Text(
-                'Voltar',
-                style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
+      body: ValueListenableBuilder<bool>(
+        valueListenable: ThemeService.themeNotifier,
+        builder: (context, isDarkMode, child) {
+          return _buildContent(context, isDarkMode);
+        },
       ),
     );
   }
 
-  // ---------- Modal de seleção de idioma ----------
-  Widget _idiomaSheet(BuildContext context) {
-    return Container(
-      color: backgroundLight,
+  Widget _buildContent(BuildContext context, bool isDarkMode) {
+    return ListView(
       padding: const EdgeInsets.all(16),
-      child: Wrap(
-        children: [
-          const Center(
-            child: Text(
-              'Selecione o idioma',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: primaryColor,
-              ),
-            ),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.flag, color: primaryColor),
-            title: const Text('Português (Brasil)'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.language, color: primaryColor),
-            title: const Text('Inglês (EUA)'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.translate, color: primaryColor),
-            title: const Text('Espanhol'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-        ],
+      children: [
+        _buildSectionTitle('Aparência'),
+        _buildThemeSwitch(isDarkMode),
+        const Divider(),
+        
+        _buildSectionTitle('Notificações'),
+        _buildNotificationSwitch(),
+        const Divider(),
+
+        _buildSectionTitle('Idioma'),
+        _buildLanguageTile(context),
+        const Divider(),
+
+        _buildSectionTitle('Privacidade'),
+        _buildPrivacyTile(),
+        const Divider(),
+
+        _buildSectionTitle('Conta'),
+        _buildAccountOptions(),
+        const Divider(),
+
+        _buildSectionTitle('Sobre o App'),
+        _buildAppInfo(),
+        const SizedBox(height: 32),
+
+        _buildBackButton(context),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: ThemeService.primaryColor,
+        ),
       ),
+    );
+  }
+
+  Widget _buildThemeSwitch(bool isDarkMode) {
+    return ListTile(
+      leading: const Icon(Icons.dark_mode, color: ThemeService.primaryColor),
+      title: const Text('Modo Escuro'),
+      subtitle: const Text('Ativar tema escuro'),
+      trailing: Switch(
+        value: isDarkMode,
+        onChanged: (value) {
+          HapticFeedback.lightImpact();
+          ThemeService.setDarkMode(value);
+        },
+        activeColor: ThemeService.secondaryColor,
+      ),
+    );
+  }
+
+  Widget _buildNotificationSwitch() {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool notifications = true;
+        return ListTile(
+          leading: const Icon(Icons.notifications, color: ThemeService.primaryColor),
+          title: const Text('Notificações'),
+          subtitle: const Text('Receber notificações do app'),
+          trailing: Switch(
+            value: notifications,
+            onChanged: (value) {
+              HapticFeedback.lightImpact();
+              setState(() => notifications = value);
+            },
+            activeColor: ThemeService.secondaryColor,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageTile(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.language, color: ThemeService.primaryColor),
+      title: const Text('Idioma'),
+      subtitle: const Text('Português (Brasil)'),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        _showLanguageBottomSheet(context);
+      },
+    );
+  }
+
+  Widget _buildPrivacyTile() {
+    return ListTile(
+      leading: const Icon(Icons.security, color: ThemeService.primaryColor),
+      title: const Text('Privacidade e Segurança'),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: () {
+        HapticFeedback.selectionClick();
+      },
+    );
+  }
+
+  Widget _buildAccountOptions() {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.person, color: ThemeService.primaryColor),
+          title: const Text('Editar Perfil'),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            HapticFeedback.selectionClick();
+          },
+        ),
+        const Divider(height: 1),
+        ListTile(
+          leading: const Icon(Icons.lock, color: ThemeService.primaryColor),
+          title: const Text('Alterar Senha'),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            HapticFeedback.selectionClick();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAppInfo() {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.info, color: ThemeService.primaryColor),
+          title: const Text('Versão do App'),
+          subtitle: const Text('1.0.0'),
+        ),
+        const Divider(height: 1),
+        ListTile(
+          leading: const Icon(Icons.description, color: ThemeService.primaryColor),
+          title: const Text('Termos de Uso'),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            HapticFeedback.selectionClick();
+          },
+        ),
+        const Divider(height: 1),
+        ListTile(
+          leading: const Icon(Icons.privacy_tip, color: ThemeService.primaryColor),
+          title: const Text('Política de Privacidade'),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            HapticFeedback.selectionClick();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBackButton(BuildContext context) {
+    return Center(
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ThemeService.secondaryColor,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: () {
+          HapticFeedback.mediumImpact();
+          Navigator.pop(context);
+        },
+        child: const Text(
+          'Voltar',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Selecione o Idioma',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: ThemeService.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildLanguageOption('Português (Brasil)', true, context),
+              _buildLanguageOption('English (US)', false, context),
+              _buildLanguageOption('Español', false, context),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('FECHAR'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption(String language, bool isSelected, BuildContext context) {
+    return ListTile(
+      leading: Icon(
+        Icons.check,
+        color: isSelected ? ThemeService.primaryColor : Colors.transparent,
+      ),
+      title: Text(language),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        Navigator.pop(context);
+      },
     );
   }
 }

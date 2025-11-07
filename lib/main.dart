@@ -7,8 +7,9 @@ import '../acesso/esqueci_senha.dart';
 import 'package:mobile_tcc/home.dart';
 import 'dart:ui';
 import 'package:mobile_tcc/config.dart';
+import '../serviços/theme_service.dart'; // Adicionado
 
-// Cores
+// Cores (mantidas para compatibilidade)
 const Color primaryColor = Color(0xFF133A67);
 const Color secondaryColor = Color(0xFF5E83AE);
 const Color containerColor = Color.fromARGB(255, 55, 56, 57);
@@ -19,6 +20,7 @@ void main() async {
   
   try {
     await AuthService.initialize();
+    await ThemeService.initialize(); // Adicionado
     print('App inicializado com sucesso');
   } catch (e) {
     print('Erro na inicialização do app: $e');
@@ -27,13 +29,32 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Escutar mudanças no tema
+    ThemeService.themeNotifier.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: _buildLightTheme(), // Adicionado
+      darkTheme: _buildDarkTheme(), // Adicionado
+      themeMode: ThemeService.isDarkMode ? ThemeMode.dark : ThemeMode.light, // Adicionado
       initialRoute: '/',
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -74,6 +95,68 @@ class MyApp extends StatelessWidget {
       },
     );
   }
+
+  // Adicionado: Tema claro
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      brightness: Brightness.light,
+      primaryColor: ThemeService.primaryColor,
+      colorScheme: const ColorScheme.light(
+        primary: ThemeService.primaryColor,
+        secondary: ThemeService.secondaryColor,
+        background: ThemeService.backgroundLight,
+        surface: ThemeService.cardColorLight,
+      ),
+      scaffoldBackgroundColor: ThemeService.backgroundLight,
+      cardColor: ThemeService.cardColorLight,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: ThemeService.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: ThemeService.textColorLight),
+        bodyMedium: TextStyle(color: ThemeService.textColorLight),
+        titleLarge: TextStyle(color: ThemeService.textColorLight),
+        titleMedium: TextStyle(color: ThemeService.textColorLight),
+      ),
+    );
+  }
+
+  // Adicionado: Tema escuro
+  ThemeData _buildDarkTheme() {
+    return ThemeData(
+      brightness: Brightness.dark,
+      primaryColor: ThemeService.primaryColor,
+      colorScheme: const ColorScheme.dark(
+        primary: ThemeService.primaryColor,
+        secondary: ThemeService.secondaryColor,
+        background: ThemeService.backgroundDark,
+        surface: ThemeService.cardColorDark,
+      ),
+      scaffoldBackgroundColor: ThemeService.backgroundDark,
+      cardColor: ThemeService.cardColorDark,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: ThemeService.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: ThemeService.textColorDark),
+        bodyMedium: TextStyle(color: ThemeService.textColorDark),
+        titleLarge: TextStyle(color: ThemeService.textColorDark),
+        titleMedium: TextStyle(color: ThemeService.textColorDark),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    ThemeService.themeNotifier.dispose();
+    super.dispose();
+  }
 }
 
 // ==================== LANDING PAGE (TELA DE LOGIN) ====================
@@ -86,18 +169,14 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  bool _isDarkMode = false;
+  // Removido: bool _isDarkMode = false; (agora controlado pelo ThemeService)
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
   bool _obscureSenha = true;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  void _toggleTheme() {
-    setState(() {
-      _isDarkMode = !_isDarkMode;
-    });
-  }
+  // Removido: _toggleTheme() (agora controlado apenas na página de Configurações)
 
   Future<void> _fazerLogin() async {
     if (!_formKey.currentState!.validate()) return;
@@ -189,14 +268,14 @@ class _LandingPageState extends State<LandingPage> {
           SafeArea(
             child: Column(
               children: [
-                // Header com logo e botão de tema
+                // Header com logo (removido botão de tema)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center, // Alterado para center
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 20,
                         backgroundColor: primaryColor,
                         child: Text(
@@ -207,13 +286,7 @@ class _LandingPageState extends State<LandingPage> {
                           ),
                         ),
                       ),
-                      IconButton(
-                        onPressed: _toggleTheme,
-                        icon: Icon(
-                          _isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                          color: Colors.white,
-                        ),
-                      ),
+                      // Removido: IconButton do tema
                     ],
                   ),
                 ),
@@ -425,47 +498,48 @@ class _LandingPageState extends State<LandingPage> {
                   color: Colors.black.withOpacity(0.7),
                   child: const Column(
                     children: [
-                      const Text(
+                      Text(
                         'Organize suas tarefas de forma simples',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
                         ),
                         textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
+                      ),
+                      SizedBox(height: 20),
                                   
-                                  // Ícones de redes sociais
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              color: Colors.white70,
-                              size: 20,
-                            ),
-                            SizedBox(width: 16),
-                            Icon(
-                              Icons.favorite_border,
-                              color: Colors.white70,
-                              size: 20,
-                            ),
-                            SizedBox(width: 16),
-                            Icon(
-                              Icons.star_border,
-                              color: Colors.white70,
-                              size: 20,
-                            ),
-                         ],
-                        ),
-                        Text(
-                          '© Todos os direitos reservados - 2025',
-                          style: TextStyle(
+                      // Ícones de redes sociais
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
                             color: Colors.white70,
-                            fontSize: 12,
+                            size: 20,
                           ),
-                          textAlign: TextAlign.center,
+                          SizedBox(width: 16),
+                          Icon(
+                            Icons.favorite_border,
+                            color: Colors.white70,
+                            size: 20,
+                          ),
+                          SizedBox(width: 16),
+                          Icon(
+                            Icons.star_border,
+                            color: Colors.white70,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        '© Todos os direitos reservados - 2025',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
                         ),
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                   ),
                 ),
@@ -475,5 +549,12 @@ class _LandingPageState extends State<LandingPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
   }
 }
