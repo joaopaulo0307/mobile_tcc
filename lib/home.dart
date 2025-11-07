@@ -1,261 +1,418 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mobile_tcc/calendário/calendario.dart';
-import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/economic/economico.dart';
-import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/meu_casas.dart';
+import 'package:mobile_tcc/perfil.dart';
+import 'package:mobile_tcc/usuarios.dart';
+import 'config.dart';
+import 'package:mobile_tcc/main.dart';
 
 class HomePage extends StatefulWidget {
-  final String nome;
-  final String casaSelecionada;
-
-  const HomePage({
-    super.key,
-    required this.nome,
-    required this.casaSelecionada,
-  });
+  final Map<String, String> casa;
+  
+  const HomePage({super.key, required this.casa});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  late String _casaAtual;
-  late final Map<String, Widget> _opcoes;
-
-  @override
-  void initState() {
-    super.initState();
-    _casaAtual = widget.casaSelecionada;
-
-    _opcoes = {
-      "ECONÔMICO": const Economico(),
-      "USUÁRIOS": const Usuarios(),
-      "CALENDÁRIO": const CalendarioPage(),
-      "MEU PERFIL": Perfil(
-        userEmail: "${widget.nome}@exemplo.com",
-        tarefasRealizadas: [
-          "Comprar materiais",
-          "Enviar relatório",
-          "Limpar a casa",
-          "Passear com o cachorro",
-        ],
-      ),
-      "CONFIGURAÇÕES": Container(),
-    };
-  }
-
-  Future<void> _navegarParaTela(String titulo) async {
-    if (titulo == "MINHAS CASAS") {
-      final resultado = await Navigator.push(
-        context,
-        MaterialPageRoute(
-         builder: (context) => MeuCasas(nome: widget.nome),  // ALTERADO AQUI
-        ),
-      );
-
-      if (resultado != null && resultado is Map<String, String>) {
-        setState(() {
-          _casaAtual = resultado['nomeCasa'] ?? _casaAtual;
-        });
-      }
-    } else if (_opcoes.containsKey(titulo)) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => _opcoes[titulo]!),
-      );
-    }
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: const Color(0xFF1A3B6B),
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFF133A67)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, color: Color(0xFF133A67)),
-                ),
-                const SizedBox(height: 10),
-                Text(widget.nome,
-                    style: const TextStyle(color: Colors.white, fontSize: 16)),
-                Text(_casaAtual,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
-              ],
-            ),
-          ),
-          _drawerItem("ECONÔMICO", Icons.attach_money, () => _navegarParaTela("ECONÔMICO")),
-          _drawerItem("USUÁRIOS", Icons.people, () => _navegarParaTela("USUÁRIOS")),
-          _drawerItem("CALENDÁRIO", Icons.calendar_today, () => _navegarParaTela("CALENDÁRIO")),
-          const Divider(color: Colors.white54),
-          _drawerItem("MINHAS CASAS", Icons.home, () => _navegarParaTela("MINHAS CASAS")),
-          _drawerItem("MEU PERFIL", Icons.person, () => _navegarParaTela("MEU PERFIL")),
-          _drawerItem("CONFIGURAÇÕES", Icons.settings, () => _navegarParaTela("CONFIGURAÇÕES")),
-        ],
-      ),
-    );
-  }
-
-  Widget _drawerItem(String title, IconData icon, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      onTap: onTap,
-    );
-  }
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final List<Map<String, dynamic>> _tarefas = [
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      drawer: _buildDrawer(),
+      key: _scaffoldKey,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A3B6B),
-        title: Text(_casaAtual, style: const TextStyle(color: Colors.white)),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+        backgroundColor: const Color(0xFF133A67),
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ola, Ullian Pirana',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Qua 4',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+          ],
+        ),
+        centerTitle: false,
+      ),
+      drawer: _buildDrawer(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Lista de tarefas
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // Tarefa 1
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF133A67),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PASSEAR COM O CACHORRO',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Tarefa 2
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF133A67),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'COMPRAR ARROZ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Divisor
+          Container(
+            height: 1,
+            color: Colors.grey[300],
+          ),
+          
+          // Seção de Opções
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Opções',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF133A67),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Primeira linha de opções
+                Row(
+                  children: [
+                    _buildOpcaoItem(
+                      icon: Icons.people,
+                      label: 'Usuários',
+                    ),
+                    const SizedBox(width: 24),
+                    _buildOpcaoItem(
+                      icon: Icons.attach_money,
+                      label: 'Econômico',
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Segunda linha de opções
+                Row(
+                  children: [
+                    _buildOpcaoItem(
+                      icon: Icons.calendar_today,
+                      label: 'Calendário',
+                    ),
+                    const SizedBox(width: 24),
+                    _buildOpcaoItem(
+                      icon: Icons.house,
+                      label: 'Minhas Casas',
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const MeuCasas()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // Rodapé
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            color: const Color(0xFF133A67),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Organize suas tarefas de forma simples",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "© Todos os direitos reservados - 2025",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOpcaoItem({
+    required IconData icon,
+    required String label,
+    VoidCallback? onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: const Color(0xFF133A67),
+                size: 24,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFF133A67),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF27226D),
-                borderRadius: BorderRadius.circular(12),
-              ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Column(
+        children: [
+          // Header do Drawer
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            color: const Color(0xFF133A67),
+            child: SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("sexta-feira, 24 de outubro",
-                      style: TextStyle(color: Colors.white70, fontSize: 14)),
-                  const SizedBox(height: 4),
-                  Text("Olá, ${widget.nome}",
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text("Casa: $_casaAtual",
-                      style: const TextStyle(color: Colors.white70, fontSize: 14)),
-
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 60,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2C4A77),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      children: [
-                        Text("SEX",
-                            style: TextStyle(color: Colors.white.withOpacity(0.8))),
-
-                        const SizedBox(height: 6),
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF102B4E),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text("24", style: TextStyle(color: Colors.white)),
-                        ),
-                      ],
+                  const CircleAvatar(
+                    radius: 25,
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      "TD",
+                      style: TextStyle(
+                        color: Color(0xFF133A67),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _taskCard("PASSEAR COM O CACHORRO"),
-                        const SizedBox(height: 8),
-                        _taskCard("COMPRAR ARROZ"),
-                      ],
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.casa['nome']!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    widget.casa['endereco']!,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            const Divider(color: Colors.white54),
-            const SizedBox(height: 16),
-            const Text("Opções", style: TextStyle(color: Colors.white, fontSize: 18)),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _buildOptionButton("Usuários", FontAwesomeIcons.users,
-                      () => _navegarParaTela("USUÁRIOS")),
-                  _buildOptionButton("Econômico", FontAwesomeIcons.chartLine,
-                      () => _navegarParaTela("ECONÔMICO")),
-                  _buildOptionButton("Calendário", FontAwesomeIcons.calendar,
-                      () => _navegarParaTela("CALENDÁRIO")),
-                ],
-              ),
+          ),
+          
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.attach_money,
+                  title: 'ECONÔMICO',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Economico()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.people,
+                  title: 'USUÁRIOS',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Usuarios()),
+                    );
+                  },
+                ),
+                const Divider(),
+                _buildDrawerItem(
+                  icon: Icons.house,
+                  title: 'MINHAS CASAS',
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MeuCasas()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.person,
+                  title: 'MEU PERFIL',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PerfilPage()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings,
+                  title: 'CONFIGURAÇÕES',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ConfigPage()),
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 40),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFF133A67)),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
         ),
       ),
-    );
-  }
-
-  Widget _taskCard(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF466A91),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(child: Text(text, style: const TextStyle(color: Colors.white))),
-    );
-  }
-
-  Widget _buildOptionButton(String text, IconData icon, VoidCallback onTap) {
-    return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 150,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A3B6B),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(height: 8),
-            Text(text, style: const TextStyle(color: Colors.white)),
-          ],
-        ),
-      ),
     );
   }
 }

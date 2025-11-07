@@ -113,8 +113,7 @@ class Usuarios extends StatelessWidget {
       ),
     );
   }
-
-
+// ignore: unused_element
   Widget _navItem(String title, {bool isActive = false}) {
     return Column(
       mainAxisSize: MainAxisSize.min,

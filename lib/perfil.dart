@@ -2,27 +2,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mobile_tcc/user_service.dart'; // Importar o UserService
 
-class Perfil extends StatefulWidget {
-  final String userEmail; // E-mail do usuário
-  final List<String> tarefasRealizadas; // Lista de tarefas feitas
-
-  const Perfil({
+class PerfilPage extends StatefulWidget {
+  const PerfilPage({
     super.key,
-    required this.userEmail,
-    required this.tarefasRealizadas,
+    String? userEmail,
+    List<String>? tarefasRealizadas,
   });
 
   @override
-  State<Perfil> createState() => _PerfilPageState();
+  State<PerfilPage> createState() => _PerfilPageState();
 }
 
-class _PerfilPageState extends State<Perfil> {
+class _PerfilPageState extends State<PerfilPage> {
   File? _fotoPerfil;
-  String nomeUsuario = "";
   final TextEditingController descricaoController = TextEditingController();
-
-  int tarefasVisiveis = 3; // Quantas tarefas mostrar inicialmente
+  int tarefasVisiveis = 3;
 
   Future<void> _selecionarFoto() async {
     final ImagePicker picker = ImagePicker();
@@ -37,23 +33,39 @@ class _PerfilPageState extends State<Perfil> {
   @override
   void initState() {
     super.initState();
-    nomeUsuario = widget.userEmail.split('@')[0];
+    // Inicializar com dados de exemplo se estiver vazio
+    if (UserService.tarefasRealizadas.isEmpty) {
+      UserService.initializeWithSampleData();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final totalTarefas = widget.tarefasRealizadas.length;
+    final totalTarefas = UserService.tarefasRealizadas.length;
     final mostrarTodas = tarefasVisiveis >= totalTarefas;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F1C2F),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF142F47),
+        title: const Text(
+          'MEU PERFIL',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             // Cabeçalho com foto e nome
             Container(
               color: const Color(0xFF142F47),
-              padding: const EdgeInsets.only(top: 60, bottom: 30),
+              padding: const EdgeInsets.only(top: 40, bottom: 30),
               child: Center(
                 child: Column(
                   children: [
@@ -71,7 +83,7 @@ class _PerfilPageState extends State<Perfil> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      nomeUsuario,
+                      UserService.userName,
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -79,7 +91,9 @@ class _PerfilPageState extends State<Perfil> {
                     ),
                     const SizedBox(height: 5),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        // TODO: Implementar gerenciamento de conta
+                      },
                       child: const Text(
                         "Gerenciar sua conta",
                         style: TextStyle(color: Colors.lightBlueAccent),
@@ -120,7 +134,7 @@ class _PerfilPageState extends State<Perfil> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                widget.userEmail,
+                                UserService.userEmail,
                                 style: const TextStyle(color: Colors.white70),
                               ),
                             ),
@@ -158,7 +172,7 @@ class _PerfilPageState extends State<Perfil> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (widget.tarefasRealizadas.isEmpty)
+                            if (UserService.tarefasRealizadas.isEmpty)
                               const Text(
                                 "Nenhuma tarefa realizada ainda",
                                 style: TextStyle(color: Colors.white70),
@@ -170,7 +184,7 @@ class _PerfilPageState extends State<Perfil> {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 4.0),
                                 child: Text(
-                                  "• ${widget.tarefasRealizadas[i]}",
+                                  "• ${UserService.tarefasRealizadas[i]}",
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                               ),
@@ -223,10 +237,10 @@ class _PerfilPageState extends State<Perfil> {
                   Column(
                     children: [
                       const SizedBox(height: 10),
-                      Image.asset(
-                        'assets/logo.png',
-                        height: 40,
-                      ),
+                      // Image.asset(
+                      //   'assets/logo.png',
+                      //   height: 40,
+                      // ),
                       const SizedBox(height: 10),
                       const Text(
                         "Organize suas tarefas de forma simples",
@@ -267,8 +281,11 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final TextEditingController controller;
 
-  const CustomTextField(
-      {super.key, required this.hint, required this.controller});
+  const CustomTextField({
+    super.key, 
+    required this.hint, 
+    required this.controller
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -289,4 +306,3 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-

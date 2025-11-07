@@ -107,6 +107,7 @@ class _EconomicoState extends State<Economico> {
     final TextEditingController valorController = TextEditingController();
     final TextEditingController localController = TextEditingController();
     String acao = 'adicionar';
+    // ignore: unused_local_variable
     String categoria = 'renda';
 
     showDialog(
