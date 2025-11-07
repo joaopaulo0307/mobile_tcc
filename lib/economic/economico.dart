@@ -35,7 +35,7 @@ class _EconomicoState extends State<Economico> {
   void initState() {
     super.initState();
     _opcoesDrawer.addAll({
-      "HOME": /home(), // substitua por sua HomePage se desejar
+      "HOME": Container(), // substitua por sua HomePage se desejar
       "HISTÓRICO": const HistoricoPage(),
       "USUÁRIOS": const Usuarios(),
       "MINHAS CASAS": MeuCasas(),
