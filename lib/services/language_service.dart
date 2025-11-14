@@ -28,6 +28,20 @@ class LanguageService extends ChangeNotifier {
       'direitos_reservados': '© Todos os direitos reservados - 2025',
       'hoje': 'Hoje',
       'amanha': 'Amanhã',
+      'salvar': 'Salvar',
+      'cancelar': 'Cancelar',
+      'confirmar': 'Confirmar',
+      'excluir': 'Excluir',
+      'editar': 'Editar',
+      'adicionar': 'Adicionar',
+      'pesquisar': 'Pesquisar',
+      'carregando': 'Carregando...',
+      'erro': 'Erro',
+      'sucesso': 'Sucesso',
+      'atencao': 'Atenção',
+      'sim': 'Sim',
+      'nao': 'Não',
+      'ok': 'OK',
     },
     'en': {
       'login': 'LOGIN',
@@ -52,6 +66,20 @@ class LanguageService extends ChangeNotifier {
       'direitos_reservados': '© All rights reserved - 2025',
       'hoje': 'Today',
       'amanha': 'Tomorrow',
+      'salvar': 'Save',
+      'cancelar': 'Cancel',
+      'confirmar': 'Confirm',
+      'excluir': 'Delete',
+      'editar': 'Edit',
+      'adicionar': 'Add',
+      'pesquisar': 'Search',
+      'carregando': 'Loading...',
+      'erro': 'Error',
+      'sucesso': 'Success',
+      'atencao': 'Warning',
+      'sim': 'Yes',
+      'nao': 'No',
+      'ok': 'OK',
     },
     'es': {
       'login': 'INICIAR SESIÓN',
@@ -76,18 +104,35 @@ class LanguageService extends ChangeNotifier {
       'direitos_reservados': '© Todos los derechos reservados - 2025',
       'hoje': 'Hoy',
       'amanha': 'Mañana',
+      'salvar': 'Guardar',
+      'cancelar': 'Cancelar',
+      'confirmar': 'Confirmar',
+      'excluir': 'Eliminar',
+      'editar': 'Editar',
+      'adicionar': 'Agregar',
+      'pesquisar': 'Buscar',
+      'carregando': 'Cargando...',
+      'erro': 'Error',
+      'sucesso': 'Éxito',
+      'atencao': 'Advertencia',
+      'sim': 'Sí',
+      'nao': 'No',
+      'ok': 'OK',
     },
   };
 
+  // ✅ MANTIDO: Método principal de tradução
   String translate(String key) {
     return _translations[_currentLocale.languageCode]?[key] ?? key;
   }
 
+  // ✅ MANTIDO: Alterar locale
   void setLocale(Locale locale) {
     _currentLocale = locale;
     notifyListeners();
   }
 
+  // ✅ MANTIDO: Alterar por código
   void changeLanguageByCode(String code) {
     switch (code) {
       case 'pt':
@@ -102,6 +147,7 @@ class LanguageService extends ChangeNotifier {
     }
   }
 
+  // ✅ MANTIDO: Nome do idioma atual
   String getCurrentLanguageName() {
     switch (_currentLocale.languageCode) {
       case 'pt':
@@ -115,6 +161,7 @@ class LanguageService extends ChangeNotifier {
     }
   }
 
+  // ✅ MANTIDO: Idiomas disponíveis
   List<Map<String, String>> getAvailableLanguages() {
     return [
       {'name': 'Português (BR)', 'code': 'pt_BR'},
@@ -122,4 +169,130 @@ class LanguageService extends ChangeNotifier {
       {'name': 'Español', 'code': 'es_ES'},
     ];
   }
+
+  // 🔥 NOVOS MÉTODOS ADICIONADOS:
+
+  // 1. Verificar se uma chave existe
+  bool hasKey(String key) {
+    return _translations[_currentLocale.languageCode]?.containsKey(key) ?? false;
+  }
+
+  // 2. Formatar data de acordo com o locale
+  String formatDate(DateTime date, {bool includeTime = false}) {
+    final months = _getMonths();
+    final days = _getDays();
+    
+    String formatted = '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
+    
+    if (includeTime) {
+      formatted += ' ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    }
+    
+    return formatted;
+  }
+
+  // 3. Formatar moeda (R$, $, €)
+  String formatCurrency(double value) {
+    switch (_currentLocale.languageCode) {
+      case 'pt':
+        return 'R\$${value.toStringAsFixed(2)}';
+      case 'en':
+        return '\$${value.toStringAsFixed(2)}';
+      case 'es':
+        return '€${value.toStringAsFixed(2)}';
+      default:
+        return 'R\$${value.toStringAsFixed(2)}';
+    }
+  }
+
+  // 4. Obter direção do texto (LTR ou RTL)
+  TextDirection get textDirection {
+    switch (_currentLocale.languageCode) {
+      case 'ar': // Árabe (exemplo de RTL)
+        return TextDirection.rtl;
+      default:
+        return TextDirection.ltr;
+    }
+  }
+
+  // 5. Método para tradução com parâmetros
+  String translateWithParams(String key, Map<String, String> params) {
+    String translation = translate(key);
+    
+    params.forEach((param, value) {
+      translation = translation.replaceAll('{{$param}}', value);
+    });
+    
+    return translation;
+  }
+
+  // 6. Obter todos os idiomas suportados com flags
+  List<Map<String, dynamic>> getLanguagesWithFlags() {
+    return [
+      {
+        'name': 'Português (BR)',
+        'code': 'pt',
+        'flag': '🇧🇷',
+        'locale': const Locale('pt', 'BR')
+      },
+      {
+        'name': 'English (US)',
+        'code': 'en',
+        'flag': '🇺🇸',
+        'locale': const Locale('en', 'US')
+      },
+      {
+        'name': 'Español',
+        'code': 'es',
+        'flag': '🇪🇸',
+        'locale': const Locale('es', 'ES')
+      },
+    ];
+  }
+
+  // 7. Método para pluralização simples
+  String pluralize(String singularKey, String pluralKey, int count) {
+    return count == 1 ? translate(singularKey) : translate(pluralKey);
+  }
+
+  // 🔧 MÉTODOS PRIVADOS AUXILIARES:
+
+  List<String> _getMonths() {
+    switch (_currentLocale.languageCode) {
+      case 'pt':
+        return ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      case 'en':
+        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      case 'es':
+        return ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      default:
+        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    }
+  }
+
+  List<String> _getDays() {
+    switch (_currentLocale.languageCode) {
+      case 'pt':
+        return ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      case 'en':
+        return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      case 'es':
+        return ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      default:
+        return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    }
+  }
+
+  // 8. Método para inicializar com locale salvo (para usar com SharedPreferences)
+  Future<void> initializeWithSavedLocale(Locale defaultLocale) async {
+    // Aqui você pode adicionar lógica para carregar o locale salvo
+    // Por exemplo, usando SharedPreferences
+    _currentLocale = defaultLocale;
+    notifyListeners();
+  }
+
+  // 9. Verificar se é um idioma específico
+  bool isPortuguese() => _currentLocale.languageCode == 'pt';
+  bool isEnglish() => _currentLocale.languageCode == 'en';
+  bool isSpanish() => _currentLocale.languageCode == 'es';
 }

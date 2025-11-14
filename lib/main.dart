@@ -11,7 +11,6 @@ import 'package:mobile_tcc/config.dart';
 import '../services/theme_service.dart';
 import '../services/language_service.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -33,7 +32,6 @@ void main() async {
   );
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -43,7 +41,7 @@ class MyApp extends StatelessWidget {
       builder: (context, themeService, languageService, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: themeService.getThemeData(), // Usa o tema do ThemeService
+          theme: themeService.themeData, // Corrigido: usando a propriedade themeData
           locale: languageService.currentLocale,
           supportedLocales: const [
             Locale('pt', 'BR'),
@@ -140,99 +138,100 @@ class _LandingPageState extends State<LandingPage> {
 
   void _mostrarErro(String mensagem) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(backgroundColor: Colors.red, content: Text(mensagem)),
+      SnackBar(
+        backgroundColor: Colors.red, 
+        content: Text(mensagem),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final languageService = Provider.of<LanguageService>(context);
-    final themeService = Provider.of<ThemeService>(context);
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Imagem de fundo
-          SizedBox.expand(
-            child: Image.asset(
-              'lib/assets/images/fundo-tcc-mobile.png',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(color: const Color(0xFF133A67));
-              },
-            ),
-          ),
-          // Overlay escuro
-          Positioned.fill(
-            child: Container(color: Colors.black.withOpacity(0.3)),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Color(0xFF133A67),
-                        child: Text("TD", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(width: 12),
-                      // Seletor de idioma com Provider
-                      Consumer<LanguageService>(
-                        builder: (context, languageService, child) {
-                          return PopupMenuButton<String>(
-                            icon: const Icon(Icons.language, color: Colors.white),
-                            onSelected: (String languageCode) {
-                              final parts = languageCode.split('_');
-                              languageService.setLocale(Locale(parts[0], parts[1]));
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: Stack(
+            children: [
+              // Imagem de fundo
+              SizedBox.expand(
+                child: Image.asset(
+                  'lib/assets/images/fundo-tcc-mobile.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(color: ThemeService.primaryColor);
+                  },
+                ),
+              ),
+              // Overlay escuro
+              Positioned.fill(
+                child: Container(color: Colors.black.withOpacity(0.3)),
+              ),
+              SafeArea(
+                child: Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Color(0xFF133A67),
+                            child: Text("TD", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ),
+                          const SizedBox(width: 12),
+                          // Seletor de idioma
+                          Consumer<LanguageService>(
+                            builder: (context, languageService, child) {
+                              return PopupMenuButton<String>(
+                                icon: const Icon(Icons.language, color: Colors.white),
+                                onSelected: (String languageCode) {
+                                  final parts = languageCode.split('_');
+                                  languageService.setLocale(Locale(parts[0], parts[1]));
+                                },
+                                itemBuilder: (BuildContext context) {
+                                  return [
+                                    PopupMenuItem(
+                                      value: 'pt_BR',
+                                      child: Row(
+                                        children: [
+                                          const Text('Português (BR)'),
+                                          if (languageService.currentLocale.languageCode == 'pt')
+                                            const Icon(Icons.check, color: Colors.green, size: 16),
+                                        ],
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'en_US',
+                                      child: Row(
+                                        children: [
+                                          const Text('English (US)'),
+                                          if (languageService.currentLocale.languageCode == 'en')
+                                            const Icon(Icons.check, color: Colors.green, size: 16),
+                                        ],
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'es_ES',
+                                      child: Row(
+                                        children: [
+                                          const Text('Español'),
+                                          if (languageService.currentLocale.languageCode == 'es')
+                                            const Icon(Icons.check, color: Colors.green, size: 16),
+                                        ],
+                                      ),
+                                    ),
+                                  ];
+                                },
+                              );
                             },
-                            itemBuilder: (BuildContext context) {
-                              return [
-                                PopupMenuItem(
-                                  value: 'pt_BR',
-                                  child: Row(
-                                    children: [
-                                      const Text('Português (BR)'),
-                                      if (languageService.currentLocale.languageCode == 'pt')
-                                        const Icon(Icons.check, color: Colors.green, size: 16),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'en_US',
-                                  child: Row(
-                                    children: [
-                                      const Text('English (US)'),
-                                      if (languageService.currentLocale.languageCode == 'en')
-                                        const Icon(Icons.check, color: Colors.green, size: 16),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'es_ES',
-                                  child: Row(
-                                    children: [
-                                      const Text('Español'),
-                                      if (languageService.currentLocale.languageCode == 'es')
-                                        const Icon(Icons.check, color: Colors.green, size: 16),
-                                    ],
-                                  ),
-                                ),
-                              ];
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      // Botão para alternar tema
-                      Consumer<ThemeService>(
-                        builder: (context, themeService, child) {
-                          return IconButton(
+                          ),
+                          const SizedBox(width: 12),
+                          // Botão para alternar tema
+                          IconButton(
                             icon: Icon(
                               themeService.isDarkMode ? Icons.light_mode : Icons.dark_mode,
                               color: Colors.white,
@@ -240,208 +239,249 @@ class _LandingPageState extends State<LandingPage> {
                             onPressed: () {
                               themeService.toggleTheme();
                             },
-                          );
-                        },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                
-                Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
+                    ),
+                    
+                    Expanded(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          child: Padding(
                             padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: const Color.fromARGB(255, 79, 73, 72),
+                            child: ClipRRect(
                               borderRadius: BorderRadius.circular(20),
-                            ),
-                            width: MediaQuery.of(context).size.width * 0.85,
-                            constraints: const BoxConstraints(maxWidth: 400),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Título "LOGIN" com tradução
-                                  Consumer<LanguageService>(
-                                    builder: (context, languageService, child) {
-                                      return Text(
-                                        languageService.translate('login'),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 30),
-                                  
-                                  // Campo Email
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: themeService.isDarkMode 
+                                    ? Colors.grey[800]!.withOpacity(0.9)
+                                    : const Color.fromARGB(255, 79, 73, 72),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                width: MediaQuery.of(context).size.width * 0.85,
+                                constraints: const BoxConstraints(maxWidth: 400),
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
+                                      // Título "LOGIN" com tradução
                                       Consumer<LanguageService>(
                                         builder: (context, languageService, child) {
                                           return Text(
-                                            languageService.translate('email'),
-                                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                            languageService.translate('login'),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 28,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
                                           );
                                         },
                                       ),
-                                      const SizedBox(height: 8),
-                                      TextFormField(
-                                        controller: _emailController,
-                                        keyboardType: TextInputType.emailAddress,
-                                        textInputAction: TextInputAction.next,
-                                        style: const TextStyle(color: Colors.black),
-                                        decoration: InputDecoration(
-                                          filled: true,
-                                          fillColor: Colors.white.withOpacity(0.9),
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                          hintText: 'seu@email.com',
-                                          hintStyle: const TextStyle(color: Colors.black54),
-                                        ),
-                                        validator: _validarEmail,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 20),
-                                  
-                                  // Campo Senha
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Consumer<LanguageService>(
-                                        builder: (context, languageService, child) {
-                                          return Text(
-                                            languageService.translate('password'),
-                                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: 8),
-                                      TextFormField(
-                                        controller: _senhaController,
-                                        obscureText: _obscureSenha,
-                                        textInputAction: TextInputAction.done,
-                                        style: const TextStyle(color: Colors.black),
-                                        decoration: InputDecoration(
-                                          filled: true,
-                                          fillColor: Colors.white.withOpacity(0.9),
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                          hintText: '••••••',
-                                          hintStyle: const TextStyle(color: Colors.black54),
-                                          suffixIcon: IconButton(
-                                            icon: Icon(_obscureSenha ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
-                                            onPressed: () => setState(() => _obscureSenha = !_obscureSenha),
-                                          ),
-                                        ),
-                                        validator: _validarSenha,
-                                        onFieldSubmitted: (_) => _fazerLogin(),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  
-                                  // Link Esqueceu a senha
-                                  Consumer<LanguageService>(
-                                    builder: (context, languageService, child) {
-                                      return GestureDetector(
-                                        onTap: () => Navigator.pushNamed(context, '/esqueci_senha'),
-                                        child: Text(
-                                          languageService.translate('forgot_password'),
-                                          style: const TextStyle(color: Color(0xFF5E83AE), fontSize: 14, decoration: TextDecoration.underline),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 30),
-                                  
-                                  // Botões
-                                  Consumer<LanguageService>(
-                                    builder: (context, languageService, child) {
-                                      return Row(
+                                      const SizedBox(height: 30),
+                                      
+                                      // Campo Email
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Expanded(
-                                            child: OutlinedButton(
-                                              onPressed: () => Navigator.pushNamed(context, '/cadastro'),
-                                              style: OutlinedButton.styleFrom(
-                                                foregroundColor: Colors.white,
-                                                side: const BorderSide(color: Colors.white),
-                                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                              ),
-                                              child: Text(languageService.translate('sign_up').toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                                            ),
+                                          Consumer<LanguageService>(
+                                            builder: (context, languageService, child) {
+                                              return Text(
+                                                languageService.translate('email'),
+                                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                              );
+                                            },
                                           ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              onPressed: _isLoading ? null : _fazerLogin,
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(0xFF5E83AE),
-                                                foregroundColor: Colors.white,
-                                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                              ),
-                                              child: _isLoading
-                                                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
-                                                  : Text(languageService.translate('enter').toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          const SizedBox(height: 8),
+                                          TextFormField(
+                                            controller: _emailController,
+                                            keyboardType: TextInputType.emailAddress,
+                                            textInputAction: TextInputAction.next,
+                                            style: TextStyle(
+                                              color: themeService.isDarkMode ? Colors.white : Colors.black,
                                             ),
+                                            decoration: InputDecoration(
+                                              filled: true,
+                                              fillColor: themeService.isDarkMode 
+                                                ? Colors.grey[700] 
+                                                : Colors.white.withOpacity(0.9),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(8), 
+                                                borderSide: BorderSide.none
+                                              ),
+                                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                              hintText: 'seu@email.com',
+                                              hintStyle: TextStyle(
+                                                color: themeService.isDarkMode ? Colors.white70 : Colors.black54,
+                                              ),
+                                            ),
+                                            validator: _validarEmail,
                                           ),
                                         ],
-                                      );
-                                    },
+                                      ),
+                                      const SizedBox(height: 20),
+                                      
+                                      // Campo Senha
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Consumer<LanguageService>(
+                                            builder: (context, languageService, child) {
+                                              return Text(
+                                                languageService.translate('password'),
+                                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                              );
+                                            },
+                                          ),
+                                          const SizedBox(height: 8),
+                                          TextFormField(
+                                            controller: _senhaController,
+                                            obscureText: _obscureSenha,
+                                            textInputAction: TextInputAction.done,
+                                            style: TextStyle(
+                                              color: themeService.isDarkMode ? Colors.white : Colors.black,
+                                            ),
+                                            decoration: InputDecoration(
+                                              filled: true,
+                                              fillColor: themeService.isDarkMode 
+                                                ? Colors.grey[700] 
+                                                : Colors.white.withOpacity(0.9),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(8), 
+                                                borderSide: BorderSide.none
+                                              ),
+                                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                              hintText: '••••••',
+                                              hintStyle: TextStyle(
+                                                color: themeService.isDarkMode ? Colors.white70 : Colors.black54,
+                                              ),
+                                              suffixIcon: IconButton(
+                                                icon: Icon(
+                                                  _obscureSenha ? Icons.visibility : Icons.visibility_off, 
+                                                  color: themeService.isDarkMode ? Colors.white70 : Colors.grey
+                                                ),
+                                                onPressed: () => setState(() => _obscureSenha = !_obscureSenha),
+                                              ),
+                                            ),
+                                            validator: _validarSenha,
+                                            onFieldSubmitted: (_) => _fazerLogin(),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      
+                                      // Link Esqueceu a senha
+                                      Consumer<LanguageService>(
+                                        builder: (context, languageService, child) {
+                                          return GestureDetector(
+                                            onTap: () => Navigator.pushNamed(context, '/esqueci_senha'),
+                                            child: Text(
+                                              languageService.translate('forgot_password'),
+                                              style: TextStyle(
+                                                color: ThemeService.primaryColor.withOpacity(0.8), 
+                                                fontSize: 14, 
+                                                decoration: TextDecoration.underline
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(height: 30),
+                                      
+                                      // Botões
+                                      Consumer<LanguageService>(
+                                        builder: (context, languageService, child) {
+                                          return Row(
+                                            children: [
+                                              Expanded(
+                                                child: OutlinedButton(
+                                                  onPressed: () => Navigator.pushNamed(context, '/cadastro'),
+                                                  style: OutlinedButton.styleFrom(
+                                                    foregroundColor: Colors.white,
+                                                    side: const BorderSide(color: Colors.white),
+                                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                  ),
+                                                  child: Text(
+                                                    languageService.translate('sign_up').toUpperCase(), 
+                                                    style: const TextStyle(fontWeight: FontWeight.bold)
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                  onPressed: _isLoading ? null : _fazerLogin,
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: ThemeService.primaryColor,
+                                                    foregroundColor: Colors.white,
+                                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                    disabledBackgroundColor: ThemeService.primaryColor.withOpacity(0.5),
+                                                  ),
+                                                  child: _isLoading
+                                                      ? const SizedBox(
+                                                          height: 20, 
+                                                          width: 20, 
+                                                          child: CircularProgressIndicator(
+                                                            strokeWidth: 2, 
+                                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white)
+                                                          )
+                                                        )
+                                                      : Text(
+                                                          languageService.translate('enter').toUpperCase(), 
+                                                          style: const TextStyle(fontWeight: FontWeight.bold)
+                                                        ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                    
+                    // Rodapé
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      color: Colors.black.withOpacity(0.7),
+                      child: Consumer<LanguageService>(
+                        builder: (context, languageService, child) {
+                          return Column(
+                            children: [
+                              Text(
+                                languageService.translate('organize_tasks'),
+                                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                languageService.translate('rights_reserved'),
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                
-                // Rodapé
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  color: Colors.black.withOpacity(0.7),
-                  child: Consumer<LanguageService>(
-                    builder: (context, languageService, child) {
-                      return Column(
-                        children: [
-                          Text(
-                            languageService.translate('organize_tasks'),
-                            style: const TextStyle(color: Colors.white70, fontSize: 14),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            languageService.translate('rights_reserved'),
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

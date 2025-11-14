@@ -30,11 +30,14 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeService>(
       builder: (context, themeService, child) {
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: _buildAppBar(context, themeService),
-          drawer: _buildDrawer(context, themeService),
-          body: _buildBody(context, themeService),
+        return MaterialApp(
+          theme: themeService.themeData, // Aplica o tema globalmente
+          home: Scaffold(
+            key: _scaffoldKey,
+            appBar: _buildAppBar(context, themeService),
+            drawer: _buildDrawer(context, themeService),
+            body: _buildBody(context, themeService),
+          ),
         );
       },
     );
@@ -44,9 +47,8 @@ class _HomePageState extends State<HomePage> {
     final languageService = Provider.of<LanguageService>(context, listen: false);
 
     return AppBar(
-      backgroundColor: ThemeService.primaryColor,
       leading: IconButton(
-        icon: const Icon(Icons.menu, color: Colors.white),
+        icon: const Icon(Icons.menu),
         onPressed: () => _scaffoldKey.currentState?.openDrawer(),
       ),
       title: Column(
@@ -57,7 +59,6 @@ class _HomePageState extends State<HomePage> {
               return Text(
                 '${languageService.translate('ola')} $_userName',
                 style: const TextStyle(
-                  color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -68,14 +69,14 @@ class _HomePageState extends State<HomePage> {
             _getCurrentDate(context),
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.8),
+              color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
             ),
           ),
         ],
       ),
       actions: [
         PopupMenuButton<String>(
-          icon: const Icon(Icons.language, color: Colors.white),
+          icon: const Icon(Icons.language),
           onSelected: (value) {
             languageService.changeLanguageByCode(value);
           },
@@ -84,7 +85,7 @@ class _HomePageState extends State<HomePage> {
               value: 'pt',
               child: Row(
                 children: [
-                  Icon(Icons.language, color: ThemeService.primaryColor),
+                  Icon(Icons.language, color: Theme.of(context).primaryColor),
                   const SizedBox(width: 8),
                   Text('Português'),
                 ],
@@ -94,7 +95,7 @@ class _HomePageState extends State<HomePage> {
               value: 'en',
               child: Row(
                 children: [
-                  Icon(Icons.language, color: ThemeService.primaryColor),
+                  Icon(Icons.language, color: Theme.of(context).primaryColor),
                   const SizedBox(width: 8),
                   Text('English'),
                 ],
@@ -104,7 +105,7 @@ class _HomePageState extends State<HomePage> {
               value: 'es',
               child: Row(
                 children: [
-                  Icon(Icons.language, color: ThemeService.primaryColor),
+                  Icon(Icons.language, color: Theme.of(context).primaryColor),
                   const SizedBox(width: 8),
                   Text('Español'),
                 ],
@@ -119,14 +120,14 @@ class _HomePageState extends State<HomePage> {
   Widget _buildDrawer(BuildContext context, ThemeService themeService) {
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
-        final backgroundColor = themeService.backgroundColor;
-        final textColor = themeService.textColor;
+        final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+        final textColor = Theme.of(context).colorScheme.onSurface;
 
         return Drawer(
           backgroundColor: backgroundColor,
           child: Column(
             children: [
-              _buildDrawerHeader(),
+              _buildDrawerHeader(context),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
@@ -149,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                       textColor: textColor,
                       onTap: () => _navigateTo(context, const Usuarios()),
                     ),
-                    Divider(color: themeService.dividerColor),
+                    Divider(color: Theme.of(context).dividerColor),
                     _buildDrawerItem(
                       icon: Icons.house,
                       title: languageService.translate('minhas_casas'),
@@ -182,12 +183,12 @@ class _HomePageState extends State<HomePage> {
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
         return Container(
-          color: themeService.backgroundColor,
+          color: Theme.of(context).scaffoldBackgroundColor,
           child: Column(
             children: [
-              _buildListaTarefas(themeService, languageService),
-              _buildSecaoOpcoes(themeService, languageService),
-              _buildFooter(languageService),
+              _buildListaTarefas(context, languageService),
+              _buildSecaoOpcoes(context, languageService),
+              _buildFooter(context, languageService),
             ],
           ),
         );
@@ -195,10 +196,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildListaTarefas(ThemeService themeService, LanguageService languageService) {
+  Widget _buildListaTarefas(BuildContext context, LanguageService languageService) {
     return Expanded(
       child: Container(
-        color: themeService.backgroundColor,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -206,14 +207,14 @@ class _HomePageState extends State<HomePage> {
               Icon(
                 Icons.check_circle_outline,
                 size: 64,
-                color: themeService.textColor.withOpacity(0.4),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
               ),
               const SizedBox(height: 16),
               Text(
                 languageService.translate('nenhuma_tarefa'),
                 style: TextStyle(
                   fontSize: 16,
-                  color: themeService.textColor.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
               const SizedBox(height: 8),
@@ -221,7 +222,7 @@ class _HomePageState extends State<HomePage> {
                 languageService.translate('adicione_tarefas'),
                 style: TextStyle(
                   fontSize: 12,
-                  color: themeService.textColor.withOpacity(0.4),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                 ),
               ),
             ],
@@ -231,10 +232,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSecaoOpcoes(ThemeService themeService, LanguageService languageService) {
+  Widget _buildSecaoOpcoes(BuildContext context, LanguageService languageService) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: themeService.backgroundColor,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -243,17 +244,17 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: themeService.textColor,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
-          _buildGridOpcoes(themeService, languageService),
+          _buildGridOpcoes(context, languageService),
         ],
       ),
     );
   }
 
-  Widget _buildGridOpcoes(ThemeService themeService, LanguageService languageService) {
+  Widget _buildGridOpcoes(BuildContext context, LanguageService languageService) {
     final opcoes = [
       {
         'icon': Icons.people,
@@ -290,33 +291,38 @@ class _HomePageState extends State<HomePage> {
       itemBuilder: (context, index) {
         final opcao = opcoes[index];
         return _buildOpcaoItem(
+          context: context,
           icon: opcao['icon'] as IconData,
           label: opcao['label'] as String,
-          cardColor: themeService.cardColor,
-          textColor: themeService.textColor,
           onTap: opcao['onTap'] as VoidCallback,
         );
       },
     );
   }
 
-  Widget _buildFooter(LanguageService languageService) {
+  Widget _buildFooter(BuildContext context, LanguageService languageService) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      color: ThemeService.primaryColor,
+      color: Theme.of(context).primaryColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             languageService.translate('organize_tarefas'),
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary, 
+              fontSize: 14
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
           Text(
             languageService.translate('direitos_reservados'),
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7), 
+              fontSize: 12
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -325,22 +331,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Métodos auxiliares
-  Widget _buildDrawerHeader() {
+  Widget _buildDrawerHeader(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      color: ThemeService.primaryColor,
+      color: Theme.of(context).primaryColor,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 25,
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.onPrimary,
               child: Text(
                 "TD",
                 style: TextStyle(
-                  color: Color(0xFF133A67),
+                  color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -348,8 +354,8 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
             Text(
               widget.casa['nome'] ?? 'Minha Casa',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -358,7 +364,7 @@ class _HomePageState extends State<HomePage> {
             Text(
               _userName,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
                 fontSize: 14,
               ),
             ),
@@ -375,7 +381,7 @@ class _HomePageState extends State<HomePage> {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: ThemeService.primaryColor),
+      leading: Icon(icon, color: Theme.of(context).primaryColor),
       title: Text(
         title,
         style: TextStyle(
@@ -388,10 +394,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildOpcaoItem({
+    required BuildContext context,
     required IconData icon,
     required String label,
-    required Color cardColor,
-    required Color textColor,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -399,7 +404,7 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: cardColor,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -414,14 +419,14 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(
               icon,
-              color: ThemeService.primaryColor,
+              color: Theme.of(context).primaryColor,
               size: 24,
             ),
             const SizedBox(height: 8),
             Text(
               label,
               style: TextStyle(
-                color: ThemeService.primaryColor,
+                color: Theme.of(context).primaryColor,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),

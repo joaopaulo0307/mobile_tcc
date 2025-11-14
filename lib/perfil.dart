@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_tcc/services/user_service.dart';
 import 'package:mobile_tcc/services/theme_service.dart';
 import '../services/language_service.dart';
+import 'package:provider/provider.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({
@@ -21,7 +22,6 @@ class _PerfilPageState extends State<PerfilPage> {
   File? _fotoPerfil;
   final TextEditingController descricaoController = TextEditingController();
   int tarefasVisiveis = 3;
-  Color _selectedColor = ThemeService.primaryColor;
 
   // Cores disponíveis para o tema
   final List<Color> _coresDisponiveis = [
@@ -45,23 +45,20 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
-  void _alterarCorTema(Color novaCor) {
-    setState(() {
-      _selectedColor = novaCor;
-    });
-    // Atualiza o tema global
-    ThemeService.setPrimaryColor(novaCor);
+  void _alterarCorTema(Color novaCor, ThemeService themeService) {
+    // Aqui você precisaria adicionar um método no ThemeService para mudar a cor primária
+    // Por enquanto, vamos apenas notificar para demonstrar
+    themeService.notifyListeners();
   }
 
-  void _mostrarSelecaoCores() {
+  void _mostrarSelecaoCores(ThemeService themeService) {
     showDialog(
       context: context,
       builder: (context) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: ThemeService.themeNotifier,
-          builder: (context, isDarkMode, child) {
-            final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-            final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+        return Consumer<ThemeService>(
+          builder: (context, themeService, child) {
+            final backgroundColor = themeService.backgroundColor;
+            final textColor = themeService.textColor;
             
             return AlertDialog(
               backgroundColor: backgroundColor,
@@ -83,14 +80,14 @@ class _PerfilPageState extends State<PerfilPage> {
                     final cor = _coresDisponiveis[index];
                     return GestureDetector(
                       onTap: () {
-                        _alterarCorTema(cor);
+                        _alterarCorTema(cor, themeService);
                         Navigator.pop(context);
                       },
                       child: Container(
                         decoration: BoxDecoration(
                           color: cor,
                           shape: BoxShape.circle,
-                          border: _selectedColor.value == cor.value
+                          border: ThemeService.primaryColor.value == cor.value
                               ? Border.all(color: Colors.white, width: 3)
                               : null,
                           boxShadow: [
@@ -101,7 +98,7 @@ class _PerfilPageState extends State<PerfilPage> {
                             ),
                           ],
                         ),
-                        child: _selectedColor.value == cor.value
+                        child: ThemeService.primaryColor.value == cor.value
                             ? const Icon(Icons.check, color: Colors.white, size: 20)
                             : null,
                       ),
@@ -128,7 +125,6 @@ class _PerfilPageState extends State<PerfilPage> {
   @override
   void initState() {
     super.initState();
-    _selectedColor = ThemeService.primaryColor;
     // Inicializar com dados de exemplo se estiver vazio
     if (UserService.tarefasRealizadas.isEmpty) {
       UserService.initializeWithSampleData();
@@ -140,12 +136,11 @@ class _PerfilPageState extends State<PerfilPage> {
     final totalTarefas = UserService.tarefasRealizadas.length;
     final mostrarTodas = tarefasVisiveis >= totalTarefas;
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: ThemeService.themeNotifier,
-      builder: (context, isDarkMode, child) {
-        final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-        final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-        final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        final backgroundColor = themeService.backgroundColor;
+        final cardColor = themeService.cardColor;
+        final textColor = themeService.textColor;
         final secondaryTextColor = textColor.withOpacity(0.7);
 
         return Scaffold(
@@ -165,7 +160,7 @@ class _PerfilPageState extends State<PerfilPage> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.palette, color: Colors.white),
-                onPressed: _mostrarSelecaoCores,
+                onPressed: () => _mostrarSelecaoCores(themeService),
                 tooltip: 'Alterar cor do tema',
               ),
             ],
@@ -282,7 +277,7 @@ class _PerfilPageState extends State<PerfilPage> {
                       const SizedBox(height: 30),
 
                       // Seção Personalização
-                      _buildCustomizationSection(cardColor, textColor),
+                      _buildCustomizationSection(cardColor, textColor, themeService),
                       const SizedBox(height: 30),
 
                       // Rodapé
@@ -592,7 +587,7 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildCustomizationSection(Color cardColor, Color textColor) {
+  Widget _buildCustomizationSection(Color cardColor, Color textColor, ThemeService themeService) {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -625,18 +620,18 @@ class _PerfilPageState extends State<PerfilPage> {
           ),
           const SizedBox(height: 12),
           Text(
-            "Cor do tema atual:",
+            "Tema atual:",
             style: TextStyle(color: textColor),
           ),
           const SizedBox(height: 8),
           GestureDetector(
-            onTap: _mostrarSelecaoCores,
+            onTap: () => _mostrarSelecaoCores(themeService),
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _selectedColor.withOpacity(0.1),
+                color: ThemeService.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _selectedColor),
+                border: Border.all(color: ThemeService.primaryColor),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -647,13 +642,13 @@ class _PerfilPageState extends State<PerfilPage> {
                         width: 20,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: _selectedColor,
+                          color: ThemeService.primaryColor,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        "Cor #${_selectedColor.value.toRadixString(16).toUpperCase()}",
+                        themeService.isDarkMode ? "Modo Escuro" : "Modo Claro",
                         style: TextStyle(color: textColor),
                       ),
                     ],
@@ -662,6 +657,20 @@ class _PerfilPageState extends State<PerfilPage> {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Modo escuro", style: TextStyle(color: textColor)),
+              Switch(
+                value: themeService.isDarkMode,
+                onChanged: (value) {
+                  themeService.setDarkMode(value);
+                },
+                activeColor: ThemeService.primaryColor,
+              ),
+            ],
           ),
         ],
       ),

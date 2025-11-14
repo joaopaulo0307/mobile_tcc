@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/theme_service.dart';
-import 'package:mobile_tcc/calendario/calendario.dart';
-import 'package:mobile_tcc/economic/economico.dart';
-import 'package:mobile_tcc/meu_casas.dart';
-import 'package:mobile_tcc/perfil.dart';
-import 'package:mobile_tcc/usuarios.dart';
-import 'package:mobile_tcc/config.dart';
 
 class Usuarios extends StatefulWidget {
   const Usuarios({super.key});
@@ -25,98 +20,93 @@ class _UsuariosState extends State<Usuarios> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: ThemeService.themeNotifier,
-          builder: (context, isDarkMode, child) {
-            final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-            final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-            final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        final backgroundColor = themeService.backgroundColor;
+        final textColor = themeService.textColor;
 
-            return AlertDialog(
-              backgroundColor: backgroundColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              title: Text(
-                'Adicionar Membro',
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nomeController,
-                    decoration: InputDecoration(
-                      labelText: 'Nome',
-                      labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ThemeService.primaryColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(color: textColor),
+        return AlertDialog(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Adicionar Membro',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nomeController,
+                decoration: InputDecoration(
+                  labelText: 'Nome',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: descricaoController,
-                    decoration: InputDecoration(
-                      labelText: 'Descrição',
-                      labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ThemeService.primaryColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(color: textColor),
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(color: textColor.withOpacity(0.7)),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: ThemeService.primaryColor),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (nomeController.text.trim().isNotEmpty) {
-                      setState(() {
-                        _membros.add({
-                          'nome': nomeController.text.trim(),
-                          'descricao': descricaoController.text.trim(),
-                        });
-                      });
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeService.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                style: TextStyle(color: textColor),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descricaoController,
+                decoration: InputDecoration(
+                  labelText: 'Descrição',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'Confirmar',
-                    style: TextStyle(color: Colors.white),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: ThemeService.primaryColor),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-              ],
-            );
-          },
+                style: TextStyle(color: textColor),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: textColor.withOpacity(0.7)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nomeController.text.trim().isNotEmpty) {
+                  setState(() {
+                    _membros.add({
+                      'nome': nomeController.text.trim(),
+                      'descricao': descricaoController.text.trim(),
+                    });
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeService.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Confirmar',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -129,84 +119,79 @@ class _UsuariosState extends State<Usuarios> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: ThemeService.themeNotifier,
-          builder: (context, isDarkMode, child) {
-            final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-            final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-            final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        final backgroundColor = themeService.backgroundColor;
+        final textColor = themeService.textColor;
 
-            return AlertDialog(
-              backgroundColor: backgroundColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              title: Text(
-                'Remover Membro',
+        return AlertDialog(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Remover Membro',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Nome: ${membro['nome']}',
                 style: TextStyle(
                   color: textColor,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Nome: ${membro['nome']}',
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Descrição: ${membro['descricao']}',
-                    style: TextStyle(
-                      color: textColor.withOpacity(0.8),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Tem certeza que deseja remover este membro?',
-                    style: TextStyle(
-                      color: textColor.withOpacity(0.7),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 8),
+              Text(
+                'Descrição: ${membro['descricao']}',
+                style: TextStyle(
+                  color: textColor.withOpacity(0.8),
+                ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(color: textColor.withOpacity(0.7)),
-                  ),
+              const SizedBox(height: 16),
+              Text(
+                'Tem certeza que deseja remover este membro?',
+                style: TextStyle(
+                  color: textColor.withOpacity(0.7),
+                  fontSize: 14,
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _membros.removeAt(index);
-                    });
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Remover',
-                    style: TextStyle(color: Colors.white),
-                  ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: textColor.withOpacity(0.7)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _membros.removeAt(index);
+                });
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            );
-          },
+              ),
+              child: const Text(
+                'Remover',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -236,12 +221,11 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== LISTA DE MEMBROS ====================
   Widget _buildListaMembros() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: ThemeService.themeNotifier,
-      builder: (context, isDarkMode, child) {
-        final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-        final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-        final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        final backgroundColor = themeService.backgroundColor;
+        final cardColor = themeService.cardColor;
+        final textColor = themeService.textColor;
 
         return Expanded(
           child: Container(
@@ -375,10 +359,9 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== BOTÕES DE AÇÃO ====================
   Widget _buildBotoesAcao() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: ThemeService.themeNotifier,
-      builder: (context, isDarkMode, child) {
-        final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        final backgroundColor = themeService.backgroundColor;
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -411,8 +394,9 @@ class _UsuariosState extends State<Usuarios> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _membros.isEmpty ? null : () {
-                    // Pode mostrar uma modal de confirmação para remover todos ou outra lógica
-                    _showRemoveMemberModal(0); // Remove o primeiro como exemplo
+                    if (_membros.isNotEmpty) {
+                      _showRemoveMemberModal(0);
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,

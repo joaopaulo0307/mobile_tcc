@@ -20,14 +20,14 @@ class Economico extends StatefulWidget {
 }
 
 class _EconomicoState extends State<Economico> {
-  double saldo = 1800.0;
-  double renda = 1800.0;
+  double saldo = 0.0;
+  double renda = 0.0;
   double gastos = 0.0;
   
   List<Transacao> historicoTransacoes = [
     Transacao(
       id: '1',
-      valor: 1800.0,
+      valor: 0.0,
       local: 'Salário',
       data: DateTime.now().subtract(const Duration(days: 2)),
       tipo: 'entrada',
@@ -35,19 +35,13 @@ class _EconomicoState extends State<Economico> {
     ),
   ];
 
-  final Map<String, double> valoresMensais = {
-    'JAN': 1800,
-    'FEV': 1800,
-    'MAR': 1800,
-    'ABR': 1800,
-    'MAI': 1800,
-    'JUN': 1800,
-  };
+  final Map<String, double> valoresMensais = {};
 
   @override
   void initState() {
     super.initState();
     _atualizarValores();
+    _atualizarGrafico();
   }
 
   void _atualizarValores() {
@@ -127,7 +121,7 @@ class _EconomicoState extends State<Economico> {
                       textColor: textColor,
                       onTap: () => _navigateToUsuarios(context),
                     ),
-                    Divider(color: themeService.dividerColor),
+                    Divider(color: Colors.grey.withOpacity(0.3)), // Corrigido
                     _buildDrawerItem(
                       icon: Icons.house,
                       title: languageService.translate('minhas_casas'),
@@ -282,213 +276,218 @@ class _EconomicoState extends State<Economico> {
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(builder: (context, setStateModal) {
-          return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            backgroundColor: ThemeService.primaryColor,
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text(
-                    'Adicionar Transação',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  // Campo Valor
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Valor (R\$):',
-                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: valorController,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: '0,00',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        return Consumer<ThemeService>(
+          builder: (context, themeService, child) {
+            final cardColor = themeService.cardColor;
+            final textColor = themeService.textColor;
+            
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              backgroundColor: cardColor,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Text(
+                      'Adicionar Transação',
+                      style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  // Campo Local
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Descrição:',
-                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: localController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Informe a descrição',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.08),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    const SizedBox(height: 12),
+                    
+                    // Campo Valor
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Valor (R\$):',
+                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  // Seletor de Ação
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Tipo:',
-                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(8)),
-                    child: DropdownButton<String>(
-                      value: acao,
-                      dropdownColor: ThemeService.primaryColor,
-                      underline: const SizedBox(),
-                      isExpanded: true,
-                      items: const [
-                        DropdownMenuItem(
-                            value: 'entrada',
-                            child: Text('Entrada (Renda)',
-                                style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(
-                            value: 'saida',
-                            child: Text('Saída (Gasto)',
-                                style: TextStyle(color: Colors.white))),
-                      ],
-                      onChanged: (v) => setStateModal(() => acao = v ?? 'entrada'),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // Seletor de Categoria
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Categoria:',
-                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(8)),
-                    child: DropdownButton<String>(
-                      value: categoria,
-                      dropdownColor: ThemeService.primaryColor,
-                      underline: const SizedBox(),
-                      isExpanded: true,
-                      items: const [
-                        DropdownMenuItem(
-                            value: 'alimentacao',
-                            child: Text('Alimentação',
-                                style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(
-                            value: 'transporte',
-                            child: Text('Transporte',
-                                style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(
-                            value: 'lazer',
-                            child: Text('Lazer',
-                                style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(
-                            value: 'saude',
-                            child: Text('Saúde',
-                                style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(
-                            value: 'educacao',
-                            child: Text('Educação',
-                                style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(
-                            value: 'outros',
-                            child: Text('Outros',
-                                style: TextStyle(color: Colors.white))),
-                      ],
-                      onChanged: (v) => setStateModal(() => categoria = v ?? 'outros'),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: const Text('Cancelar',
-                              style: TextStyle(color: Colors.white)),
-                        ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: valorController,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        hintText: '0,00',
+                        hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
+                        filled: true,
+                        fillColor: themeService.backgroundColor.withOpacity(0.8),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final valor = double.tryParse(
-                                    valorController.text.replaceAll(',', '.')) ??
-                                0;
-                            final descricao = localController.text.trim();
-                            
-                            if (valor > 0 && descricao.isNotEmpty) {
-                              // Adicionar nova transação
-                              final novaTransacao = Transacao(
-                                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                                valor: valor,
-                                local: descricao,
-                                data: DateTime.now(),
-                                tipo: acao,
-                                categoria: categoria,
-                              );
-                              
-                              setState(() {
-                                historicoTransacoes.insert(0, novaTransacao);
-                                _atualizarValores();
-                                _atualizarGrafico();
-                              });
-                              
-                              Navigator.pop(context);
-                              _mostrarModalConfirmacao();
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Preencha todos os campos corretamente'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: const Text('Confirmar',
-                              style: TextStyle(color: Colors.white)),
-                        ),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // Campo Local
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Descrição:',
+                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: localController,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        hintText: 'Informe a descrição',
+                        hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
+                        filled: true,
+                        fillColor: themeService.backgroundColor.withOpacity(0.8),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                       ),
-                    ],
-                  ),
-                ]),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // Seletor de Ação
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Tipo:',
+                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                          color: themeService.backgroundColor.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: DropdownButton<String>(
+                        value: acao,
+                        dropdownColor: cardColor,
+                        underline: const SizedBox(),
+                        isExpanded: true,
+                        items: const [
+                          DropdownMenuItem(
+                              value: 'entrada',
+                              child: Text('Entrada (Renda)',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'saida',
+                              child: Text('Saída (Gasto)',
+                                  style: TextStyle(color: Colors.white))),
+                        ],
+                        onChanged: (v) => setState(() => acao = v ?? 'entrada'),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Seletor de Categoria
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Categoria:',
+                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                          color: themeService.backgroundColor.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: DropdownButton<String>(
+                        value: categoria,
+                        dropdownColor: cardColor,
+                        underline: const SizedBox(),
+                        isExpanded: true,
+                        items: const [
+                          DropdownMenuItem(
+                              value: 'alimentacao',
+                              child: Text('Alimentação',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'transporte',
+                              child: Text('Transporte',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'lazer',
+                              child: Text('Lazer',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'saude',
+                              child: Text('Saúde',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'educacao',
+                              child: Text('Educação',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'outros',
+                              child: Text('Outros',
+                                  style: TextStyle(color: Colors.white))),
+                        ],
+                        onChanged: (v) => setState(() => categoria = v ?? 'outros'),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text('Cancelar',
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final valor = double.tryParse(
+                                      valorController.text.replaceAll(',', '.')) ??
+                                  0;
+                              final descricao = localController.text.trim();
+                              
+                              if (valor > 0 && descricao.isNotEmpty) {
+                                // Adicionar nova transação
+                                final novaTransacao = Transacao(
+                                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                  valor: valor,
+                                  local: descricao,
+                                  data: DateTime.now(),
+                                  tipo: acao,
+                                  categoria: categoria,
+                                );
+                                
+                                setState(() {
+                                  historicoTransacoes.insert(0, novaTransacao);
+                                  _atualizarValores();
+                                  _atualizarGrafico();
+                                });
+                                
+                                Navigator.pop(context);
+                                _mostrarModalConfirmacao();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Preencha todos os campos corretamente'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text('Confirmar',
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
+                ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
       },
     );
   }
@@ -497,33 +496,40 @@ class _EconomicoState extends State<Economico> {
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          backgroundColor: Colors.white.withOpacity(0.06),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 22),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 60),
-              const SizedBox(height: 12),
-              const Text('Transação adicionada!',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeService.primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8))),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Text('OK', style: TextStyle(color: Colors.white)),
-                ),
+        return Consumer<ThemeService>(
+          builder: (context, themeService, child) {
+            final cardColor = themeService.cardColor;
+            final textColor = themeService.textColor;
+            
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              backgroundColor: cardColor,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 22),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 60),
+                  const SizedBox(height: 12),
+                  Text('Transação adicionada!',
+                      style: TextStyle(
+                          color: textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: ThemeService.primaryColor,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8))),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Text('OK', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ]),
               ),
-            ]),
-          ),
+            );
+          },
         );
       },
     );

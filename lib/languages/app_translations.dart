@@ -1,4 +1,3 @@
-
 import 'package:get/get.dart';
 
 class AppTranslations extends Translations {

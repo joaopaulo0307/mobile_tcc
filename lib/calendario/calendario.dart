@@ -61,25 +61,20 @@ class _CalendarioPageState extends State<CalendarioPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: ValueListenableBuilder<bool>(
-        valueListenable: ThemeService.themeNotifier,
-        builder: (context, isDarkMode, child) {
-          final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-          final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-          final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
-          
+      body: Consumer<ThemeService>(
+        builder: (context, themeService, child) {
           return Container(
-            color: backgroundColor,
+            color: themeService.backgroundColor,
             child: Column(
               children: [
-                _buildHeader(textColor),
+                _buildHeader(themeService),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        _buildCalendar(cardColor, textColor, backgroundColor),
+                        _buildCalendar(themeService),
                         const SizedBox(height: 16),
-                        _buildTarefasList(cardColor, textColor),
+                        _buildTarefasList(themeService),
                       ],
                     ),
                   ),
@@ -97,7 +92,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
-  Widget _buildHeader(Color textColor) {
+  Widget _buildHeader(ThemeService themeService) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -124,7 +119,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
             'Hoje: ${_formatarData(DateTime.now())}',
             style: TextStyle(
               fontSize: 14,
-              color: textColor.withOpacity(0.7),
+              color: themeService.textColor.withOpacity(0.7),
             ),
           ),
         ],
@@ -132,13 +127,13 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
-  Widget _buildCalendar(Color cardColor, Color textColor, Color backgroundColor) {
+  Widget _buildCalendar(ThemeService themeService) {
     return Consumer<TarefaService>(
       builder: (context, tarefaService, child) {
         return Card(
           margin: const EdgeInsets.all(16),
           elevation: 2,
-          color: cardColor,
+          color: themeService.cardColor,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: TableCalendar(
@@ -164,8 +159,8 @@ class _CalendarioPageState extends State<CalendarioPage> {
                 });
               },
               calendarStyle: CalendarStyle(
-                defaultTextStyle: TextStyle(color: textColor),
-                weekendTextStyle: TextStyle(color: textColor),
+                defaultTextStyle: TextStyle(color: themeService.textColor),
+                weekendTextStyle: TextStyle(color: themeService.textColor),
                 selectedTextStyle: const TextStyle(color: Colors.white),
                 todayTextStyle: const TextStyle(
                   color: Colors.white,
@@ -180,9 +175,9 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   shape: BoxShape.circle,
                 ),
                 outsideDaysVisible: false,
-                outsideTextStyle: TextStyle(color: textColor.withOpacity(0.3)),
+                outsideTextStyle: TextStyle(color: themeService.textColor.withOpacity(0.3)),
                 weekendDecoration: BoxDecoration(
-                  color: backgroundColor.withOpacity(0.05),
+                  color: themeService.backgroundColor.withOpacity(0.05),
                 ),
               ),
               headerStyle: HeaderStyle(
@@ -195,7 +190,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                 ),
                 formatButtonTextStyle: TextStyle(color: ThemeService.primaryColor),
                 titleTextStyle: TextStyle(
-                  color: textColor,
+                  color: themeService.textColor,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -210,11 +205,11 @@ class _CalendarioPageState extends State<CalendarioPage> {
               ),
               daysOfWeekStyle: DaysOfWeekStyle(
                 weekdayStyle: TextStyle(
-                  color: textColor,
+                  color: themeService.textColor,
                   fontWeight: FontWeight.bold,
                 ),
                 weekendStyle: TextStyle(
-                  color: textColor.withOpacity(0.7),
+                  color: themeService.textColor.withOpacity(0.7),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -246,7 +241,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
-  Widget _buildTarefasList(Color cardColor, Color textColor) {
+  Widget _buildTarefasList(ThemeService themeService) {
     return Consumer<TarefaService>(
       builder: (context, tarefaService, child) {
         final tarefas = tarefaService.getTarefasPorData(_selectedDay, 'default');
@@ -261,18 +256,17 @@ class _CalendarioPageState extends State<CalendarioPage> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: textColor,
+                  color: themeService.textColor,
                 ),
               ),
               const SizedBox(height: 12),
               
               if (tarefas.isEmpty)
-                _buildEmptyTarefas(cardColor, textColor)
+                _buildEmptyTarefas(themeService)
               else
                 ...tarefas.map((tarefa) => _buildTarefaItem(
                   tarefa: tarefa, 
-                  cardColor: cardColor, 
-                  textColor: textColor,
+                  themeService: themeService,
                   onConcluir: () => _concluirTarefa(context, tarefa.id),
                 )).toList(),
             ],
@@ -284,15 +278,14 @@ class _CalendarioPageState extends State<CalendarioPage> {
 
   Widget _buildTarefaItem({
     required Tarefa tarefa,
-    required Color cardColor,
-    required Color textColor,
+    required ThemeService themeService,
     required VoidCallback onConcluir,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: themeService.cardColor,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -322,7 +315,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: textColor,
+                    color: themeService.textColor,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -331,7 +324,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     tarefa.descricao,
                     style: TextStyle(
                       fontSize: 12,
-                      color: textColor.withOpacity(0.6),
+                      color: themeService.textColor.withOpacity(0.6),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -341,7 +334,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   '${tarefa.data.hour.toString().padLeft(2, '0')}:${tarefa.data.minute.toString().padLeft(2, '0')}',
                   style: TextStyle(
                     fontSize: 11,
-                    color: textColor.withOpacity(0.5),
+                    color: themeService.textColor.withOpacity(0.5),
                   ),
                 ),
               ],
@@ -359,11 +352,11 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
-  Widget _buildEmptyTarefas(Color cardColor, Color textColor) {
+  Widget _buildEmptyTarefas(ThemeService themeService) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: themeService.cardColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -371,20 +364,20 @@ class _CalendarioPageState extends State<CalendarioPage> {
           Icon(
             Icons.event_note,
             size: 48,
-            color: textColor.withOpacity(0.4),
+            color: themeService.textColor.withOpacity(0.4),
           ),
           const SizedBox(height: 12),
           Text(
             'Nenhuma tarefa para esta data',
             style: TextStyle(
-              color: textColor.withOpacity(0.6),
+              color: themeService.textColor.withOpacity(0.6),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Toque no botão + para adicionar uma tarefa',
             style: TextStyle(
-              color: textColor.withOpacity(0.4),
+              color: themeService.textColor.withOpacity(0.4),
               fontSize: 12,
             ),
             textAlign: TextAlign.center,
@@ -402,21 +395,17 @@ class _CalendarioPageState extends State<CalendarioPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: ThemeService.themeNotifier,
-          builder: (context, isDarkMode, child) {
-            final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-            final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
-            
+        return Consumer<ThemeService>(
+          builder: (context, themeService, child) {
             return AlertDialog(
-              backgroundColor: cardColor,
+              backgroundColor: themeService.cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               title: Text(
                 'Nova Tarefa',
                 style: TextStyle(
-                  color: textColor,
+                  color: themeService.textColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -427,7 +416,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     Text(
                       'Data: ${_formatarData(_selectedDay)}',
                       style: TextStyle(
-                        color: textColor.withOpacity(0.7),
+                        color: themeService.textColor.withOpacity(0.7),
                         fontSize: 14,
                       ),
                     ),
@@ -436,7 +425,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                       controller: _tituloController,
                       decoration: InputDecoration(
                         labelText: 'Título da tarefa *',
-                        labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                        labelStyle: TextStyle(color: themeService.textColor.withOpacity(0.7)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -453,7 +442,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                           vertical: 12,
                         ),
                       ),
-                      style: TextStyle(color: textColor),
+                      style: TextStyle(color: themeService.textColor),
                       textCapitalization: TextCapitalization.sentences,
                     ),
                     const SizedBox(height: 12),
@@ -461,7 +450,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                       controller: _descricaoController,
                       decoration: InputDecoration(
                         labelText: 'Descrição (opcional)',
-                        labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                        labelStyle: TextStyle(color: themeService.textColor.withOpacity(0.7)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -478,7 +467,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                           vertical: 12,
                         ),
                       ),
-                      style: TextStyle(color: textColor),
+                      style: TextStyle(color: themeService.textColor),
                       maxLines: 3,
                       textCapitalization: TextCapitalization.sentences,
                     ),
@@ -486,7 +475,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     Text(
                       'Cor da tarefa:',
                       style: TextStyle(
-                        color: textColor,
+                        color: themeService.textColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -529,7 +518,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   child: Text(
                     'Cancelar',
                     style: TextStyle(
-                      color: textColor.withOpacity(0.7),
+                      color: themeService.textColor.withOpacity(0.7),
                     ),
                   ),
                 ),

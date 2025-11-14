@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:mobile_tcc/home.dart';
 import '../services/theme_service.dart';
-import '../services/language_service.dart';
 
 class MeuCasas extends StatefulWidget {
   const MeuCasas({super.key});
@@ -189,83 +189,85 @@ class _MeuCasasState extends State<MeuCasas> {
   }
 
   void _mostrarDialogoCriarCasa() {
-    final isDarkMode = ThemeService.themeNotifier.value;
-    final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-    final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-    final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
-    final primaryColor = ThemeService.primaryColor;
-
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        title: Text(
-          'Criar Nova Casa',
-          style: TextStyle(
-            color: textColor,
-            fontWeight: FontWeight.bold,
+      builder: (context) {
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        final backgroundColor = themeService.backgroundColor;
+        final cardColor = themeService.cardColor;
+        final textColor = themeService.textColor;
+        final primaryColor = ThemeService.primaryColor;
+
+        return AlertDialog(
+          backgroundColor: cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nomeController,
-              style: TextStyle(color: textColor),
-              decoration: InputDecoration(
-                labelText: 'Nome da Casa',
-                labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+          title: Text(
+            'Criar Nova Casa',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nomeController,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Nome da Casa',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: primaryColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: primaryColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryColor),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryColor),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                textCapitalization: TextCapitalization.words,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _limparCampos();
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: textColor.withOpacity(0.7),
                 ),
               ),
-              textCapitalization: TextCapitalization.words,
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: _criarCasa,
+              child: const Text(
+                'Criar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _limparCampos();
-            },
-            child: Text(
-              'Cancelar',
-              style: TextStyle(
-                color: textColor.withOpacity(0.7),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: _criarCasa,
-            child: const Text(
-              'Criar',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -304,12 +306,12 @@ class _MeuCasasState extends State<MeuCasas> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: ThemeService.themeNotifier,
-      builder: (context, isDarkMode, child) {
-        final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-        final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-        final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        final isDarkMode = themeService.isDarkMode;
+        final backgroundColor = themeService.backgroundColor;
+        final cardColor = themeService.cardColor;
+        final textColor = themeService.textColor;
         final secondaryTextColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
         final primaryColor = ThemeService.primaryColor;
 
