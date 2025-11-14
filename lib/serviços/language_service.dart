@@ -1,6 +1,7 @@
+// lib/serviços/language_service.dart
 import 'package:flutter/material.dart';
 
-class LanguageService {
+class LanguageService extends ChangeNotifier {
   static final LanguageService _instance = LanguageService._internal();
   factory LanguageService() => _instance;
   LanguageService._internal();
@@ -31,6 +32,19 @@ class LanguageService {
       'select_language': 'Selecione o Idioma',
       'close': 'FECHAR',
       
+      // Login e Autenticação
+      'login': 'LOGIN',
+      'email': 'Email',
+      'password': 'Senha',
+      'forgot_password': 'Esqueceu a sua senha?',
+      'sign_up': 'Cadastre-se',
+      'enter': 'Entrar',
+      'confirm_password': 'Confirmar Senha',
+      'already_have_account': 'Já tem uma conta?',
+      'create_account': 'Criar Conta',
+      'reset_password': 'Redefinir Senha',
+      'send_instructions': 'Enviar Instruções',
+      
       // Home
       'hello': 'Olá',
       'options': 'Opções',
@@ -58,6 +72,8 @@ class LanguageService {
       'task_added': 'Tarefa adicionada com sucesso!',
       'task_completed': 'Tarefa concluída!',
       'enter_title': 'Por favor, insira um título para a tarefa',
+      'select_date': 'Selecionar Data',
+      'select_time': 'Selecionar Hora',
       
       // Usuários
       'members': 'Membros',
@@ -67,11 +83,13 @@ class LanguageService {
       'add_member_hint': 'Clique em "+ Add Membro" para adicionar',
       'add_member_title': 'Adicionar Membro',
       'name': 'Nome',
-      'description': 'Descrição',
+      'member_description': 'Descrição do Membro', // CORRIGIDO: mudado de 'description'
       'confirm': 'Confirmar',
       'remove_member_title': 'Remover Membro',
       'remove_confirmation': 'Tem certeza que deseja remover este membro?',
       'remove': 'Remover',
+      'edit_member': 'Editar Membro',
+      'save_changes': 'Salvar Alterações',
       
       // Minhas Casas
       'my_houses_title': 'MINHAS CASAS',
@@ -82,12 +100,62 @@ class LanguageService {
       'create': 'Criar',
       'family_question': 'Quem significa uma família de forma simples?',
       'enter_house_name': 'Por favor, insira um nome para a casa',
+      'select_house': 'Selecionar Casa',
+      'edit_house': 'Editar Casa',
+      'delete_house': 'Excluir Casa',
+      'delete_house_confirmation': 'Tem certeza que deseja excluir esta casa?',
       
       // Econômico
       'economic_title': 'ECONÔMICO',
+      'income': 'Receita',
+      'expenses': 'Despesas',
+      'balance': 'Saldo',
+      'add_transaction': 'Adicionar Transação',
+      'transaction_type': 'Tipo de Transação',
+      'amount': 'Valor',
+      'date': 'Data',
+      'category': 'Categoria',
+      'transaction_description': 'Descrição da Transação', // CORRIGIDO: mudado de 'description'
+      'income_categories': 'Categorias de Receita',
+      'expense_categories': 'Categorias de Despesa',
       
       // Perfil
       'profile': 'Perfil',
+      'personal_info': 'Informações Pessoais',
+      'full_name': 'Nome Completo',
+      'phone': 'Telefone',
+      'address': 'Endereço',
+      'save_profile': 'Salvar Perfil',
+      'change_photo': 'Alterar Foto',
+      'logout': 'Sair',
+      'logout_confirmation': 'Tem certeza que deseja sair?',
+      
+      // Adicionais para Home
+      'acesso_rapido': 'Acesso Rápido',
+      'nenhuma_tarefa': 'Nenhuma tarefa pendente',
+      'adicione_tarefas': 'Adicione tarefas no calendário',
+      'organize_tarefas': 'Organize suas tarefas de forma simples',
+      'direitos_reservados': '© Todos os direitos reservados - 2025',
+      'amanha': 'Amanhã',
+      'esta_semana': 'Esta Semana',
+      'proxima_semana': 'Próxima Semana',
+      
+      // Mensagens Gerais
+      'success': 'Sucesso',
+      'error': 'Erro',
+      'warning': 'Aviso',
+      'info': 'Informação',
+      'loading': 'Carregando...',
+      'saving': 'Salvando...',
+      'deleting': 'Excluindo...',
+      'search': 'Pesquisar',
+      'filter': 'Filtrar',
+      'sort': 'Ordenar',
+      'view_all': 'Ver Todos',
+      'see_more': 'Ver Mais',
+      'no_data': 'Nenhum dado disponível',
+      'try_again': 'Tentar Novamente',
+      'connection_error': 'Erro de conexão',
     },
     'en_US': {
       // Settings
@@ -110,6 +178,19 @@ class LanguageService {
       'back': 'Back',
       'select_language': 'Select Language',
       'close': 'CLOSE',
+      
+      // Login and Authentication
+      'login': 'LOGIN',
+      'email': 'Email',
+      'password': 'Password',
+      'forgot_password': 'Forgot your password?',
+      'sign_up': 'Sign Up',
+      'enter': 'Enter',
+      'confirm_password': 'Confirm Password',
+      'already_have_account': 'Already have an account?',
+      'create_account': 'Create Account',
+      'reset_password': 'Reset Password',
+      'send_instructions': 'Send Instructions',
       
       // Home
       'hello': 'Hello',
@@ -138,6 +219,8 @@ class LanguageService {
       'task_added': 'Task added successfully!',
       'task_completed': 'Task completed!',
       'enter_title': 'Please enter a title for the task',
+      'select_date': 'Select Date',
+      'select_time': 'Select Time',
       
       // Users
       'members': 'Members',
@@ -147,11 +230,13 @@ class LanguageService {
       'add_member_hint': 'Click on "+ Add Member" to add',
       'add_member_title': 'Add Member',
       'name': 'Name',
-      'description': 'Description',
+      'member_description': 'Member Description', // CORRIGIDO: mudado de 'description'
       'confirm': 'Confirm',
       'remove_member_title': 'Remove Member',
       'remove_confirmation': 'Are you sure you want to remove this member?',
       'remove': 'Remove',
+      'edit_member': 'Edit Member',
+      'save_changes': 'Save Changes',
       
       // My Houses
       'my_houses_title': 'MY HOUSES',
@@ -162,12 +247,62 @@ class LanguageService {
       'create': 'Create',
       'family_question': 'Who means a family in a simple way?',
       'enter_house_name': 'Please enter a name for the house',
+      'select_house': 'Select House',
+      'edit_house': 'Edit House',
+      'delete_house': 'Delete House',
+      'delete_house_confirmation': 'Are you sure you want to delete this house?',
       
       // Economic
       'economic_title': 'ECONOMIC',
+      'income': 'Income',
+      'expenses': 'Expenses',
+      'balance': 'Balance',
+      'add_transaction': 'Add Transaction',
+      'transaction_type': 'Transaction Type',
+      'amount': 'Amount',
+      'date': 'Date',
+      'category': 'Category',
+      'transaction_description': 'Transaction Description', // CORRIGIDO: mudado de 'description'
+      'income_categories': 'Income Categories',
+      'expense_categories': 'Expense Categories',
       
       // Profile
       'profile': 'Profile',
+      'personal_info': 'Personal Information',
+      'full_name': 'Full Name',
+      'phone': 'Phone',
+      'address': 'Address',
+      'save_profile': 'Save Profile',
+      'change_photo': 'Change Photo',
+      'logout': 'Logout',
+      'logout_confirmation': 'Are you sure you want to logout?',
+      
+      // Additional for Home
+      'acesso_rapido': 'Quick Access',
+      'nenhuma_tarefa': 'No pending tasks',
+      'adicione_tarefas': 'Add tasks in calendar',
+      'organize_tarefas': 'Organize your tasks simply',
+      'direitos_reservados': '© All rights reserved - 2025',
+      'amanha': 'Tomorrow',
+      'esta_semana': 'This Week',
+      'proxima_semana': 'Next Week',
+      
+      // General Messages
+      'success': 'Success',
+      'error': 'Error',
+      'warning': 'Warning',
+      'info': 'Information',
+      'loading': 'Loading...',
+      'saving': 'Saving...',
+      'deleting': 'Deleting...',
+      'search': 'Search',
+      'filter': 'Filter',
+      'sort': 'Sort',
+      'view_all': 'View All',
+      'see_more': 'See More',
+      'no_data': 'No data available',
+      'try_again': 'Try Again',
+      'connection_error': 'Connection Error',
     },
     'es_ES': {
       // Configuración
@@ -190,6 +325,19 @@ class LanguageService {
       'back': 'Volver',
       'select_language': 'Seleccionar Idioma',
       'close': 'CERRAR',
+      
+      // Login y Autenticación
+      'login': 'INICIAR SESIÓN',
+      'email': 'Correo',
+      'password': 'Contraseña',
+      'forgot_password': '¿Olvidaste tu contraseña?',
+      'sign_up': 'Registrarse',
+      'enter': 'Entrar',
+      'confirm_password': 'Confirmar Contraseña',
+      'already_have_account': '¿Ya tienes una cuenta?',
+      'create_account': 'Crear Cuenta',
+      'reset_password': 'Restablecer Contraseña',
+      'send_instructions': 'Enviar Instrucciones',
       
       // Home
       'hello': 'Hola',
@@ -218,6 +366,8 @@ class LanguageService {
       'task_added': '¡Tarea agregada con éxito!',
       'task_completed': '¡Tarea completada!',
       'enter_title': 'Por favor ingrese un título para la tarea',
+      'select_date': 'Seleccionar Fecha',
+      'select_time': 'Seleccionar Hora',
       
       // Users
       'members': 'Miembros',
@@ -227,11 +377,13 @@ class LanguageService {
       'add_member_hint': 'Haz clic en "+ Agregar Miembro" para agregar',
       'add_member_title': 'Agregar Miembro',
       'name': 'Nombre',
-      'description': 'Descripción',
+      'member_description': 'Descripción del Miembro', // CORRIGIDO: mudado de 'description'
       'confirm': 'Confirmar',
       'remove_member_title': 'Remover Miembro',
       'remove_confirmation': '¿Estás seguro de que quieres remover este miembro?',
       'remove': 'Remover',
+      'edit_member': 'Editar Miembro',
+      'save_changes': 'Guardar Cambios',
       
       // My Houses
       'my_houses_title': 'MIS CASAS',
@@ -242,12 +394,62 @@ class LanguageService {
       'create': 'Crear',
       'family_question': '¿Quién significa una familia de forma simple?',
       'enter_house_name': 'Por favor ingrese un nombre para la casa',
+      'select_house': 'Seleccionar Casa',
+      'edit_house': 'Editar Casa',
+      'delete_house': 'Eliminar Casa',
+      'delete_house_confirmation': '¿Estás seguro de que quieres eliminar esta casa?',
       
       // Economic
       'economic_title': 'ECONÓMICO',
+      'income': 'Ingreso',
+      'expenses': 'Gastos',
+      'balance': 'Saldo',
+      'add_transaction': 'Agregar Transacción',
+      'transaction_type': 'Tipo de Transacción',
+      'amount': 'Cantidad',
+      'date': 'Fecha',
+      'category': 'Categoría',
+      'transaction_description': 'Descripción de la Transacción', // CORRIGIDO: mudado de 'description'
+      'income_categories': 'Categorías de Ingreso',
+      'expense_categories': 'Categorías de Gasto',
       
       // Profile
       'profile': 'Perfil',
+      'personal_info': 'Información Personal',
+      'full_name': 'Nombre Completo',
+      'phone': 'Teléfono',
+      'address': 'Dirección',
+      'save_profile': 'Guardar Perfil',
+      'change_photo': 'Cambiar Foto',
+      'logout': 'Cerrar Sesión',
+      'logout_confirmation': '¿Estás seguro de que quieres cerrar sesión?',
+      
+      // Adicionales para Home
+      'acesso_rapido': 'Acceso Rápido',
+      'nenhuma_tarefa': 'No hay tareas pendientes',
+      'adicione_tarefas': 'Agrega tareas en el calendario',
+      'organize_tarefas': 'Organiza tus tareas de forma simple',
+      'direitos_reservados': '© Todos los derechos reservados - 2025',
+      'amanha': 'Mañana',
+      'esta_semana': 'Esta Semana',
+      'proxima_semana': 'Próxima Semana',
+      
+      // Mensajes Generales
+      'success': 'Éxito',
+      'error': 'Error',
+      'warning': 'Advertencia',
+      'info': 'Información',
+      'loading': 'Cargando...',
+      'saving': 'Guardando...',
+      'deleting': 'Eliminando...',
+      'search': 'Buscar',
+      'filter': 'Filtrar',
+      'sort': 'Ordenar',
+      'view_all': 'Ver Todos',
+      'see_more': 'Ver Más',
+      'no_data': 'No hay datos disponibles',
+      'try_again': 'Intentar Nuevamente',
+      'connection_error': 'Error de conexión',
     },
   };
 
@@ -270,6 +472,24 @@ class LanguageService {
 
   void setLocale(Locale locale) {
     _localeNotifier.value = locale;
+    notifyListeners();
+  }
+
+  // Método para facilitar a mudança por código de idioma
+  void changeLanguageByCode(String languageCode) {
+    switch (languageCode) {
+      case 'pt':
+        setLocale(const Locale('pt', 'BR'));
+        break;
+      case 'en':
+        setLocale(const Locale('en', 'US'));
+        break;
+      case 'es':
+        setLocale(const Locale('es', 'ES'));
+        break;
+      default:
+        setLocale(const Locale('pt', 'BR'));
+    }
   }
 
   List<Map<String, String>> getAvailableLanguages() {
@@ -279,8 +499,64 @@ class LanguageService {
     }).toList();
   }
 
+  // Método para obter dias da semana baseado no idioma
+  List<String> getWeekdays() {
+    final locale = currentLocale.languageCode;
+    switch (locale) {
+      case 'en':
+        return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      case 'es':
+        return ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      default: // 'pt'
+        return ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    }
+  }
+
+  // Método para obter meses baseado no idioma
+  List<String> getMonths() {
+    final locale = currentLocale.languageCode;
+    switch (locale) {
+      case 'en':
+        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      case 'es':
+        return ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      default: // 'pt'
+        return ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    }
+  }
+
+  // Método para formatar data baseado no idioma
+  String formatDate(DateTime date) {
+    final weekdays = getWeekdays();
+    final months = getMonths();
+    return '${weekdays[date.weekday - 1]} ${date.day} ${months[date.month - 1]}';
+  }
+
+  // Método para formatar data completa (incluindo hora)
+  String formatDateTime(DateTime date) {
+    final weekdays = getWeekdays();
+    final months = getMonths();
+    final hora = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return '${weekdays[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} • $hora';
+  }
+
   String _getLocaleKey(Locale locale) {
     return '${locale.languageCode}_${locale.countryCode}';
+  }
+
+  // Método para adicionar listener
+  void addListener(VoidCallback listener) {
+    _localeNotifier.addListener(listener);
+  }
+
+  // Método para remover listener
+  void removeListener(VoidCallback listener) {
+    _localeNotifier.removeListener(listener);
+  }
+
+  // Dispose (opcional, para limpeza)
+  void disposeService() {
+    _localeNotifier.dispose();
   }
 }
 

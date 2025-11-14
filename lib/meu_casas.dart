@@ -15,67 +15,21 @@ class _MeuCasasState extends State<MeuCasas> {
   final TextEditingController _nomeController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: ThemeService.themeNotifier,
-      builder: (context, isDarkMode, child) {
-        final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
-        final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-        final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
-        final secondaryTextColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
-        final primaryColor = ThemeService.primaryColor;
+  void initState() {
+    super.initState();
+    // Adiciona uma casa de exemplo para teste
+    _casas.add({
+      'nome': 'Minha Casa',
+      'id': '1',
+    });
+  }
 
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: primaryColor,
-            title: const Text(
-              'MINHAS CASAS',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            centerTitle: true,
-            elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          body: Column(
-            children: [
-              // Lista de casas
-              Expanded(
-                child: Container(
-                  color: backgroundColor,
-                  child: _casas.isEmpty
-                      ? _buildEmptyState(
-                          secondaryTextColor: secondaryTextColor,
-                        )
-                      : _buildListaCasas(
-                          cardColor: cardColor,
-                          textColor: textColor,
-                          primaryColor: primaryColor,
-                          secondaryTextColor: secondaryTextColor,
-                        ),
-                ),
-              ),
-              
-              // Texto filosófico
-              _buildTextoFilosofico(
-                backgroundColor: backgroundColor,
-                secondaryTextColor: secondaryTextColor,
-              ),
-              
-              // Rodapé
-              _buildFooter(primaryColor: primaryColor),
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: primaryColor,
-            onPressed: _mostrarDialogoCriarCasa,
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        );
-      },
+  void _entrarNaCasa(Map<String, String> casa) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(casa: casa),
+      ),
     );
   }
 
@@ -114,6 +68,59 @@ class _MeuCasasState extends State<MeuCasas> {
     );
   }
 
+  Widget _buildCasaItem({
+    required Map<String, String> casa,
+    required int index,
+    required Color cardColor,
+    required Color textColor,
+    required Color primaryColor,
+    required Color secondaryTextColor,
+  }) {
+    return GestureDetector(
+      onTap: () => _entrarNaCasa(casa),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.house,
+              color: primaryColor,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                casa['nome']!,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: secondaryTextColor,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildListaCasas({
     required Color cardColor,
     required Color textColor,
@@ -134,56 +141,6 @@ class _MeuCasasState extends State<MeuCasas> {
           secondaryTextColor: secondaryTextColor,
         );
       },
-    );
-  }
-
-  Widget _buildCasaItem({
-    required Map<String, String> casa,
-    required int index,
-    required Color cardColor,
-    required Color textColor,
-    required Color primaryColor,
-    required Color secondaryTextColor,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.house,
-            color: primaryColor,
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              casa['nome']!,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: textColor,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios,
-            color: secondaryTextColor,
-            size: 16,
-          ),
-        ],
-      ),
     );
   }
 
@@ -341,17 +298,73 @@ class _MeuCasasState extends State<MeuCasas> {
     _entrarNaCasa(casaCriada);
   }
 
-  void _entrarNaCasa(Map<String, String> casa) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomePage(casa: casa),
-      ),
-    );
-  }
-
   void _limparCampos() {
     _nomeController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeService.themeNotifier,
+      builder: (context, isDarkMode, child) {
+        final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
+        final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
+        final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+        final secondaryTextColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
+        final primaryColor = ThemeService.primaryColor;
+
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: primaryColor,
+            title: const Text(
+              'MINHAS CASAS',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: Column(
+            children: [
+              // Lista de casas
+              Expanded(
+                child: Container(
+                  color: backgroundColor,
+                  child: _casas.isEmpty
+                      ? _buildEmptyState(
+                          secondaryTextColor: secondaryTextColor,
+                        )
+                      : _buildListaCasas(
+                          cardColor: cardColor,
+                          textColor: textColor,
+                          primaryColor: primaryColor,
+                          secondaryTextColor: secondaryTextColor,
+                        ),
+                ),
+              ),
+              
+              // Texto filosófico
+              _buildTextoFilosofico(
+                backgroundColor: backgroundColor,
+                secondaryTextColor: secondaryTextColor,
+              ),
+              
+              // Rodapé
+              _buildFooter(primaryColor: primaryColor),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: primaryColor,
+            onPressed: _mostrarDialogoCriarCasa,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        );
+      },
+    );
   }
 
   @override

@@ -50,7 +50,7 @@ class _PerfilPageState extends State<PerfilPage> {
       _selectedColor = novaCor;
     });
     // Atualiza o tema global
-    ThemeService2.setPrimaryColor(novaCor);
+    ThemeService.setPrimaryColor(novaCor);
   }
 
   void _mostrarSelecaoCores() {

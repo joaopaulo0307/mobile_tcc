@@ -8,6 +8,7 @@ import 'package:mobile_tcc/config.dart';
 import '../acesso/auth_service.dart';
 import '../serviços/theme_service.dart';
 import '../serviços/language_service.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   final Map<String, String> casa;
@@ -35,7 +36,6 @@ class _HomePageState extends State<HomePage> {
         _isLoading = true;
       });
 
-      // CORREÇÃO: Use o método estático corretamente
       final userData = await AuthService.getUserData();
 
       if (!mounted) return;
@@ -47,20 +47,17 @@ class _HomePageState extends State<HomePage> {
             _userName = nome;
           });
         } else {
-          // Fallback se não encontrar nome
           setState(() {
             _userName = "Usuário";
           });
         }
       } else {
-        // Se não houver dados, usar fallback
         setState(() {
           _userName = widget.casa['nome'] ?? 'Usuário';
         });
       }
     } catch (e) {
       debugPrint("Erro ao carregar usuário: $e");
-      // Fallback em caso de erro
       setState(() {
         _userName = widget.casa['nome'] ?? 'Usuário';
       });
@@ -83,6 +80,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final languageService = Provider.of<LanguageService>(context, listen: false);
+
     return AppBar(
       backgroundColor: ThemeService.primaryColor,
       leading: IconButton(
@@ -94,13 +93,17 @@ class _HomePageState extends State<HomePage> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Olá, $_userName',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Consumer<LanguageService>(
+            builder: (context, languageService, child) {
+              return Text(
+                '${languageService.translate('ola')} $_userName',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
           ),
           Text(
             _getCurrentDate(),
@@ -111,16 +114,69 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      actions: [
+        // Botão de seleção de idioma no AppBar
+        PopupMenuButton<String>(
+          icon: Icon(Icons.language, color: Colors.white),
+          onSelected: (value) {
+            languageService.changeLanguageByCode(value);
+          },
+          itemBuilder: (BuildContext context) => [
+            PopupMenuItem(
+              value: 'pt',
+              child: Row(
+                children: [
+                  Icon(Icons.language, color: ThemeService.primaryColor),
+                  SizedBox(width: 8),
+                  Text('Português'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'en',
+              child: Row(
+                children: [
+                  Icon(Icons.language, color: ThemeService.primaryColor),
+                  SizedBox(width: 8),
+                  Text('English'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'es',
+              child: Row(
+                children: [
+                  Icon(Icons.language, color: ThemeService.primaryColor),
+                  SizedBox(width: 8),
+                  Text('Español'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
       centerTitle: false,
     );
   }
 
   String _getCurrentDate() {
     final now = DateTime.now();
-    final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    final months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    final languageService = Provider.of<LanguageService>(context, listen: false);
+    final locale = languageService.currentLocale;
     
-    return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
+    if (locale.languageCode == 'en') {
+      final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
+    } else if (locale.languageCode == 'es') {
+      final days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      final months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
+    } else {
+      final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      final months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
+    }
   }
 
   Widget _buildDrawer() {
@@ -130,87 +186,146 @@ class _HomePageState extends State<HomePage> {
         final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
         final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
 
-        return Drawer(
-          backgroundColor: backgroundColor,
-          child: Column(
+        return Consumer<LanguageService>(
+          builder: (context, languageService, child) {
+            return Drawer(
+              backgroundColor: backgroundColor,
+              child: Column(
+                children: [
+                  _buildDrawerHeader(),
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _buildDrawerItem(
+                          icon: Icons.attach_money,
+                          title: languageService.translate('economico'),
+                          textColor: textColor,
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Economico(casa: {})),
+                            );
+                          },
+                        ),
+                        _buildDrawerItem(
+                          icon: Icons.calendar_today,
+                          title: languageService.translate('calendario'),
+                          textColor: textColor,
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CalendarioPage()),
+                            );
+                          },
+                        ),
+                        _buildDrawerItem(
+                          icon: Icons.people,
+                          title: languageService.translate('usuarios'),
+                          textColor: textColor,
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Usuarios()),
+                            );
+                          },
+                        ),
+                        Divider(color: isDarkMode ? Colors.grey[700] : Colors.grey[300]),
+                        _buildDrawerItem(
+                          icon: Icons.house,
+                          title: languageService.translate('minhas_casas'),
+                          textColor: textColor,
+                          onTap: () {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => const MeuCasas()),
+                              (route) => false,
+                            );
+                          },
+                        ),
+                        _buildDrawerItem(
+                          icon: Icons.person,
+                          title: languageService.translate('meu_perfil'),
+                          textColor: textColor,
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const PerfilPage()),
+                            );
+                          },
+                        ),
+                        _buildDrawerItem(
+                          icon: Icons.settings,
+                          title: languageService.translate('configuracoes'),
+                          textColor: textColor,
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ConfigPage()),
+                            );
+                          },
+                        ),
+                        // Seletor de idioma no drawer
+                        Divider(color: isDarkMode ? Colors.grey[700] : Colors.grey[300]),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Text(
+                            'Idioma / Language',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: textColor.withOpacity(0.7),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        _buildLanguageSelector(textColor),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageSelector(Color textColor) {
+    return Consumer<LanguageService>(
+      builder: (context, languageService, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
             children: [
-              _buildDrawerHeader(),
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildDrawerItem(
-                      icon: Icons.attach_money,
-                      title: 'ECONÔMICO',
-                      textColor: textColor,
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const Economico()),
-                        );
-                      },
+                child: DropdownButton<String>(
+                  value: languageService.currentLocale.languageCode,
+                  isExpanded: true,
+                  dropdownColor: ThemeService.primaryColor,
+                  style: TextStyle(color: Colors.white),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      languageService.changeLanguageByCode(newValue);
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: 'pt',
+                      child: Text('🇧🇷 Português'),
                     ),
-                    _buildDrawerItem(
-                      icon: Icons.calendar_today,
-                      title: 'CALENDÁRIO',
-                      textColor: textColor,
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CalendarioPage()),
-                        );
-                      },
+                    DropdownMenuItem(
+                      value: 'en',
+                      child: Text('🇺🇸 English'),
                     ),
-                    _buildDrawerItem(
-                      icon: Icons.people,
-                      title: 'USUÁRIOS',
-                      textColor: textColor,
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const Usuarios()),
-                        );
-                      },
-                    ),
-                    Divider(color: isDarkMode ? Colors.grey[700] : Colors.grey[300]),
-                    _buildDrawerItem(
-                      icon: Icons.house,
-                      title: 'MINHAS CASAS',
-                      textColor: textColor,
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => const MeuCasas()),
-                          (route) => false,
-                        );
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.person,
-                      title: 'MEU PERFIL',
-                      textColor: textColor,
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PerfilPage()),
-                        );
-                      },
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.settings,
-                      title: 'CONFIGURAÇÕES',
-                      textColor: textColor,
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ConfigPage()),
-                        );
-                      },
+                    DropdownMenuItem(
+                      value: 'es',
+                      child: Text('🇪🇸 Español'),
                     ),
                   ],
                 ),
@@ -285,7 +400,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildListaTarefas() {
-    // Lista vazia por enquanto (sem Provider)
     final tarefasPendentes = [];
 
     if (_isLoading) {
@@ -305,34 +419,45 @@ class _HomePageState extends State<HomePage> {
         final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
         final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
 
-        return Expanded(
-          child: Container(
-            color: backgroundColor,
-            child: tarefasPendentes.isEmpty 
-                ? _buildEmptyState(textColor: textColor)
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: tarefasPendentes.length,
-                    itemBuilder: (context, index) {
-                      return _buildTarefaItem(
-                        titulo: "Tarefa exemplo",
-                        descricao: "Descrição exemplo",
-                        data: DateTime.now(),
-                        cor: Colors.blue,
-                        cardColor: cardColor,
+        return Consumer<LanguageService>(
+          builder: (context, languageService, child) {
+            return Expanded(
+              child: Container(
+                color: backgroundColor,
+                child: tarefasPendentes.isEmpty 
+                    ? _buildEmptyState(
                         textColor: textColor,
-                        onTap: () {},
-                        onConcluir: () {},
-                      );
-                    },
-                  ),
-          ),
+                        languageService: languageService,
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: tarefasPendentes.length,
+                        itemBuilder: (context, index) {
+                          return _buildTarefaItem(
+                            titulo: "Tarefa exemplo",
+                            descricao: "Descrição exemplo",
+                            data: DateTime.now(),
+                            cor: Colors.blue,
+                            cardColor: cardColor,
+                            textColor: textColor,
+                            languageService: languageService,
+                            onTap: () {},
+                            onConcluir: () {},
+                          );
+                        },
+                      ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildEmptyState({required Color textColor}) {
+  Widget _buildEmptyState({
+    required Color textColor,
+    required LanguageService languageService,
+  }) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -344,7 +469,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Nenhuma tarefa pendente',
+            languageService.translate('nenhuma_tarefa'),
             style: TextStyle(
               fontSize: 16,
               color: textColor.withOpacity(0.6),
@@ -352,7 +477,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Adicione tarefas no calendário',
+            languageService.translate('adicione_tarefas'),
             style: TextStyle(
               fontSize: 12,
               color: textColor.withOpacity(0.4),
@@ -370,6 +495,7 @@ class _HomePageState extends State<HomePage> {
     required Color cor,
     required Color cardColor,
     required Color textColor,
+    required LanguageService languageService,
     required VoidCallback onTap,
     required VoidCallback onConcluir,
   }) {
@@ -414,7 +540,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _formatarData(data),
+                    _formatarData(data, languageService),
                     style: TextStyle(
                       fontSize: 12,
                       color: textColor.withOpacity(0.6),
@@ -456,49 +582,59 @@ class _HomePageState extends State<HomePage> {
         final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
         final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          color: backgroundColor,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Acesso Rápido',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+        return Consumer<LanguageService>(
+          builder: (context, languageService, child) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              color: backgroundColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    languageService.translate('acesso_rapido'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildGridOpcoes(
+                    cardColor: cardColor,
+                    languageService: languageService,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildGridOpcoes(cardColor: cardColor),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildGridOpcoes({required Color cardColor}) {
+  Widget _buildGridOpcoes({
+    required Color cardColor,
+    required LanguageService languageService,
+  }) {
     final opcoes = [
       {
         'icon': Icons.people,
-        'label': 'Usuários',
+        'label': languageService.translate('usuarios'),
         'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Usuarios())),
       },
       {
         'icon': Icons.attach_money,
-        'label': 'Econômico',
-        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Economico())),
+        'label': languageService.translate('economico'),
+        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Economico(casa: {}))),
       },
       {
         'icon': Icons.calendar_today,
-        'label': 'Calendário',
+        'label': languageService.translate('calendario'),
         'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarioPage())),
       },
       {
         'icon': Icons.house,
-        'label': 'Minhas Casas',
+        'label': languageService.translate('minhas_casas'),
         'onTap': () => Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MeuCasas()),
@@ -575,26 +711,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFooter() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      color: ThemeService.primaryColor,
-      child: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Organize suas tarefas de forma simples",
-            style: TextStyle(color: Colors.white, fontSize: 14),
-            textAlign: TextAlign.center,
+    return Consumer<LanguageService>(
+      builder: (context, languageService, child) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          color: ThemeService.primaryColor,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                languageService.translate('organize_tarefas'),
+                style: TextStyle(color: Colors.white, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 10),
+              Text(
+                languageService.translate('direitos_reservados'),
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          SizedBox(height: 10),
-          Text(
-            "© Todos os direitos reservados - 2025",
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -611,33 +751,30 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _formatarData(DateTime data) {
+  String _formatarData(DateTime data, LanguageService languageService) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final taskDate = DateTime(data.year, data.month, data.day);
     
-    if (taskDate == today) {
-      return 'Hoje • ${_formatarHora(data)}';
-    } else if (taskDate == today.add(const Duration(days: 1))) {
-      return 'Amanhã • ${_formatarHora(data)}';
-    } else {
-      final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      return '${days[data.weekday - 1]}, ${data.day}/${data.month} • ${_formatarHora(data)}';
-    }
-  }
-
-  String _formatarHora(DateTime data) {
-    return '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
-  }
-
-  String _formatarDataCompleta(DateTime data) {
-    final days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    final months = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
+    final hora = '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
     
-    return '${days[data.weekday - 1]}, ${data.day} de ${months[data.month - 1]} de ${data.year} às ${_formatarHora(data)}';
+    if (taskDate == today) {
+      return '${languageService.translate('hoje')} • $hora';
+    } else if (taskDate == today.add(const Duration(days: 1))) {
+      return '${languageService.translate('amanha')} • $hora';
+    } else {
+      // Dias da semana em diferentes idiomas
+      Map<String, List<String>> weekdays = {
+        'pt': ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+        'en': ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        'es': ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+      };
+      
+      final locale = languageService.currentLocale.languageCode;
+      final days = weekdays[locale] ?? weekdays['pt']!;
+      
+      return '${days[data.weekday - 1]}, ${data.day}/${data.month} • $hora';
+    }
   }
 
   @override

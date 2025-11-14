@@ -48,6 +48,7 @@ dependencies:
   firebase_functions: 0.0.1-dev             
   table_calendar: ^3.0.9
   provider: ^6.1.1
+  get: ^4.6.6 
 
   flutter_localizations:
     sdk: flutter
