@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:provider/provider.dart';
 import '../serviços/theme_service.dart';
+import '../serviços/tarefa_service.dart';
 
 class CalendarioPage extends StatefulWidget {
   const CalendarioPage({super.key});
@@ -10,44 +12,37 @@ class CalendarioPage extends StatefulWidget {
 }
 
 class _CalendarioPageState extends State<CalendarioPage> {
-  // Controladores do calendário
   late CalendarFormat _calendarFormat;
   late DateTime _focusedDay;
   late DateTime _selectedDay;
+  final TextEditingController _tituloController = TextEditingController();
+  final TextEditingController _descricaoController = TextEditingController();
+  Color _selectedColor = Colors.blue;
   
-  // Eventos do calendário (exemplo)
-  final Map<DateTime, List<Event>> _events = {};
+  final List<Color> _coresDisponiveis = [
+    Colors.blue,
+    Colors.green,
+    Colors.red,
+    Colors.orange,
+    Colors.purple,
+    Colors.pink,
+    Colors.teal,
+    Colors.indigo,
+  ];
 
   @override
   void initState() {
     super.initState();
-    _initializeCalendar();
-    _loadSampleEvents();
-  }
-
-  void _initializeCalendar() {
     _calendarFormat = CalendarFormat.month;
     _focusedDay = DateTime.now();
     _selectedDay = DateTime.now();
   }
 
-  void _loadSampleEvents() {
-    final now = DateTime.now();
-    
-    // Eventos de exemplo
-    _events[DateTime(now.year, now.month, now.day)] = [
-      Event('Reunião familiar', Colors.blue),
-      Event('Compras do mês', Colors.green),
-    ];
-    
-    _events[DateTime(now.year, now.month, now.day + 1)] = [
-      Event('Consulta médica', Colors.red),
-    ];
-    
-    _events[DateTime(now.year, now.month, now.day + 3)] = [
-      Event('Aniversário do João', Colors.orange),
-      Event('Pagamento de contas', Colors.purple),
-    ];
+  @override
+  void dispose() {
+    _tituloController.dispose();
+    _descricaoController.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,17 +71,14 @@ class _CalendarioPageState extends State<CalendarioPage> {
             color: backgroundColor,
             child: Column(
               children: [
-                // Cabeçalho com data atual
                 _buildHeader(textColor),
-                
-                // Calendário
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
                         _buildCalendar(cardColor, textColor, backgroundColor),
                         const SizedBox(height: 16),
-                        _buildEventsList(cardColor, textColor),
+                        _buildTarefasList(cardColor, textColor),
                       ],
                     ),
                   ),
@@ -98,7 +90,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: ThemeService.primaryColor,
-        onPressed: _adicionarEvento,
+        onPressed: _adicionarTarefa,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -128,7 +120,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Hoje: ${_formatDate(DateTime.now())}',
+            'Hoje: ${_formatarData(DateTime.now())}',
             style: TextStyle(
               fontSize: 14,
               color: textColor.withOpacity(0.7),
@@ -168,13 +160,11 @@ class _CalendarioPageState extends State<CalendarioPage> {
               _focusedDay = focusedDay;
             });
           },
-          
-          // Estilização do calendário
           calendarStyle: CalendarStyle(
             defaultTextStyle: TextStyle(color: textColor),
             weekendTextStyle: TextStyle(color: textColor),
             selectedTextStyle: const TextStyle(color: Colors.white),
-            todayTextStyle: TextStyle(
+            todayTextStyle: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
@@ -188,8 +178,6 @@ class _CalendarioPageState extends State<CalendarioPage> {
             ),
             outsideDaysVisible: false,
           ),
-          
-          // Estilização dos cabeçalhos
           headerStyle: HeaderStyle(
             formatButtonVisible: true,
             titleCentered: true,
@@ -213,8 +201,6 @@ class _CalendarioPageState extends State<CalendarioPage> {
               color: ThemeService.primaryColor,
             ),
           ),
-          
-          // Estilização dos dias da semana
           daysOfWeekStyle: DaysOfWeekStyle(
             weekdayStyle: TextStyle(
               color: textColor,
@@ -225,11 +211,12 @@ class _CalendarioPageState extends State<CalendarioPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
-          // Builders personalizados
           calendarBuilders: CalendarBuilders(
             markerBuilder: (context, date, events) {
-              if (events.isNotEmpty) {
+              final tarefaService = Provider.of<TarefaService>(context);
+              final tarefasDoDia = tarefaService.getTarefasPorData(date, 'default');
+              
+              if (tarefasDoDia.isNotEmpty) {
                 return Positioned(
                   right: 1,
                   bottom: 1,
@@ -251,8 +238,9 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
-  Widget _buildEventsList(Color cardColor, Color textColor) {
-    final events = _events[_selectedDay] ?? [];
+  Widget _buildTarefasList(Color cardColor, Color textColor) {
+    final tarefaService = Provider.of<TarefaService>(context);
+    final tarefas = tarefaService.getTarefasPorData(_selectedDay, 'default');
     
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -260,7 +248,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Eventos para ${_formatDate(_selectedDay)}',
+            'Tarefas para ${_formatarData(_selectedDay)}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -269,37 +257,16 @@ class _CalendarioPageState extends State<CalendarioPage> {
           ),
           const SizedBox(height: 12),
           
-          if (events.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.event_busy,
-                    color: textColor.withOpacity(0.5),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Nenhum evento para esta data',
-                    style: TextStyle(
-                      color: textColor.withOpacity(0.7),
-                    ),
-                  ),
-                ],
-              ),
-            )
+          if (tarefas.isEmpty)
+            _buildEmptyTarefas(cardColor, textColor)
           else
-            ...events.map((event) => _buildEventItem(event, cardColor, textColor)),
+            ...tarefas.map((tarefa) => _buildTarefaItem(tarefa, cardColor, textColor)),
         ],
       ),
     );
   }
 
-  Widget _buildEventItem(Event event, Color cardColor, Color textColor) {
+  Widget _buildTarefaItem(Tarefa tarefa, Color cardColor, Color textColor) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -320,7 +287,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
             width: 4,
             height: 40,
             decoration: BoxDecoration(
-              color: event.color,
+              color: tarefa.cor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -330,7 +297,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  event.title,
+                  tarefa.titulo,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -338,26 +305,81 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
+                if (tarefa.descricao.isNotEmpty)
+                  Text(
+                    tarefa.descricao,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: textColor.withOpacity(0.6),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                const SizedBox(height: 4),
                 Text(
-                  'Dia inteiro',
+                  '${tarefa.data.hour.toString().padLeft(2, '0')}:${tarefa.data.minute.toString().padLeft(2, '0')}',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: textColor.withOpacity(0.6),
+                    fontSize: 11,
+                    color: textColor.withOpacity(0.5),
                   ),
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.event,
-            color: event.color,
+          IconButton(
+            icon: Icon(
+              Icons.check_circle_outline,
+              color: ThemeService.primaryColor,
+            ),
+            onPressed: () {
+              _concluirTarefa(tarefa.id);
+            },
           ),
         ],
       ),
     );
   }
 
-  void _adicionarEvento() {
+  Widget _buildEmptyTarefas(Color cardColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.event_note,
+            size: 48,
+            color: textColor.withOpacity(0.4),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Nenhuma tarefa para esta data',
+            style: TextStyle(
+              color: textColor.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Toque no botão + para adicionar uma tarefa',
+            style: TextStyle(
+              color: textColor.withOpacity(0.4),
+              fontSize: 12,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _adicionarTarefa() {
+    _tituloController.clear();
+    _descricaoController.clear();
+    _selectedColor = Colors.blue;
+
     showDialog(
       context: context,
       builder: (context) {
@@ -370,32 +392,93 @@ class _CalendarioPageState extends State<CalendarioPage> {
             return AlertDialog(
               backgroundColor: cardColor,
               title: Text(
-                'Novo Evento',
+                'Nova Tarefa',
                 style: TextStyle(color: textColor),
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Adicionar evento para ${_formatDate(_selectedDay)}',
-                    style: TextStyle(color: textColor.withOpacity(0.7)),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Título do evento',
-                      labelStyle: TextStyle(color: textColor),
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ThemeService.primaryColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ThemeService.primaryColor),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Data: ${_formatarData(_selectedDay)}',
+                      style: TextStyle(
+                        color: textColor.withOpacity(0.7),
+                        fontSize: 14,
                       ),
                     ),
-                    style: TextStyle(color: textColor),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _tituloController,
+                      decoration: InputDecoration(
+                        labelText: 'Título da tarefa *',
+                        labelStyle: TextStyle(color: textColor),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: ThemeService.primaryColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: ThemeService.primaryColor),
+                        ),
+                      ),
+                      style: TextStyle(color: textColor),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _descricaoController,
+                      decoration: InputDecoration(
+                        labelText: 'Descrição (opcional)',
+                        labelStyle: TextStyle(color: textColor),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: ThemeService.primaryColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: ThemeService.primaryColor),
+                        ),
+                      ),
+                      style: TextStyle(color: textColor),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Cor da tarefa:',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 50,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _coresDisponiveis.length,
+                        itemBuilder: (context, index) {
+                          final cor = _coresDisponiveis[index];
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedColor = cor;
+                              });
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: cor,
+                                shape: BoxShape.circle,
+                                border: _selectedColor == cor
+                                    ? Border.all(color: Colors.white, width: 2)
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -409,12 +492,9 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ThemeService.primaryColor,
                   ),
-                  onPressed: () {
-                    // Aqui você implementaria a lógica para salvar o evento
-                    Navigator.pop(context);
-                  },
+                  onPressed: _salvarTarefa,
                   child: const Text(
-                    'Adicionar',
+                    'Salvar Tarefa',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -426,7 +506,53 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
-  // Métodos auxiliares
+  void _salvarTarefa() {
+    if (_tituloController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, insira um título para a tarefa'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final tarefaService = Provider.of<TarefaService>(context, listen: false);
+    
+    final novaTarefa = Tarefa(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      titulo: _tituloController.text.trim(),
+      descricao: _descricaoController.text.trim(),
+      data: _selectedDay,
+      cor: _selectedColor,
+      casaId: 'default',
+    );
+
+    tarefaService.adicionarTarefa(novaTarefa);
+    Navigator.pop(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tarefa adicionada com sucesso!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _concluirTarefa(String id) {
+    final tarefaService = Provider.of<TarefaService>(context, listen: false);
+    tarefaService.marcarComoConcluida(id);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tarefa concluída!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   String _getMonthYear(DateTime date) {
     final months = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -435,21 +561,13 @@ class _CalendarioPageState extends State<CalendarioPage> {
     return '${months[date.month - 1]} ${date.year}';
   }
 
-  String _formatDate(DateTime date) {
+  String _formatarData(DateTime date) {
     final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     final months = [
       'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
     ];
     
-    return '${days[date.weekday - 1]}, ${date.day} de ${months[date.month - 1]} de ${date.year}';
+    return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
   }
-}
-
-// Classe para representar eventos
-class Event {
-  final String title;
-  final Color color;
-  
-  Event(this.title, this.color);
 }

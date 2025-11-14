@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_tcc/calend%C3%A1rio/calendario.dart';
+import 'package:mobile_tcc/calendario/calendario.dart';
 import 'package:mobile_tcc/economic/economico.dart';
 import 'package:mobile_tcc/meu_casas.dart';
 import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/config.dart';
+import 'package:provider/provider.dart';
 import '../acesso/auth_service.dart';
 import '../serviços/theme_service.dart';
+import '../serviços/tarefa_service.dart';
 
 class HomePage extends StatefulWidget {
   final Map<String, String> casa;
@@ -19,8 +21,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final List<Map<String, dynamic>> _tarefas = [];
   String _userName = "Usuário";
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -28,16 +30,42 @@ class _HomePageState extends State<HomePage> {
     _loadUserData();
   }
 
-  void _loadUserData() {
-    final userData = AuthService.getCurrentUser();
-    if (userData != null && userData['nome'] != null) {
+  void _loadUserData() async {
+    try {
       setState(() {
-        _userName = userData['nome']!;
+        _isLoading = true;
       });
+
+      final userData = await AuthService.getUserData();
+
+      if (!mounted) return;
+
+      if (userData != null) {
+        final nome = userData['nome'];
+        if (nome is String && nome.isNotEmpty) {
+          setState(() {
+            _userName = nome;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Erro ao carregar usuário: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar dados: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-
-  // ==================== HEADER ====================
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -60,7 +88,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Text(
-            'Qua 4',
+            _getCurrentDate(),
             style: TextStyle(
               fontSize: 12,
               color: Colors.white.withOpacity(0.8),
@@ -72,7 +100,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ==================== DRAWER ====================
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    final months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    
+    return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
+  }
 
   Widget _buildDrawer() {
     return ValueListenableBuilder<bool>(
@@ -80,7 +114,7 @@ class _HomePageState extends State<HomePage> {
       builder: (context, isDarkMode, child) {
         final backgroundColor = isDarkMode ? ThemeService.backgroundDark : ThemeService.backgroundLight;
         final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
-        
+
         return Drawer(
           backgroundColor: backgroundColor,
           child: Column(
@@ -95,6 +129,7 @@ class _HomePageState extends State<HomePage> {
                       title: 'ECONÔMICO',
                       textColor: textColor,
                       onTap: () {
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const Economico()),
@@ -106,6 +141,7 @@ class _HomePageState extends State<HomePage> {
                       title: 'CALENDÁRIO',
                       textColor: textColor,
                       onTap: () {
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const CalendarioPage()),
@@ -117,6 +153,7 @@ class _HomePageState extends State<HomePage> {
                       title: 'USUÁRIOS',
                       textColor: textColor,
                       onTap: () {
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const Usuarios()),
@@ -129,9 +166,10 @@ class _HomePageState extends State<HomePage> {
                       title: 'MINHAS CASAS',
                       textColor: textColor,
                       onTap: () {
-                        Navigator.pushReplacement(
+                        Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => const MeuCasas()),
+                          (route) => false,
                         );
                       },
                     ),
@@ -140,6 +178,7 @@ class _HomePageState extends State<HomePage> {
                       title: 'MEU PERFIL',
                       textColor: textColor,
                       onTap: () {
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const PerfilPage()),
@@ -151,6 +190,7 @@ class _HomePageState extends State<HomePage> {
                       title: 'CONFIGURAÇÕES',
                       textColor: textColor,
                       onTap: () {
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const ConfigPage()),
@@ -189,7 +229,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 16),
             Text(
-              widget.casa['nome']!,
+              widget.casa['nome'] ?? 'Minha Casa',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -229,9 +269,21 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ==================== BODY - LISTA DE TAREFAS ====================
-
   Widget _buildListaTarefas() {
+    final tarefaService = Provider.of<TarefaService>(context);
+    final casaId = widget.casa['id'] ?? 'default';
+    final tarefasPendentes = tarefaService.getTarefasPendentesPorCasa(casaId);
+
+    if (_isLoading) {
+      return Expanded(
+        child: Center(
+          child: CircularProgressIndicator(
+            color: ThemeService.primaryColor,
+          ),
+        ),
+      );
+    }
+
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeService.themeNotifier,
       builder: (context, isDarkMode, child) {
@@ -242,70 +294,56 @@ class _HomePageState extends State<HomePage> {
         return Expanded(
           child: Container(
             color: backgroundColor,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildTarefaItem(
-                  titulo: 'PASSEAR COM O CACHORRO',
-                  cardColor: cardColor,
-                  textColor: textColor,
-                ),
-                _buildTarefaItem(
-                  titulo: 'COMPRAR ARROZ',
-                  cardColor: cardColor,
-                  textColor: textColor,
-                ),
-              ],
-            ),
+            child: tarefasPendentes.isEmpty 
+                ? _buildEmptyState(textColor: textColor)
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: tarefasPendentes.length,
+                    itemBuilder: (context, index) {
+                      final tarefa = tarefasPendentes[index];
+                      return _buildTarefaItem(
+                        tarefa: tarefa,
+                        cardColor: cardColor,
+                        textColor: textColor,
+                        onTap: () {
+                          _mostrarDetalhesTarefa(tarefa);
+                        },
+                        onConcluir: () {
+                          _marcarTarefaComoConcluida(tarefa.id);
+                        },
+                      );
+                    },
+                  ),
           ),
         );
       },
     );
   }
 
-  Widget _buildTarefaItem({
-    required String titulo,
-    required Color cardColor,
-    required Color textColor,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
+  Widget _buildEmptyState({required Color textColor}) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 4,
-            height: 40,
-            decoration: BoxDecoration(
-              color: ThemeService.primaryColor,
-              borderRadius: BorderRadius.circular(2),
+          Icon(
+            Icons.check_circle_outline,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Nenhuma tarefa pendente',
+            style: TextStyle(
+              fontSize: 16,
+              color: textColor.withOpacity(0.6),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  titulo,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: textColor,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 8),
+          Text(
+            'Adicione tarefas no calendário',
+            style: TextStyle(
+              fontSize: 12,
+              color: textColor.withOpacity(0.4),
             ),
           ),
         ],
@@ -313,7 +351,179 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ==================== BODY - SEÇÃO DE OPÇÕES ====================
+  Widget _buildTarefaItem({
+    required Tarefa tarefa,
+    required Color cardColor,
+    required Color textColor,
+    required VoidCallback onTap,
+    required VoidCallback onConcluir,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 4,
+              height: 40,
+              decoration: BoxDecoration(
+                color: tarefa.cor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tarefa.titulo,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatarData(tarefa.data),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: textColor.withOpacity(0.6),
+                    ),
+                  ),
+                  if (tarefa.descricao.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      tarefa.descricao,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: textColor.withOpacity(0.5),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.check_circle_outline,
+                color: ThemeService.primaryColor,
+              ),
+              onPressed: onConcluir,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _mostrarDetalhesTarefa(Tarefa tarefa) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: ThemeService.themeNotifier,
+          builder: (context, isDarkMode, child) {
+            final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
+            final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
+            
+            return AlertDialog(
+              backgroundColor: cardColor,
+              title: Text(
+                tarefa.titulo,
+                style: TextStyle(color: textColor),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (tarefa.descricao.isNotEmpty) ...[
+                    Text(
+                      tarefa.descricao,
+                      style: TextStyle(color: textColor.withOpacity(0.8)),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: tarefa.cor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.calendar_today, size: 16, color: tarefa.cor),
+                        const SizedBox(width: 8),
+                        Text(
+                          _formatarDataCompleta(tarefa.data),
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.7),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Fechar',
+                    style: TextStyle(color: textColor),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ThemeService.primaryColor,
+                  ),
+                  onPressed: () {
+                    _marcarTarefaComoConcluida(tarefa.id);
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Concluir Tarefa',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _marcarTarefaComoConcluida(String id) {
+    final tarefaService = Provider.of<TarefaService>(context, listen: false);
+    tarefaService.marcarComoConcluida(id);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tarefa concluída com sucesso!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   Widget _buildSecaoOpcoes() {
     return ValueListenableBuilder<bool>(
@@ -329,11 +539,16 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTituloOpcoes(textColor: textColor),
+              Text(
+                'Acesso Rápido',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
               const SizedBox(height: 16),
-              _buildLinhaOpcoes1(cardColor: cardColor),
-              const SizedBox(height: 16),
-              _buildLinhaOpcoes2(cardColor: cardColor),
+              _buildGridOpcoes(cardColor: cardColor),
             ],
           ),
         );
@@ -341,74 +556,53 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTituloOpcoes({required Color textColor}) {
-    return Text(
-      'Opções',
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: textColor,
+  Widget _buildGridOpcoes({required Color cardColor}) {
+    final opcoes = [
+      {
+        'icon': Icons.people,
+        'label': 'Usuários',
+        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Usuarios())),
+      },
+      {
+        'icon': Icons.attach_money,
+        'label': 'Econômico',
+        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Economico())),
+      },
+      {
+        'icon': Icons.calendar_today,
+        'label': 'Calendário',
+        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarioPage())),
+      },
+      {
+        'icon': Icons.house,
+        'label': 'Minhas Casas',
+        'onTap': () => Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MeuCasas()),
+          (route) => false,
+        ),
+      },
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1.5,
       ),
-    );
-  }
-
-  Widget _buildLinhaOpcoes1({required Color cardColor}) {
-    return Row(
-      children: [
-        _buildOpcaoItem(
-          icon: Icons.people,
-          label: 'Usuários',
+      itemCount: opcoes.length,
+      itemBuilder: (context, index) {
+        final opcao = opcoes[index];
+        return _buildOpcaoItem(
+          icon: opcao['icon'] as IconData,
+          label: opcao['label'] as String,
           cardColor: cardColor,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const Usuarios()),
-            );
-          },
-        ),
-        const SizedBox(width: 24),
-        _buildOpcaoItem(
-          icon: Icons.attach_money,
-          label: 'Econômico',
-          cardColor: cardColor,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const Economico()),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLinhaOpcoes2({required Color cardColor}) {
-    return Row(
-      children: [
-        _buildOpcaoItem(
-          icon: Icons.calendar_today,
-          label: 'Calendário',
-          cardColor: cardColor,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CalendarioPage()),
-            );
-          },
-        ),
-        const SizedBox(width: 24),
-        _buildOpcaoItem(
-          icon: Icons.house,
-          label: 'Minhas Casas',
-          cardColor: cardColor,
-          onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MeuCasas()),
-            );
-          },
-        ),
-      ],
+          onTap: opcao['onTap'] as VoidCallback,
+        );
+      },
     );
   }
 
@@ -418,47 +612,44 @@ class _HomePageState extends State<HomePage> {
     required Color cardColor,
     VoidCallback? onTap,
   }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: ThemeService.primaryColor,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
                 color: ThemeService.primaryColor,
-                size: 24,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: ThemeService.primaryColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
   }
-
-  // ==================== FOOTER ====================
 
   Widget _buildFooter() {
     return Container(
@@ -497,7 +688,34 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ==================== BUILD PRINCIPAL ====================
+  String _formatarData(DateTime data) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final taskDate = DateTime(data.year, data.month, data.day);
+    
+    if (taskDate == today) {
+      return 'Hoje • ${_formatarHora(data)}';
+    } else if (taskDate == today.add(const Duration(days: 1))) {
+      return 'Amanhã • ${_formatarHora(data)}';
+    } else {
+      final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      return '${days[data.weekday - 1]}, ${data.day}/${data.month} • ${_formatarHora(data)}';
+    }
+  }
+
+  String _formatarHora(DateTime data) {
+    return '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatarDataCompleta(DateTime data) {
+    final days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    final months = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    
+    return '${days[data.weekday - 1]}, ${data.day} de ${months[data.month - 1]} de ${data.year} às ${_formatarHora(data)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -508,16 +726,9 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Lista de tarefas
           _buildListaTarefas(),
-          
-          // Divisor
           _buildDivisor(),
-          
-          // Seção de opções
           _buildSecaoOpcoes(),
-          
-          // Rodapé
           _buildFooter(),
         ],
       ),

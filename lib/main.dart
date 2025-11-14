@@ -7,7 +7,7 @@ import '../acesso/esqueci_senha.dart';
 import 'package:mobile_tcc/home.dart';
 import 'dart:ui';
 import 'package:mobile_tcc/config.dart';
-import '../serviços/theme_service.dart'; // Adicionado
+import '../serviços/theme_service.dart';
 
 // Cores (mantidas para compatibilidade)
 const Color primaryColor = Color(0xFF133A67);
@@ -20,7 +20,7 @@ void main() async {
   
   try {
     await AuthService.initialize();
-    await ThemeService.initialize(); // Adicionado
+    // Não precisa inicializar ThemeService se não há dados para carregar
     print('App inicializado com sucesso');
   } catch (e) {
     print('Erro na inicialização do app: $e');
@@ -52,9 +52,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: _buildLightTheme(), // Adicionado
-      darkTheme: _buildDarkTheme(), // Adicionado
-      themeMode: ThemeService.isDarkMode ? ThemeMode.dark : ThemeMode.light, // Adicionado
+      theme: _buildLightTheme(),
+      darkTheme: _buildDarkTheme(),
+      themeMode: ThemeService.themeNotifier.value ? ThemeMode.dark : ThemeMode.light,
       initialRoute: '/',
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -96,7 +96,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  // Adicionado: Tema claro
+  // Tema claro
   ThemeData _buildLightTheme() {
     return ThemeData(
       brightness: Brightness.light,
@@ -124,7 +124,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  // Adicionado: Tema escuro
+  // Tema escuro
   ThemeData _buildDarkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
@@ -154,7 +154,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    ThemeService.themeNotifier.dispose();
+    // Não precisa dispor do themeNotifier pois é estático
     super.dispose();
   }
 }
@@ -169,14 +169,11 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  // Removido: bool _isDarkMode = false; (agora controlado pelo ThemeService)
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
   bool _obscureSenha = true;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-
-  // Removido: _toggleTheme() (agora controlado apenas na página de Configurações)
 
   Future<void> _fazerLogin() async {
     if (!_formKey.currentState!.validate()) return;
@@ -268,12 +265,12 @@ class _LandingPageState extends State<LandingPage> {
           SafeArea(
             child: Column(
               children: [
-                // Header com logo (removido botão de tema)
+                // Header com logo
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Alterado para center
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CircleAvatar(
                         radius: 20,
@@ -286,7 +283,6 @@ class _LandingPageState extends State<LandingPage> {
                           ),
                         ),
                       ),
-                      // Removido: IconButton do tema
                     ],
                   ),
                 ),
