@@ -8,8 +8,8 @@ import '../acesso/cadastro.dart';
 import '../acesso/esqueci_senha.dart';
 import 'package:mobile_tcc/home.dart';
 import 'package:mobile_tcc/config.dart';
-import '../serviços/theme_service.dart';
-import '../serviços/language_service.dart';
+import '../services/theme_service.dart';
+import '../services/language_service.dart';
 
 
 void main() async {

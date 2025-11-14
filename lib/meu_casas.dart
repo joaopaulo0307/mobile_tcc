@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_tcc/home.dart';
-import '../serviços/theme_service.dart';
-import '../serviços/language_service.dart';
+import '../services/theme_service.dart';
+import '../services/language_service.dart';
 
 class MeuCasas extends StatefulWidget {
   const MeuCasas({super.key});

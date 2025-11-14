@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../serviços/theme_service.dart';
+import '../services/theme_service.dart';
 import 'package:mobile_tcc/calendario/calendario.dart';
 import 'package:mobile_tcc/economic/economico.dart';
 import 'package:mobile_tcc/meu_casas.dart';

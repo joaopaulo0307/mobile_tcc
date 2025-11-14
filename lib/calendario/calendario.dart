@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
-import '../serviços/theme_service.dart';
-import '../serviços/tarefa_service.dart';
+import '../services/theme_service.dart';
+import '../services/tarefa_service.dart';
 
 class CalendarioPage extends StatefulWidget {
   const CalendarioPage({super.key});
