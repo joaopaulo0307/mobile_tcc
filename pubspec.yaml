@@ -49,10 +49,13 @@ dependencies:
   table_calendar: ^3.0.9
   provider: ^6.1.1
 
-  
+  flutter_localizations:
+    sdk: flutter
+    
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -66,6 +69,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  uses-material-design: true
+
   assets:
     - lib/assets/images/fundo-tcc-mobile.png
 

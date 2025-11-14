@@ -133,115 +133,116 @@ class _CalendarioPageState extends State<CalendarioPage> {
   }
 
   Widget _buildCalendar(Color cardColor, Color textColor, Color backgroundColor) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 2,
-      color: cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: TableCalendar(
-          firstDay: DateTime.utc(2020, 1, 1),
-          lastDay: DateTime.utc(2030, 12, 31),
-          focusedDay: _focusedDay,
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          calendarFormat: _calendarFormat,
-          onFormatChanged: (format) {
-            setState(() {
-              _calendarFormat = format;
-            });
-          },
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-          },
-          onPageChanged: (focusedDay) {
-            setState(() {
-              _focusedDay = focusedDay;
-            });
-          },
-          calendarStyle: CalendarStyle(
-            defaultTextStyle: TextStyle(color: textColor),
-            weekendTextStyle: TextStyle(color: textColor),
-            selectedTextStyle: const TextStyle(color: Colors.white),
-            todayTextStyle: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-            todayDecoration: BoxDecoration(
-              color: ThemeService.primaryColor,
-              shape: BoxShape.circle,
-            ),
-            selectedDecoration: BoxDecoration(
-              color: ThemeService.primaryColor.withOpacity(0.7),
-              shape: BoxShape.circle,
-            ),
-            outsideDaysVisible: false,
-            // CORREÇÃO: Adicionado estilo para dias fora do mês
-            outsideTextStyle: TextStyle(color: textColor.withOpacity(0.3)),
-            weekendDecoration: BoxDecoration(
-              color: backgroundColor.withOpacity(0.05),
+    return Consumer<TarefaService>(
+      builder: (context, tarefaService, child) {
+        return Card(
+          margin: const EdgeInsets.all(16),
+          elevation: 2,
+          color: cardColor,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: TableCalendar(
+              firstDay: DateTime.utc(2020, 1, 1),
+              lastDay: DateTime.utc(2030, 12, 31),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              calendarFormat: _calendarFormat,
+              onFormatChanged: (format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              },
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              onPageChanged: (focusedDay) {
+                setState(() {
+                  _focusedDay = focusedDay;
+                });
+              },
+              calendarStyle: CalendarStyle(
+                defaultTextStyle: TextStyle(color: textColor),
+                weekendTextStyle: TextStyle(color: textColor),
+                selectedTextStyle: const TextStyle(color: Colors.white),
+                todayTextStyle: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                todayDecoration: BoxDecoration(
+                  color: ThemeService.primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: ThemeService.primaryColor.withOpacity(0.7),
+                  shape: BoxShape.circle,
+                ),
+                outsideDaysVisible: false,
+                outsideTextStyle: TextStyle(color: textColor.withOpacity(0.3)),
+                weekendDecoration: BoxDecoration(
+                  color: backgroundColor.withOpacity(0.05),
+                ),
+              ),
+              headerStyle: HeaderStyle(
+                formatButtonVisible: true,
+                titleCentered: true,
+                formatButtonShowsNext: false,
+                formatButtonDecoration: BoxDecoration(
+                  border: Border.all(color: ThemeService.primaryColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                formatButtonTextStyle: TextStyle(color: ThemeService.primaryColor),
+                titleTextStyle: TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                leftChevronIcon: Icon(
+                  Icons.chevron_left,
+                  color: ThemeService.primaryColor,
+                ),
+                rightChevronIcon: Icon(
+                  Icons.chevron_right,
+                  color: ThemeService.primaryColor,
+                ),
+              ),
+              daysOfWeekStyle: DaysOfWeekStyle(
+                weekdayStyle: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                weekendStyle: TextStyle(
+                  color: textColor.withOpacity(0.7),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, date, events) {
+                  final tarefasDoDia = tarefaService.getTarefasPorData(date, 'default');
+                  
+                  if (tarefasDoDia.isNotEmpty) {
+                    return Positioned(
+                      right: 1,
+                      bottom: 1,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: ThemeService.primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
-          headerStyle: HeaderStyle(
-            formatButtonVisible: true,
-            titleCentered: true,
-            formatButtonShowsNext: false,
-            formatButtonDecoration: BoxDecoration(
-              border: Border.all(color: ThemeService.primaryColor),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            formatButtonTextStyle: TextStyle(color: ThemeService.primaryColor),
-            titleTextStyle: TextStyle(
-              color: textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-            leftChevronIcon: Icon(
-              Icons.chevron_left,
-              color: ThemeService.primaryColor,
-            ),
-            rightChevronIcon: Icon(
-              Icons.chevron_right,
-              color: ThemeService.primaryColor,
-            ),
-          ),
-          daysOfWeekStyle: DaysOfWeekStyle(
-            weekdayStyle: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-            ),
-            weekendStyle: TextStyle(
-              color: textColor.withOpacity(0.7),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          // CORREÇÃO: Corrigido o CalendarBuilders
-          calendarBuilders: CalendarBuilders(
-            markerBuilder: (context, date, events) {
-              final tarefaService = Provider.of<TarefaService>(context, listen: false);
-              final tarefasDoDia = tarefaService.getTarefasPorData(date, 'default');
-              
-              if (tarefasDoDia.isNotEmpty) {
-                return Positioned(
-                  right: 1,
-                  bottom: 1,
-                  child: Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: ThemeService.primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -272,7 +273,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   tarefa: tarefa, 
                   cardColor: cardColor, 
                   textColor: textColor,
-                  onConcluir: () => _concluirTarefa(tarefa.id),
+                  onConcluir: () => _concluirTarefa(context, tarefa.id),
                 )).toList(),
             ],
           ),
@@ -590,7 +591,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
-  void _concluirTarefa(String id) {
+  void _concluirTarefa(BuildContext context, String id) {
     final tarefaService = Provider.of<TarefaService>(context, listen: false);
     tarefaService.marcarComoConcluida(id);
     

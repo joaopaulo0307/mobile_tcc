@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_tcc/meu_casas.dart';
 import '../acesso/auth_service.dart';
@@ -8,19 +9,13 @@ import 'package:mobile_tcc/home.dart';
 import 'dart:ui';
 import 'package:mobile_tcc/config.dart';
 import '../serviços/theme_service.dart';
-
-// Cores (mantidas para compatibilidade)
-const Color primaryColor = Color(0xFF133A67);
-const Color secondaryColor = Color(0xFF5E83AE);
-const Color containerColor = Color.fromARGB(255, 55, 56, 57);
-const Color textColor = Colors.white;
+import '../serviços/language_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
     await AuthService.initialize();
-    // Não precisa inicializar ThemeService se não há dados para carregar
     print('App inicializado com sucesso');
   } catch (e) {
     print('Erro na inicialização do app: $e');
@@ -40,12 +35,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Escutar mudanças no tema
-    ThemeService.themeNotifier.addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    ThemeService.themeNotifier.addListener(_onThemeChanged);
+    LanguageService().localeNotifier.addListener(_onLanguageChanged);
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onLanguageChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -55,48 +54,42 @@ class _MyAppState extends State<MyApp> {
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
       themeMode: ThemeService.themeNotifier.value ? ThemeMode.dark : ThemeMode.light,
+      locale: LanguageService().currentLocale,
+      supportedLocales: const [
+        Locale('pt', 'BR'),
+        Locale('en', 'US'),
+        Locale('es', 'ES'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       initialRoute: '/',
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(builder: (_) => const LandingPage());
-
           case '/cadastro':
             return MaterialPageRoute(builder: (_) => const CadastroPage());
-
           case '/minhas_casas':
             return MaterialPageRoute(builder: (_) => const MeuCasas());
-
           case '/home':
             final casa = settings.arguments as Map<String, String>;
-            return MaterialPageRoute(
-              builder: (_) => HomePage(casa: casa),
-            );
-
+            return MaterialPageRoute(builder: (_) => HomePage(casa: casa));
           case '/esqueci_senha':
             return MaterialPageRoute(builder: (_) => const EsqueciSenhaPage());
-
           case '/config':
             return MaterialPageRoute(builder: (_) => const ConfigPage());
-
           default:
-            return MaterialPageRoute(builder: (_) {
-              return const Scaffold(
-                body: Center(child: Text('Rota não encontrada')),
-              );
-            });
+            return MaterialPageRoute(builder: (_) => Scaffold(
+              body: Center(child: Text('Rota não encontrada')),
+            ));
         }
-      },
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-          child: child!,
-        );
       },
     );
   }
 
-  // Tema claro
   ThemeData _buildLightTheme() {
     return ThemeData(
       brightness: Brightness.light,
@@ -104,8 +97,6 @@ class _MyAppState extends State<MyApp> {
       colorScheme: const ColorScheme.light(
         primary: ThemeService.primaryColor,
         secondary: ThemeService.secondaryColor,
-        background: ThemeService.backgroundLight,
-        surface: ThemeService.cardColorLight,
       ),
       scaffoldBackgroundColor: ThemeService.backgroundLight,
       cardColor: ThemeService.cardColorLight,
@@ -115,16 +106,9 @@ class _MyAppState extends State<MyApp> {
         elevation: 0,
         centerTitle: true,
       ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: ThemeService.textColorLight),
-        bodyMedium: TextStyle(color: ThemeService.textColorLight),
-        titleLarge: TextStyle(color: ThemeService.textColorLight),
-        titleMedium: TextStyle(color: ThemeService.textColorLight),
-      ),
     );
   }
 
-  // Tema escuro
   ThemeData _buildDarkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
@@ -132,8 +116,6 @@ class _MyAppState extends State<MyApp> {
       colorScheme: const ColorScheme.dark(
         primary: ThemeService.primaryColor,
         secondary: ThemeService.secondaryColor,
-        background: ThemeService.backgroundDark,
-        surface: ThemeService.cardColorDark,
       ),
       scaffoldBackgroundColor: ThemeService.backgroundDark,
       cardColor: ThemeService.cardColorDark,
@@ -143,18 +125,13 @@ class _MyAppState extends State<MyApp> {
         elevation: 0,
         centerTitle: true,
       ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: ThemeService.textColorDark),
-        bodyMedium: TextStyle(color: ThemeService.textColorDark),
-        titleLarge: TextStyle(color: ThemeService.textColorDark),
-        titleMedium: TextStyle(color: ThemeService.textColorDark),
-      ),
     );
   }
 
   @override
   void dispose() {
-    // Não precisa dispor do themeNotifier pois é estático
+    ThemeService.themeNotifier.removeListener(_onThemeChanged);
+    LanguageService().localeNotifier.removeListener(_onLanguageChanged);
     super.dispose();
   }
 }
@@ -175,12 +152,24 @@ class _LandingPageState extends State<LandingPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
+  // Métodos de validação simplificados
+  String? _validarEmail(String? value) {
+    if (value == null || value.isEmpty) return 'Por favor, insira seu email';
+    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    if (!emailRegex.hasMatch(value)) return 'Por favor, insira um email válido';
+    return null;
+  }
+
+  String? _validarSenha(String? value) {
+    if (value == null || value.isEmpty) return 'Por favor, insira sua senha';
+    if (value.length < 6) return 'A senha deve ter pelo menos 6 caracteres';
+    return null;
+  }
+
   Future<void> _fazerLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final res = await AuthService.login(
@@ -191,51 +180,21 @@ class _LandingPageState extends State<LandingPage> {
       if (!mounted) return;
 
       if (res['success']) {
-        final nome = res['user']['nome'];
-        Navigator.pushReplacementNamed(context, '/minhas_casas', arguments: nome);
+        Navigator.pushReplacementNamed(context, '/minhas_casas');
       } else {
         _mostrarErro(res['message']);
       }
     } catch (e) {
       _mostrarErro('Erro ao fazer login');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _mostrarErro(String mensagem) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.red,
-        content: Text(mensagem),
-        duration: const Duration(seconds: 4),
-      ),
+      SnackBar(backgroundColor: Colors.red, content: Text(mensagem)),
     );
-  }
-
-  String? _validarEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Por favor, insira seu email';
-    }
-    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-    if (!emailRegex.hasMatch(value)) {
-      return 'Por favor, insira um email válido';
-    }
-    return null;
-  }
-
-  String? _validarSenha(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Por favor, insira sua senha';
-    }
-    if (value.length < 6) {
-      return 'A senha deve ter pelo menos 6 caracteres';
-    }
-    return null;
   }
 
   @override
@@ -254,34 +213,48 @@ class _LandingPageState extends State<LandingPage> {
               },
             ),
           ),
+          // Overlay escuro
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                color: Colors.black.withOpacity(0.3),
-              ),
-            ),
+            child: Container(color: Colors.black.withOpacity(0.3)),
           ),
           SafeArea(
             child: Column(
               children: [
-                // Header com logo
+                // Header
                 Container(
-                  width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 20,
-                        backgroundColor: primaryColor,
-                        child: Text(
-                          "TD",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        backgroundColor: Color(0xFF133A67),
+                        child: Text("TD", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 12),
+                      // Seletor de idioma simplificado
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.language, color: Colors.white),
+                        onSelected: (String languageCode) {
+                          final parts = languageCode.split('_');
+                          LanguageService().setLocale(Locale(parts[0], parts[1]));
+                        },
+                        itemBuilder: (BuildContext context) {
+                          return [
+                            PopupMenuItem(
+                              value: 'pt_BR',
+                              child: Text('Português (BR)'),
+                            ),
+                            PopupMenuItem(
+                              value: 'en_US',
+                              child: Text('English (US)'),
+                            ),
+                            PopupMenuItem(
+                              value: 'es_ES',
+                              child: Text('Español'),
+                            ),
+                          ];
+                        },
                       ),
                     ],
                   ),
@@ -324,25 +297,18 @@ class _LandingPageState extends State<LandingPage> {
                                     children: [
                                       const Text(
                                         'Email',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 8),
                                       TextFormField(
                                         controller: _emailController,
                                         keyboardType: TextInputType.emailAddress,
                                         textInputAction: TextInputAction.next,
-                                        style: const TextStyle(color: Colors.white),
+                                        style: const TextStyle(color: Colors.black),
                                         decoration: InputDecoration(
                                           filled: true,
                                           fillColor: Colors.white.withOpacity(0.9),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide.none,
-                                          ),
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                           hintText: 'seu@email.com',
                                           hintStyle: const TextStyle(color: Colors.black54),
@@ -359,38 +325,24 @@ class _LandingPageState extends State<LandingPage> {
                                     children: [
                                       const Text(
                                         'Senha',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 8),
                                       TextFormField(
                                         controller: _senhaController,
                                         obscureText: _obscureSenha,
                                         textInputAction: TextInputAction.done,
-                                        style: const TextStyle(color: Colors.white),
+                                        style: const TextStyle(color: Colors.black),
                                         decoration: InputDecoration(
                                           filled: true,
                                           fillColor: Colors.white.withOpacity(0.9),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide.none,
-                                          ),
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                           hintText: '••••••',
                                           hintStyle: const TextStyle(color: Colors.black54),
                                           suffixIcon: IconButton(
-                                            icon: Icon(
-                                              _obscureSenha ? Icons.visibility : Icons.visibility_off,
-                                              color: Colors.grey,
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                _obscureSenha = !_obscureSenha;
-                                              });
-                                            },
+                                            icon: Icon(_obscureSenha ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+                                            onPressed: () => setState(() => _obscureSenha = !_obscureSenha),
                                           ),
                                         ),
                                         validator: _validarSenha,
@@ -401,47 +353,29 @@ class _LandingPageState extends State<LandingPage> {
                                   const SizedBox(height: 12),
                                   
                                   // Link Esqueceu a senha
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(context, '/esqueci_senha');
-                                      },
-                                      child: const Text(
-                                        'Esqueceu a sua senha?',
-                                        style: TextStyle(
-                                          color: Color(0xFF5E83AE),
-                                          fontSize: 14,
-                                          decoration: TextDecoration.underline,
-                                        ),
-                                      ),
+                                  GestureDetector(
+                                    onTap: () => Navigator.pushNamed(context, '/esqueci_senha'),
+                                    child: const Text(
+                                      'Esqueceu a sua senha?',
+                                      style: TextStyle(color: Color(0xFF5E83AE), fontSize: 14, decoration: TextDecoration.underline),
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                                   const SizedBox(height: 30),
                                   
-                                  // Botões CADASTRE-SE e ENTRAR
+                                  // Botões
                                   Row(
                                     children: [
                                       Expanded(
                                         child: OutlinedButton(
-                                          onPressed: () {
-                                            Navigator.pushNamed(context, '/cadastro');
-                                          },
+                                          onPressed: () => Navigator.pushNamed(context, '/cadastro'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: Colors.white,
                                             side: const BorderSide(color: Colors.white),
                                             padding: const EdgeInsets.symmetric(vertical: 16),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            backgroundColor: Colors.transparent,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                           ),
-                                          child: const Text(
-                                            'CADASTRE-SE',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
+                                          child: const Text('CADASTRE-SE', style: TextStyle(fontWeight: FontWeight.bold)),
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -452,31 +386,15 @@ class _LandingPageState extends State<LandingPage> {
                                             backgroundColor: const Color(0xFF5E83AE),
                                             foregroundColor: Colors.white,
                                             padding: const EdgeInsets.symmetric(vertical: 16),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            elevation: 2,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                           ),
                                           child: _isLoading
-                                              ? const SizedBox(
-                                                  height: 20,
-                                                  width: 20,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                  ),
-                                                )
-                                              : const Text(
-                                                  'ENTRAR',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
+                                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+                                              : const Text('ENTRAR', style: TextStyle(fontWeight: FontWeight.bold)),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 40),
                                 ],
                               ),
                             ),
@@ -486,54 +404,22 @@ class _LandingPageState extends State<LandingPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                
                 // Rodapé
                 Container(
-                  width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   color: Colors.black.withOpacity(0.7),
                   child: const Column(
                     children: [
                       Text(
                         'Organize suas tarefas de forma simples',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                         textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 20),
-                                  
-                      // Ícones de redes sociais
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.chat_bubble_outline,
-                            color: Colors.white70,
-                            size: 20,
-                          ),
-                          SizedBox(width: 16),
-                          Icon(
-                            Icons.favorite_border,
-                            color: Colors.white70,
-                            size: 20,
-                          ),
-                          SizedBox(width: 16),
-                          Icon(
-                            Icons.star_border,
-                            color: Colors.white70,
-                            size: 20,
-                          ),
-                        ],
                       ),
                       SizedBox(height: 10),
                       Text(
                         '© Todos os direitos reservados - 2025',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                     ],

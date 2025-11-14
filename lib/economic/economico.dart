@@ -6,6 +6,7 @@ import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/meu_casas.dart';
 import 'historico.dart'; // Import da tela de histórico
+import '../serviços/language_service.dart';
 
 class Economico extends StatefulWidget {
   const Economico({super.key});

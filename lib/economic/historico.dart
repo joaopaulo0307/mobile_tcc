@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_tcc/economic/economico.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../serviços/language_service.dart';
 
 
 class HistoricoPage extends StatefulWidget {

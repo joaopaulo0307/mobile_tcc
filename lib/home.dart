@@ -7,6 +7,7 @@ import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/config.dart';
 import '../acesso/auth_service.dart';
 import '../serviços/theme_service.dart';
+import '../serviços/language_service.dart';
 
 class HomePage extends StatefulWidget {
   final Map<String, String> casa;
