@@ -5,10 +5,8 @@ import 'package:mobile_tcc/meu_casas.dart';
 import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/config.dart';
-import 'package:provider/provider.dart';
 import '../acesso/auth_service.dart';
 import '../serviços/theme_service.dart';
-import '../serviços/tarefa_service.dart';
 
 class HomePage extends StatefulWidget {
   final Map<String, String> casa;
@@ -36,24 +34,40 @@ class _HomePageState extends State<HomePage> {
         _isLoading = true;
       });
 
+      // CORREÇÃO: Use o método estático corretamente
       final userData = await AuthService.getUserData();
 
       if (!mounted) return;
 
-      if (userData != null) {
+      if (userData.isNotEmpty) {
         final nome = userData['nome'];
         if (nome is String && nome.isNotEmpty) {
           setState(() {
             _userName = nome;
           });
+        } else {
+          // Fallback se não encontrar nome
+          setState(() {
+            _userName = "Usuário";
+          });
         }
+      } else {
+        // Se não houver dados, usar fallback
+        setState(() {
+          _userName = widget.casa['nome'] ?? 'Usuário';
+        });
       }
     } catch (e) {
       debugPrint("Erro ao carregar usuário: $e");
+      // Fallback em caso de erro
+      setState(() {
+        _userName = widget.casa['nome'] ?? 'Usuário';
+      });
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao carregar dados: $e'),
+            content: Text('Erro ao carregar dados do usuário'),
             backgroundColor: Colors.red,
           ),
         );
@@ -270,9 +284,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildListaTarefas() {
-    final tarefaService = Provider.of<TarefaService>(context);
-    final casaId = widget.casa['id'] ?? 'default';
-    final tarefasPendentes = tarefaService.getTarefasPendentesPorCasa(casaId);
+    // Lista vazia por enquanto (sem Provider)
+    final tarefasPendentes = [];
 
     if (_isLoading) {
       return Expanded(
@@ -300,17 +313,15 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(16),
                     itemCount: tarefasPendentes.length,
                     itemBuilder: (context, index) {
-                      final tarefa = tarefasPendentes[index];
                       return _buildTarefaItem(
-                        tarefa: tarefa,
+                        titulo: "Tarefa exemplo",
+                        descricao: "Descrição exemplo",
+                        data: DateTime.now(),
+                        cor: Colors.blue,
                         cardColor: cardColor,
                         textColor: textColor,
-                        onTap: () {
-                          _mostrarDetalhesTarefa(tarefa);
-                        },
-                        onConcluir: () {
-                          _marcarTarefaComoConcluida(tarefa.id);
-                        },
+                        onTap: () {},
+                        onConcluir: () {},
                       );
                     },
                   ),
@@ -352,7 +363,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTarefaItem({
-    required Tarefa tarefa,
+    required String titulo,
+    required String descricao,
+    required DateTime data,
+    required Color cor,
     required Color cardColor,
     required Color textColor,
     required VoidCallback onTap,
@@ -380,7 +394,7 @@ class _HomePageState extends State<HomePage> {
               width: 4,
               height: 40,
               decoration: BoxDecoration(
-                color: tarefa.cor,
+                color: cor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -390,7 +404,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tarefa.titulo,
+                    titulo,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -399,16 +413,16 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _formatarData(tarefa.data),
+                    _formatarData(data),
                     style: TextStyle(
                       fontSize: 12,
                       color: textColor.withOpacity(0.6),
                     ),
                   ),
-                  if (tarefa.descricao.isNotEmpty) ...[
+                  if (descricao.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      tarefa.descricao,
+                      descricao,
                       style: TextStyle(
                         fontSize: 12,
                         color: textColor.withOpacity(0.5),
@@ -429,98 +443,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _mostrarDetalhesTarefa(Tarefa tarefa) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: ThemeService.themeNotifier,
-          builder: (context, isDarkMode, child) {
-            final cardColor = isDarkMode ? ThemeService.cardColorDark : ThemeService.cardColorLight;
-            final textColor = isDarkMode ? ThemeService.textColorDark : ThemeService.textColorLight;
-            
-            return AlertDialog(
-              backgroundColor: cardColor,
-              title: Text(
-                tarefa.titulo,
-                style: TextStyle(color: textColor),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (tarefa.descricao.isNotEmpty) ...[
-                    Text(
-                      tarefa.descricao,
-                      style: TextStyle(color: textColor.withOpacity(0.8)),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: tarefa.cor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.calendar_today, size: 16, color: tarefa.cor),
-                        const SizedBox(width: 8),
-                        Text(
-                          _formatarDataCompleta(tarefa.data),
-                          style: TextStyle(
-                            color: textColor.withOpacity(0.7),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Fechar',
-                    style: TextStyle(color: textColor),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeService.primaryColor,
-                  ),
-                  onPressed: () {
-                    _marcarTarefaComoConcluida(tarefa.id);
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Concluir Tarefa',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _marcarTarefaComoConcluida(String id) {
-    final tarefaService = Provider.of<TarefaService>(context, listen: false);
-    tarefaService.marcarComoConcluida(id);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tarefa concluída com sucesso!'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
       ),
     );
   }

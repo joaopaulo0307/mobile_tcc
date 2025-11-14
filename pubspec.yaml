@@ -47,6 +47,9 @@ dependencies:
   cloud_firestore: ^6.0.3
   firebase_functions: 0.0.1-dev             
   table_calendar: ^3.0.9
+  provider: ^6.1.1
+
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

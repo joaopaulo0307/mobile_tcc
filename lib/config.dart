@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../serviços/theme_service.dart';
+import '../serviços/language_service.dart';
 
 class ConfigPage extends StatefulWidget {
   const ConfigPage({super.key});
@@ -16,7 +17,7 @@ class _ConfigPageState extends State<ConfigPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configurações'),
+        title: Text('settings'.translate(context)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -35,27 +36,27 @@ class _ConfigPageState extends State<ConfigPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildSectionTitle('Aparência'),
+        _buildSectionTitle('appearance'.translate(context)),
         _buildThemeSwitch(isDarkMode),
         const Divider(),
         
-        _buildSectionTitle('Notificações'),
+        _buildSectionTitle('notifications'.translate(context)),
         _buildNotificationSwitch(),
         const Divider(),
 
-        _buildSectionTitle('Idioma'),
+        _buildSectionTitle('language'.translate(context)),
         _buildLanguageTile(context),
         const Divider(),
 
-        _buildSectionTitle('Privacidade'),
+        _buildSectionTitle('privacy'.translate(context)),
         _buildPrivacyTile(),
         const Divider(),
 
-        _buildSectionTitle('Conta'),
+        _buildSectionTitle('account'.translate(context)),
         _buildAccountOptions(),
         const Divider(),
 
-        _buildSectionTitle('Sobre o App'),
+        _buildSectionTitle('about_app'.translate(context)),
         _buildAppInfo(),
         const SizedBox(height: 32),
 
@@ -81,8 +82,8 @@ class _ConfigPageState extends State<ConfigPage> {
   Widget _buildThemeSwitch(bool isDarkMode) {
     return ListTile(
       leading: const Icon(Icons.dark_mode, color: ThemeService.primaryColor),
-      title: const Text('Modo Escuro'),
-      subtitle: const Text('Ativar tema escuro'),
+      title: Text('dark_mode'.translate(context)),
+      subtitle: Text('dark_mode_subtitle'.translate(context)),
       trailing: Switch(
         value: isDarkMode,
         onChanged: (value) {
@@ -100,8 +101,8 @@ class _ConfigPageState extends State<ConfigPage> {
         bool notifications = true;
         return ListTile(
           leading: const Icon(Icons.notifications, color: ThemeService.primaryColor),
-          title: const Text('Notificações'),
-          subtitle: const Text('Receber notificações do app'),
+          title: Text('notifications'.translate(context)),
+          subtitle: Text('notifications_subtitle'.translate(context)),
           trailing: Switch(
             value: notifications,
             onChanged: (value) {
@@ -116,14 +117,19 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   Widget _buildLanguageTile(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.language, color: ThemeService.primaryColor),
-      title: const Text('Idioma'),
-      subtitle: const Text('Português (Brasil)'),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {
-        HapticFeedback.selectionClick();
-        _showLanguageBottomSheet(context);
+    return ValueListenableBuilder<Locale>(
+      valueListenable: LanguageService().localeNotifier,
+      builder: (context, locale, child) {
+        return ListTile(
+          leading: const Icon(Icons.language, color: ThemeService.primaryColor),
+          title: Text('language'.translate(context)),
+          subtitle: Text(LanguageService().getCurrentLanguageName()),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            _showLanguageBottomSheet(context);
+          },
+        );
       },
     );
   }
@@ -131,7 +137,7 @@ class _ConfigPageState extends State<ConfigPage> {
   Widget _buildPrivacyTile() {
     return ListTile(
       leading: const Icon(Icons.security, color: ThemeService.primaryColor),
-      title: const Text('Privacidade e Segurança'),
+      title: Text('privacy_security'.translate(context)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: () {
         HapticFeedback.selectionClick();
@@ -144,7 +150,7 @@ class _ConfigPageState extends State<ConfigPage> {
       children: [
         ListTile(
           leading: const Icon(Icons.person, color: ThemeService.primaryColor),
-          title: const Text('Editar Perfil'),
+          title: Text('edit_profile'.translate(context)),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {
             HapticFeedback.selectionClick();
@@ -153,7 +159,7 @@ class _ConfigPageState extends State<ConfigPage> {
         const Divider(height: 1),
         ListTile(
           leading: const Icon(Icons.lock, color: ThemeService.primaryColor),
-          title: const Text('Alterar Senha'),
+          title: Text('change_password'.translate(context)),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {
             HapticFeedback.selectionClick();
@@ -168,13 +174,13 @@ class _ConfigPageState extends State<ConfigPage> {
       children: [
         ListTile(
           leading: const Icon(Icons.info, color: ThemeService.primaryColor),
-          title: const Text('Versão do App'),
+          title: Text('app_version'.translate(context)),
           subtitle: const Text('1.0.0'),
         ),
         const Divider(height: 1),
         ListTile(
           leading: const Icon(Icons.description, color: ThemeService.primaryColor),
-          title: const Text('Termos de Uso'),
+          title: Text('terms_of_use'.translate(context)),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {
             HapticFeedback.selectionClick();
@@ -183,7 +189,7 @@ class _ConfigPageState extends State<ConfigPage> {
         const Divider(height: 1),
         ListTile(
           leading: const Icon(Icons.privacy_tip, color: ThemeService.primaryColor),
-          title: const Text('Política de Privacidade'),
+          title: Text('privacy_policy'.translate(context)),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {
             HapticFeedback.selectionClick();
@@ -207,9 +213,9 @@ class _ConfigPageState extends State<ConfigPage> {
           HapticFeedback.mediumImpact();
           Navigator.pop(context);
         },
-        child: const Text(
-          'Voltar',
-          style: TextStyle(
+        child: Text(
+          'back'.translate(context),
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 16,
@@ -220,6 +226,9 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   void _showLanguageBottomSheet(BuildContext context) {
+    final languageService = LanguageService();
+    final availableLanguages = languageService.getAvailableLanguages();
+    
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -231,22 +240,26 @@ class _ConfigPageState extends State<ConfigPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Selecione o Idioma',
-                style: TextStyle(
+              Text(
+                'select_language'.translate(context),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: ThemeService.primaryColor,
                 ),
               ),
               const SizedBox(height: 16),
-              _buildLanguageOption('Português (Brasil)', true, context),
-              _buildLanguageOption('English (US)', false, context),
-              _buildLanguageOption('Español', false, context),
+              ...availableLanguages.map((language) => 
+                _buildLanguageOption(
+                  language['name']!,
+                  language['code']!,
+                  context,
+                )
+              ).toList(),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('FECHAR'),
+                child: Text('close'.translate(context)),
               ),
             ],
           ),
@@ -255,7 +268,9 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
-  Widget _buildLanguageOption(String language, bool isSelected, BuildContext context) {
+  Widget _buildLanguageOption(String language, String languageCode, BuildContext context) {
+    final isSelected = LanguageService().currentLocale == _parseLocale(languageCode);
+    
     return ListTile(
       leading: Icon(
         Icons.check,
@@ -264,8 +279,15 @@ class _ConfigPageState extends State<ConfigPage> {
       title: Text(language),
       onTap: () {
         HapticFeedback.selectionClick();
+        LanguageService().setLocale(_parseLocale(languageCode));
         Navigator.pop(context);
+        setState(() {}); // Força o rebuild para atualizar os textos
       },
     );
+  }
+
+  Locale _parseLocale(String localeString) {
+    final parts = localeString.split('_');
+    return Locale(parts[0], parts[1]);
   }
 }
