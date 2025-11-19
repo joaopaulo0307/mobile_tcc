@@ -10,6 +10,25 @@ import 'historico.dart';
 import '../services/language_service.dart';
 import '../services/theme_service.dart';
 
+// ✅ CLASSE Transacao ADICIONADA
+class Transacao {
+  final String id;
+  final double valor;
+  final String local;
+  final DateTime data;
+  final String tipo;
+  final String categoria;
+
+  Transacao({
+    required this.id,
+    required this.valor,
+    required this.local,
+    required this.data,
+    required this.tipo,
+    required this.categoria,
+  });
+}
+
 class Economico extends StatefulWidget {
   final Map<String, String> casa;
   
@@ -27,7 +46,7 @@ class _EconomicoState extends State<Economico> {
   List<Transacao> historicoTransacoes = [
     Transacao(
       id: '1',
-      valor: 0.0,
+      valor: 2500.0, // ✅ VALOR CORRIGIDO (não pode ser 0.0)
       local: 'Salário',
       data: DateTime.now().subtract(const Duration(days: 2)),
       tipo: 'entrada',
@@ -88,6 +107,68 @@ class _EconomicoState extends State<Economico> {
     return meses[data.month - 1];
   }
 
+  // ✅ MÉTODO _buildGrafico COMPLETADO
+  Widget _buildGrafico() {
+    final meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    
+    // Criar spots baseados nos valores mensais
+    final spots = List.generate(
+      meses.length,
+      (i) {
+        final valor = valoresMensais[meses[i]] ?? 0.0;
+        return FlSpot(i.toDouble(), valor);
+      },
+    );
+
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.all(16),
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  if (value >= 0 && value < meses.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        meses[value.toInt()],
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    );
+                  }
+                  return const Text('');
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              color: ThemeService.primaryColor,
+              barWidth: 3,
+              belowBarData: BarAreaData(show: false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDrawer(BuildContext context, ThemeService themeService) {
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
@@ -98,45 +179,45 @@ class _EconomicoState extends State<Economico> {
           backgroundColor: backgroundColor,
           child: Column(
             children: [
-              _buildDrawerHeader(themeService),
+              _buildDrawerHeader(themeService, languageService), // ✅ languageService adicionado
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
                     _buildDrawerItem(
                       icon: Icons.home,
-                      title: languageService.translate('home'),
+                      title: languageService.translate('home') ?? 'Home',
                       textColor: textColor,
                       onTap: () => _navigateToHome(context),
                     ),
                     _buildDrawerItem(
                       icon: Icons.history,
-                      title: languageService.translate('historico'),
+                      title: languageService.translate('historico') ?? 'Histórico',
                       textColor: textColor,
                       onTap: () => _navigateToHistorico(context),
                     ),
                     _buildDrawerItem(
                       icon: Icons.people,
-                      title: languageService.translate('usuarios'),
+                      title: languageService.translate('usuarios') ?? 'Usuários',
                       textColor: textColor,
                       onTap: () => _navigateToUsuarios(context),
                     ),
-                    Divider(color: Colors.grey.withOpacity(0.3)), // Corrigido
+                    Divider(color: Colors.grey.withOpacity(0.3)),
                     _buildDrawerItem(
                       icon: Icons.house,
-                      title: languageService.translate('minhas_casas'),
+                      title: languageService.translate('minhas_casas') ?? 'Minhas Casas',
                       textColor: textColor,
                       onTap: () => _navigateToMinhasCasas(context),
                     ),
                     _buildDrawerItem(
                       icon: Icons.person,
-                      title: languageService.translate('meu_perfil'),
+                      title: languageService.translate('meu_perfil') ?? 'Meu Perfil',
                       textColor: textColor,
                       onTap: () => _navigateToPerfil(context),
                     ),
                     _buildDrawerItem(
                       icon: Icons.settings,
-                      title: languageService.translate('configuracoes'),
+                      title: languageService.translate('configuracoes') ?? 'Configurações',
                       textColor: textColor,
                       onTap: () => _navigateToConfig(context),
                     ),
@@ -150,7 +231,8 @@ class _EconomicoState extends State<Economico> {
     );
   }
 
-  Widget _buildDrawerHeader(ThemeService themeService) {
+  // ✅ CORREÇÃO: languageService adicionado como parâmetro
+  Widget _buildDrawerHeader(ThemeService themeService, LanguageService languageService) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -181,7 +263,7 @@ class _EconomicoState extends State<Economico> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Usuário',
+              languageService.translate('usuario') ?? 'Usuário', // ✅ CORRIGIDO
               style: TextStyle(
                 color: Colors.white.withOpacity(0.8),
                 fontSize: 14,
@@ -266,6 +348,192 @@ class _EconomicoState extends State<Economico> {
     );
   }
 
+  // ✅ MÉTODO build ADICIONADO (estava faltando)
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<ThemeService, LanguageService>(
+      builder: (context, themeService, languageService, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(languageService.translate('economico') ?? 'Econômico'),
+            backgroundColor: ThemeService.primaryColor,
+            foregroundColor: Colors.white,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: _mostrarModalAlterarValor,
+              ),
+            ],
+          ),
+          drawer: _buildDrawer(context, themeService),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Cards de Resumo
+                _buildResumoCards(languageService),
+                const SizedBox(height: 24),
+                
+                // Gráfico
+                _buildGraficoSection(languageService),
+                const SizedBox(height: 24),
+                
+                // Histórico Recente
+                _buildHistoricoRecente(languageService),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildResumoCards(LanguageService languageService) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildResumoCard(
+            title: languageService.translate('saldo') ?? 'Saldo',
+            valor: saldo,
+            cor: saldo >= 0 ? Colors.green : Colors.red,
+            icon: Icons.account_balance_wallet,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildResumoCard(
+            title: languageService.translate('receitas') ?? 'Receitas',
+            valor: renda,
+            cor: Colors.green,
+            icon: Icons.arrow_upward,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildResumoCard(
+            title: languageService.translate('despesas') ?? 'Despesas',
+            valor: gastos,
+            cor: Colors.red,
+            icon: Icons.arrow_downward,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResumoCard({
+    required String title,
+    required double valor,
+    required Color cor,
+    required IconData icon,
+  }) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: cor, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'R\$${valor.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: cor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGraficoSection(LanguageService languageService) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              languageService.translate('resumo_mensal') ?? 'Resumo Mensal',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildGrafico(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoricoRecente(LanguageService languageService) {
+    final transacoesRecentes = historicoTransacoes.take(5).toList();
+    
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  languageService.translate('historico_recente') ?? 'Histórico Recente',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => _navigateToHistorico(context),
+                  child: Text(languageService.translate('ver_tudo') ?? 'Ver tudo'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...transacoesRecentes.map((transacao) => _buildItemHistorico(transacao)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemHistorico(Transacao transacao) {
+    return ListTile(
+      leading: Icon(
+        transacao.tipo == 'entrada' ? Icons.arrow_upward : Icons.arrow_downward,
+        color: transacao.tipo == 'entrada' ? Colors.green : Colors.red,
+      ),
+      title: Text(transacao.local),
+      subtitle: Text('${transacao.data.day}/${transacao.data.month}/${transacao.data.year}'),
+      trailing: Text(
+        'R\$${transacao.valor.toStringAsFixed(2)}',
+        style: TextStyle(
+          color: transacao.tipo == 'entrada' ? Colors.green : Colors.red,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
   // ------------------- MODAL: Alterar Valor -------------------
   void _mostrarModalAlterarValor() {
     final TextEditingController valorController = TextEditingController();
@@ -276,8 +544,8 @@ class _EconomicoState extends State<Economico> {
     showDialog(
       context: context,
       builder: (context) {
-        return Consumer<ThemeService>(
-          builder: (context, themeService, child) {
+        return Consumer2<ThemeService, LanguageService>(
+          builder: (context, themeService, languageService, child) {
             final cardColor = themeService.cardColor;
             final textColor = themeService.textColor;
             
@@ -289,7 +557,7 @@ class _EconomicoState extends State<Economico> {
                   padding: const EdgeInsets.all(16),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(
-                      'Adicionar Transação',
+                      languageService.translate('adicionar_transacao') ?? 'Adicionar Transação',
                       style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
@@ -297,7 +565,7 @@ class _EconomicoState extends State<Economico> {
                     // Campo Valor
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('Valor (R\$):',
+                      child: Text('${languageService.translate('valor') ?? 'Valor'} (R\$):',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -319,7 +587,7 @@ class _EconomicoState extends State<Economico> {
                     // Campo Local
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('Descrição:',
+                      child: Text('${languageService.translate('descricao') ?? 'Descrição'}:',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -327,7 +595,7 @@ class _EconomicoState extends State<Economico> {
                       controller: localController,
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
-                        hintText: 'Informe a descrição',
+                        hintText: languageService.translate('informe_descricao') ?? 'Informe a descrição',
                         hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
                         filled: true,
                         fillColor: themeService.backgroundColor.withOpacity(0.8),
@@ -340,7 +608,7 @@ class _EconomicoState extends State<Economico> {
                     // Seletor de Ação
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('Tipo:',
+                      child: Text('${languageService.translate('tipo') ?? 'Tipo'}:',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -354,15 +622,15 @@ class _EconomicoState extends State<Economico> {
                         dropdownColor: cardColor,
                         underline: const SizedBox(),
                         isExpanded: true,
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                               value: 'entrada',
-                              child: Text('Entrada (Renda)',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text('${languageService.translate('entrada') ?? 'Entrada'} (${languageService.translate('renda') ?? 'Renda'})',
+                                  style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'saida',
-                              child: Text('Saída (Gasto)',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text('${languageService.translate('saida') ?? 'Saída'} (${languageService.translate('gasto') ?? 'Gasto'})',
+                                  style: TextStyle(color: textColor))),
                         ],
                         onChanged: (v) => setState(() => acao = v ?? 'entrada'),
                       ),
@@ -373,7 +641,7 @@ class _EconomicoState extends State<Economico> {
                     // Seletor de Categoria
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('Categoria:',
+                      child: Text('${languageService.translate('categoria') ?? 'Categoria'}:',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -387,31 +655,31 @@ class _EconomicoState extends State<Economico> {
                         dropdownColor: cardColor,
                         underline: const SizedBox(),
                         isExpanded: true,
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                               value: 'alimentacao',
-                              child: Text('Alimentação',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text(languageService.translate('alimentacao') ?? 'Alimentação',
+                                  style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'transporte',
-                              child: Text('Transporte',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text(languageService.translate('transporte') ?? 'Transporte',
+                                  style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'lazer',
-                              child: Text('Lazer',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text(languageService.translate('lazer') ?? 'Lazer',
+                                  style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'saude',
-                              child: Text('Saúde',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text(languageService.translate('saude') ?? 'Saúde',
+                                  style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'educacao',
-                              child: Text('Educação',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text(languageService.translate('educacao') ?? 'Educação',
+                                  style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'outros',
-                              child: Text('Outros',
-                                  style: TextStyle(color: Colors.white))),
+                              child: Text(languageService.translate('outros') ?? 'Outros',
+                                  style: TextStyle(color: textColor))),
                         ],
                         onChanged: (v) => setState(() => categoria = v ?? 'outros'),
                       ),
@@ -429,8 +697,8 @@ class _EconomicoState extends State<Economico> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: const Text('Cancelar',
-                                style: TextStyle(color: Colors.white)),
+                            child: Text(languageService.translate('cancelar') ?? 'Cancelar',
+                                style: const TextStyle(color: Colors.white)),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -460,11 +728,11 @@ class _EconomicoState extends State<Economico> {
                                 });
                                 
                                 Navigator.pop(context);
-                                _mostrarModalConfirmacao();
+                                _mostrarModalConfirmacao(languageService);
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Preencha todos os campos corretamente'),
+                                  SnackBar(
+                                    content: Text(languageService.translate('preencha_campos') ?? 'Preencha todos os campos corretamente'),
                                     backgroundColor: Colors.red,
                                   ),
                                 );
@@ -476,8 +744,8 @@ class _EconomicoState extends State<Economico> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: const Text('Confirmar',
-                                style: TextStyle(color: Colors.white)),
+                            child: Text(languageService.translate('confirmar') ?? 'Confirmar',
+                                style: const TextStyle(color: Colors.white)),
                           ),
                         ),
                       ],
@@ -492,7 +760,7 @@ class _EconomicoState extends State<Economico> {
     );
   }
 
-  void _mostrarModalConfirmacao() {
+  void _mostrarModalConfirmacao(LanguageService languageService) {
     showDialog(
       context: context,
       builder: (context) {
@@ -509,7 +777,7 @@ class _EconomicoState extends State<Economico> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   const Icon(Icons.check_circle, color: Colors.green, size: 60),
                   const SizedBox(height: 12),
-                  Text('Transação adicionada!',
+                  Text(languageService.translate('transacao_adicionada') ?? 'Transação adicionada!',
                       style: TextStyle(
                           color: textColor,
                           fontSize: 18,
@@ -521,9 +789,9 @@ class _EconomicoState extends State<Economico> {
                         backgroundColor: ThemeService.primaryColor,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8))),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: Text('OK', style: TextStyle(color: Colors.white)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Text(languageService.translate('ok') ?? 'OK', style: const TextStyle(color: Colors.white)),
                     ),
                   ),
                 ]),
@@ -534,241 +802,4 @@ class _EconomicoState extends State<Economico> {
       },
     );
   }
-
-  Widget _buildGrafico() {
-    final meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-    
-    // Criar spots baseados nos valores mensais
-    final spots = List.generate(
-      meses.length,
-      (i) {
-        final valor = valoresMensais[meses[i]] ?? 0;
-        return FlSpot(i.toDouble(), valor);
-      },
-    );
-
-    return LineChart(
-      LineChartData(
-        minY: 0,
-        maxY: _calcularMaxY(),
-        titlesData: const FlTitlesData(show: false),
-        gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            barWidth: 3,
-            color: const Color(0xFF2E86C1),
-            dotData: const FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true, 
-              color: const Color(0x552E86C1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  double _calcularMaxY() {
-    if (valoresMensais.isEmpty) return 2000;
-    final maxValor = valoresMensais.values.reduce((a, b) => a > b ? a : b);
-    return maxValor * 1.2; // Adiciona 20% de margem
-  }
-
-  Widget _smallInfoBox(String title, String value, Color color, ThemeService themeService) {
-    return Column(
-      children: [
-        Text(title,
-            style: TextStyle(
-                color: color,
-                decoration: TextDecoration.underline,
-                fontWeight: FontWeight.bold)),
-        const SizedBox(height: 6),
-        Container(
-          width: 110,
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-          decoration: BoxDecoration(
-              color: themeService.cardColor,
-              borderRadius: BorderRadius.circular(12)),
-          child: Center(
-              child: Text(value,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: themeService.textColor,
-                  )),
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<ThemeService>(
-      builder: (context, themeService, child) {
-        return Scaffold(
-          backgroundColor: themeService.backgroundColor,
-          drawer: _buildDrawer(context, themeService),
-          appBar: AppBar(
-            backgroundColor: ThemeService.primaryColor,
-            centerTitle: true,
-            title: const Text('ECONÔMICO',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // Saldo e Valores
-              Row(children: [
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
-                    decoration: BoxDecoration(
-                        color: themeService.cardColor,
-                        borderRadius: BorderRadius.circular(12)),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Saldo', style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: themeService.textColor,
-                          )),
-                          const SizedBox(height: 6),
-                          Text('R\$ ${saldo.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, 
-                                  fontSize: 22,
-                                  color: saldo >= 0 ? Colors.green : Colors.red)),
-                          const SizedBox(height: 8),
-                          Container(height: 4, width: 120, color: ThemeService.primaryColor),
-                        ]),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('ENTRADA: R\$ ${renda.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                color: Colors.green, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 12),
-                        Text('SAÍDA: R\$ ${gastos.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                color: Colors.red, fontWeight: FontWeight.bold)),
-                      ]),
-                )
-              ]),
-              const SizedBox(height: 20),
-              
-              // Renda e Gastos
-              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _smallInfoBox('Renda', 'R\$ ${renda.toStringAsFixed(2)}', Colors.green, themeService),
-                _smallInfoBox('Gastos', 'R\$ ${gastos.toStringAsFixed(2)}', Colors.red, themeService),
-              ]),
-              const SizedBox(height: 20),
-              
-              // Gráfico e Tabela
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(flex: 2, child: SizedBox(height: 180, child: _buildGrafico())),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    children: valoresMensais.entries.map((e) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(e.key, style: TextStyle(color: themeService.textColor)),
-                              Text('R\$ ${e.value.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    color: e.value >= 0 ? Colors.green : Colors.red,
-                                  )),
-                            ]),
-                      );
-                    }).toList(),
-                  ),
-                )
-              ]),
-              const SizedBox(height: 25),
-              
-              // Botões
-              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                ElevatedButton(
-                  onPressed: () => _navigateToHistorico(context),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: ThemeService.primaryColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20))),
-                  child: const Text('Histórico',
-                      style: TextStyle(color: Colors.white)),
-                ),
-                ElevatedButton(
-                  onPressed: _mostrarModalAlterarValor,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: ThemeService.primaryColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20))),
-                  child: const Text('Nova Transação',
-                      style: TextStyle(color: Colors.white)),
-                ),
-              ]),
-              const SizedBox(height: 40),
-              
-              // Rodapé
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: ThemeService.primaryColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 22),
-                child: Column(
-                  children: const [
-                    Text("Organize suas tarefas de forma simples",
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
-                    SizedBox(height: 10),
-                    Text("© Todos os direitos reservados - 2025",
-                        style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
-                ),
-              ),
-            ]),
-          ),
-        );
-      },
-    );
-  }
-}
-
-// Modelo para as transações
-class Transacao {
-  final String id;
-  final double valor;
-  final String local;
-  final DateTime data;
-  final String tipo; // 'entrada' ou 'saida'
-  final String categoria;
-
-  Transacao({
-    required this.id,
-    required this.valor,
-    required this.local,
-    required this.data,
-    required this.tipo,
-    required this.categoria,
-  });
 }

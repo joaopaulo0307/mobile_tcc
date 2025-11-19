@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 // Serviços
 import './services/theme_service.dart';
 import './services/language_service.dart';
+import './services/formatting_service.dart'; // ✅ NOVO SERViÇO
 
 // Telas
 import './calendario/calendario.dart';
@@ -31,7 +32,7 @@ class _HomePageState extends State<HomePage> {
     return Consumer<ThemeService>(
       builder: (context, themeService, child) {
         return MaterialApp(
-          theme: themeService.themeData, // Aplica o tema globalmente
+          theme: themeService.themeData,
           home: Scaffold(
             key: _scaffoldKey,
             appBar: _buildAppBar(context, themeService),
@@ -45,6 +46,7 @@ class _HomePageState extends State<HomePage> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context, ThemeService themeService) {
     final languageService = Provider.of<LanguageService>(context, listen: false);
+    final formattingService = Provider.of<FormattingService>(context, listen: false); // ✅ NOVO
 
     return AppBar(
       leading: IconButton(
@@ -65,12 +67,18 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-          Text(
-            _getCurrentDate(context),
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
-            ),
+          Consumer2<LanguageService, FormattingService>(
+            builder: (context, languageService, formattingService, child) {
+              // ✅ USANDO FORMATTING SERVICE PARA DATA
+              final currentDate = formattingService.formatDate(DateTime.now());
+              return Text(
+                currentDate,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -180,19 +188,103 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBody(BuildContext context, ThemeService themeService) {
-    return Consumer<LanguageService>(
-      builder: (context, languageService, child) {
+    return Consumer2<LanguageService, FormattingService>(
+      builder: (context, languageService, formattingService, child) {
         return Container(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: Column(
             children: [
               _buildListaTarefas(context, languageService),
+              _buildResumoFinanceiro(context, languageService, formattingService), // ✅ NOVA SEÇÃO
               _buildSecaoOpcoes(context, languageService),
-              _buildFooter(context, languageService),
+              _buildFooter(context, languageService, formattingService), // ✅ ATUALIZADO
             ],
           ),
         );
       },
+    );
+  }
+
+  // ✅ NOVA SEÇÃO: RESUMO FINANCEIRO
+  Widget _buildResumoFinanceiro(BuildContext context, LanguageService languageService, FormattingService formattingService) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            languageService.translate('resumo_financeiro') ?? 'Resumo Financeiro',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildInfoFinanceira(
+                context: context,
+                label: languageService.translate('saldo') ?? 'Saldo',
+                value: formattingService.formatCurrency(2500.75), // ✅ MOEDA FORMATADA
+                icon: Icons.account_balance_wallet,
+                color: Colors.green,
+              ),
+              _buildInfoFinanceira(
+                context: context,
+                label: languageService.translate('despesas') ?? 'Despesas',
+                value: formattingService.formatCurrency(1250.30), // ✅ MOEDA FORMATADA
+                icon: Icons.money_off,
+                color: Colors.red,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoFinanceira({
+    required BuildContext context,
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 
@@ -210,16 +302,27 @@ class _HomePageState extends State<HomePage> {
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
               ),
               const SizedBox(height: 16),
-              Text(
-                languageService.translate('nenhuma_tarefa'),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                ),
+              Consumer<FormattingService>(
+                builder: (context, formattingService, child) {
+                  // ✅ EXEMPLO DE PLURALIZAÇÃO DINÂMICA
+                  final mensagemTarefas = formattingService.pluralize(
+                    languageService.translate('uma_tarefa') ?? 'uma tarefa',
+                    languageService.translate('varias_tarefas') ?? '{{count}} tarefas',
+                    0
+                  );
+                  
+                  return Text(
+                    mensagemTarefas,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 8),
               Text(
-                languageService.translate('adicione_tarefas'),
+                languageService.translate('adicione_tarefas') ?? 'Adicione tarefas para começar',
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
@@ -240,7 +343,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            languageService.translate('acesso_rapido'),
+            languageService.translate('acesso_rapido') ?? 'Acesso Rápido',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -258,22 +361,22 @@ class _HomePageState extends State<HomePage> {
     final opcoes = [
       {
         'icon': Icons.people,
-        'label': languageService.translate('usuarios'),
+        'label': languageService.translate('usuarios') ?? 'Usuários',
         'onTap': () => _navigateTo(context, const Usuarios()),
       },
       {
         'icon': Icons.attach_money,
-        'label': languageService.translate('economico'),
+        'label': languageService.translate('economico') ?? 'Econômico',
         'onTap': () => _navigateToEconomico(context),
       },
       {
         'icon': Icons.calendar_today,
-        'label': languageService.translate('calendario'),
+        'label': languageService.translate('calendario') ?? 'Calendário',
         'onTap': () => _navigateTo(context, const CalendarioPage()),
       },
       {
         'icon': Icons.house,
-        'label': languageService.translate('minhas_casas'),
+        'label': languageService.translate('minhas_casas') ?? 'Minhas Casas',
         'onTap': () => _navigateToHome(context),
       },
     ];
@@ -300,7 +403,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildFooter(BuildContext context, LanguageService languageService) {
+  Widget _buildFooter(BuildContext context, LanguageService languageService, FormattingService formattingService) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -309,16 +412,29 @@ class _HomePageState extends State<HomePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            languageService.translate('organize_tarefas'),
+            languageService.translate('organize_tarefas') ?? 'Organize suas tarefas de forma simples',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onPrimary, 
               fontSize: 14
             ),
             textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 6),
+          // ✅ DATA FORMATADA NO FOOTER
+          Consumer<FormattingService>(
+            builder: (context, formattingService, child) {
+              return Text(
+                formattingService.formatDate(DateTime.now()),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8), 
+                  fontSize: 12
+                ),
+              );
+            },
+          ),
           const SizedBox(height: 10),
           Text(
-            languageService.translate('direitos_reservados'),
+            languageService.translate('direitos_reservados') ?? 'Todos os direitos reservados',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7), 
               fontSize: 12
@@ -439,12 +555,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _navigateTo(BuildContext context, Widget page) {
-    Navigator.pop(context); // Fecha o drawer
+    Navigator.pop(context);
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
   void _navigateToEconomico(BuildContext context) {
-    Navigator.pop(context); // Fecha o drawer
+    Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -461,23 +577,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // ✅ MÉTODO ATUALIZADO USANDO FORMATTING SERVICE
   String _getCurrentDate(BuildContext context) {
-    final now = DateTime.now();
-    final languageService = Provider.of<LanguageService>(context, listen: false);
-    final locale = languageService.currentLocale;
-    
-    if (locale.languageCode == 'en') {
-      final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
-    } else if (locale.languageCode == 'es') {
-      final days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-      final months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-      return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
-    } else {
-      final days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      final months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
-    }
+    final formattingService = Provider.of<FormattingService>(context, listen: false);
+    return formattingService.formatDate(DateTime.now());
   }
 }

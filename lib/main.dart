@@ -10,6 +10,7 @@ import 'package:mobile_tcc/home.dart';
 import 'package:mobile_tcc/config.dart';
 import '../services/theme_service.dart';
 import '../services/language_service.dart';
+import '../services/formatting_service.dart'; // ✅ NOVO SERViÇO ADICIONADO
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => LanguageService()),
         ChangeNotifierProvider(create: (context) => ThemeService()),
+        Provider(create: (context) => FormattingService()), // ✅ NOVO PROVIDER
       ],
       child: const MyApp(),
     ),
@@ -41,7 +43,7 @@ class MyApp extends StatelessWidget {
       builder: (context, themeService, languageService, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: themeService.themeData, // Corrigido: usando a propriedade themeData
+          theme: themeService.themeData,
           locale: languageService.currentLocale,
           supportedLocales: const [
             Locale('pt', 'BR'),
@@ -71,7 +73,13 @@ class MyApp extends StatelessWidget {
                 return MaterialPageRoute(builder: (_) => const ConfigPage());
               default:
                 return MaterialPageRoute(builder: (_) => Scaffold(
-                  body: Center(child: Text('Rota não encontrada')),
+                  body: Center(
+                    child: Consumer<LanguageService>(
+                      builder: (context, languageService, child) {
+                        return Text(languageService.translate('route_not_found'));
+                      },
+                    ),
+                  ),
                 ));
             }
           },
@@ -97,7 +105,25 @@ class _LandingPageState extends State<LandingPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  // Métodos de validação simplificados
+  // ✅ EXEMPLOS DE USO DO NOVO FORMATTING SERVICE
+  void _exemplosFormatacao(BuildContext context) {
+    final formattingService = Provider.of<FormattingService>(context, listen: false);
+    final languageService = Provider.of<LanguageService>(context, listen: false);
+    
+    // Exemplos de uso:
+    final dataFormatada = formattingService.formatDate(DateTime.now());
+    final moedaFormatada = formattingService.formatCurrency(1500.50);
+    final plural = formattingService.pluralize(
+      languageService.translate('one_task'),
+      languageService.translate('many_tasks'),
+      5
+    );
+    
+    print('Data: $dataFormatada');
+    print('Moeda: $moedaFormatada');
+    print('Plural: $plural');
+  }
+
   String? _validarEmail(String? value) {
     if (value == null || value.isEmpty) return 'Por favor, insira seu email';
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
@@ -125,6 +151,9 @@ class _LandingPageState extends State<LandingPage> {
       if (!mounted) return;
 
       if (res['success']) {
+        // ✅ EXEMPLO DE USO NA PRÁTICA
+        _exemplosFormatacao(context);
+        
         Navigator.pushReplacementNamed(context, '/minhas_casas');
       } else {
         _mostrarErro(res['message']);
@@ -455,14 +484,22 @@ class _LandingPageState extends State<LandingPage> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       color: Colors.black.withOpacity(0.7),
-                      child: Consumer<LanguageService>(
-                        builder: (context, languageService, child) {
+                      child: Consumer2<LanguageService, FormattingService>(
+                        builder: (context, languageService, formattingService, child) {
+                          // ✅ EXEMPLO DE USO NO RODAPÉ
+                          final currentDate = formattingService.formatDate(DateTime.now());
+                          
                           return Column(
                             children: [
                               Text(
                                 languageService.translate('organize_tasks'),
                                 style: const TextStyle(color: Colors.white70, fontSize: 14),
                                 textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                currentDate, // ✅ DATA FORMATADA
+                                style: const TextStyle(color: Colors.white60, fontSize: 12),
                               ),
                               const SizedBox(height: 10),
                               Text(

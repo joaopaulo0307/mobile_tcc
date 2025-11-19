@@ -11,17 +11,14 @@ class MeuCasas extends StatefulWidget {
 }
 
 class _MeuCasasState extends State<MeuCasas> {
-  final List<Map<String, String>> _casas = [];
+  final List<Map<String, String>> _casas = []; // ✅ LISTA VAZIA INICIALMENTE
   final TextEditingController _nomeController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Adiciona uma casa de exemplo para teste
-    _casas.add({
-      'nome': 'Minha Casa',
-      'id': '1',
-    });
+    // ✅ REMOVIDA A CRIAÇÃO AUTOMÁTICA DE CASA
+    // A lista _casas começa vazia e só terá casas quando o usuário criar
   }
 
   void _entrarNaCasa(Map<String, String> casa) {
@@ -193,13 +190,11 @@ class _MeuCasasState extends State<MeuCasas> {
       context: context,
       builder: (context) {
         final themeService = Provider.of<ThemeService>(context, listen: false);
-        final backgroundColor = themeService.backgroundColor;
-        final cardColor = themeService.cardColor;
         final textColor = themeService.textColor;
         final primaryColor = ThemeService.primaryColor;
 
         return AlertDialog(
-          backgroundColor: cardColor,
+          backgroundColor: themeService.cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -236,6 +231,7 @@ class _MeuCasasState extends State<MeuCasas> {
                   ),
                 ),
                 textCapitalization: TextCapitalization.words,
+                autofocus: true, // ✅ FOCO AUTOMÁTICO NO CAMPO
               ),
             ],
           ),
@@ -275,29 +271,61 @@ class _MeuCasasState extends State<MeuCasas> {
     final nomeCasa = _nomeController.text.trim();
     
     if (nomeCasa.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.red,
-          content: Text('Por favor, insira um nome para a casa'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      _mostrarErro('Por favor, insira um nome para a casa');
       return;
     }
 
+    // ✅ VERIFICA SE JÁ EXISTE CASA COM MESMO NOME
+    final casaExistente = _casas.any((casa) => 
+      casa['nome']?.toLowerCase() == nomeCasa.toLowerCase()
+    );
+
+    if (casaExistente) {
+      _mostrarErro('Já existe uma casa com este nome');
+      return;
+    }
+
+    final novaCasa = {
+      'nome': nomeCasa,
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+    };
+
     setState(() {
-      _casas.add({
-        'nome': nomeCasa,
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      });
+      _casas.add(novaCasa);
     });
     
-    Navigator.pop(context);
+    Navigator.pop(context); // Fecha o dialog
     _limparCampos();
     
-    // Navegar para a Home após criar a casa
-    final casaCriada = _casas.last;
-    _entrarNaCasa(casaCriada);
+    // ✅ MOSTRA MENSAGEM DE SUCESSO E PERGUNTA SE QUER ENTRAR
+    _mostrarSucessoEContinuar(novaCasa);
+  }
+
+  void _mostrarSucessoEContinuar(Map<String, String> casa) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.green,
+        content: Text('Casa "${casa['nome']}" criada com sucesso!'),
+        duration: Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Entrar',
+          textColor: Colors.white,
+          onPressed: () {
+            _entrarNaCasa(casa);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _mostrarErro(String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.red,
+        content: Text(mensagem),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _limparCampos() {
@@ -331,14 +359,12 @@ class _MeuCasasState extends State<MeuCasas> {
           ),
           body: Column(
             children: [
-              // Lista de casas
+              // Lista de casas - ✅ AGORA COMEÇA VAZIA
               Expanded(
                 child: Container(
                   color: backgroundColor,
                   child: _casas.isEmpty
-                      ? _buildEmptyState(
-                          secondaryTextColor: secondaryTextColor,
-                        )
+                      ? _buildEmptyState(secondaryTextColor: secondaryTextColor)
                       : _buildListaCasas(
                           cardColor: cardColor,
                           textColor: textColor,

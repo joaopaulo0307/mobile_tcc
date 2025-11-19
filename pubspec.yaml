@@ -49,8 +49,8 @@ dependencies:
   table_calendar: ^3.0.9
   provider: ^6.1.1
   get: ^4.6.6
-  flutter_form_builder: ^9.3.0 
-  intl: ^0.19.0
+  flutter_form_builder: 10.2.0 
+  intl: ^0.20.0
   flutter_spinkit: ^5.2.0
 
   flutter_localizations:
