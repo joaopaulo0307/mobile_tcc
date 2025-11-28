@@ -7,7 +7,6 @@ import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/meu_casas.dart';
 import 'historico.dart';
-import '../services/language_service.dart';
 import '../services/theme_service.dart';
 
 // ✅ CLASSE Transacao ADICIONADA
@@ -170,69 +169,64 @@ class _EconomicoState extends State<Economico> {
   }
 
   Widget _buildDrawer(BuildContext context, ThemeService themeService) {
-    return Consumer<LanguageService>(
-      builder: (context, languageService, child) {
-        final backgroundColor = themeService.backgroundColor;
-        final textColor = themeService.textColor;
+    final backgroundColor = themeService.backgroundColor;
+    final textColor = themeService.textColor;
 
-        return Drawer(
-          backgroundColor: backgroundColor,
-          child: Column(
-            children: [
-              _buildDrawerHeader(themeService, languageService), // ✅ languageService adicionado
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildDrawerItem(
-                      icon: Icons.home,
-                      title: languageService.translate('home') ?? 'Home',
-                      textColor: textColor,
-                      onTap: () => _navigateToHome(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.history,
-                      title: languageService.translate('historico') ?? 'Histórico',
-                      textColor: textColor,
-                      onTap: () => _navigateToHistorico(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.people,
-                      title: languageService.translate('usuarios') ?? 'Usuários',
-                      textColor: textColor,
-                      onTap: () => _navigateToUsuarios(context),
-                    ),
-                    Divider(color: Colors.grey.withOpacity(0.3)),
-                    _buildDrawerItem(
-                      icon: Icons.house,
-                      title: languageService.translate('minhas_casas') ?? 'Minhas Casas',
-                      textColor: textColor,
-                      onTap: () => _navigateToMinhasCasas(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.person,
-                      title: languageService.translate('meu_perfil') ?? 'Meu Perfil',
-                      textColor: textColor,
-                      onTap: () => _navigateToPerfil(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.settings,
-                      title: languageService.translate('configuracoes') ?? 'Configurações',
-                      textColor: textColor,
-                      onTap: () => _navigateToConfig(context),
-                    ),
-                  ],
+    return Drawer(
+      backgroundColor: backgroundColor,
+      child: Column(
+        children: [
+          _buildDrawerHeader(themeService),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.home,
+                  title: 'Home',
+                  textColor: textColor,
+                  onTap: () => _navigateToHome(context),
                 ),
-              ),
-            ],
+                _buildDrawerItem(
+                  icon: Icons.history,
+                  title: 'Histórico',
+                  textColor: textColor,
+                  onTap: () => _navigateToHistorico(context),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.people,
+                  title: 'Usuários',
+                  textColor: textColor,
+                  onTap: () => _navigateToUsuarios(context),
+                ),
+                Divider(color: Colors.grey.withOpacity(0.3)),
+                _buildDrawerItem(
+                  icon: Icons.house,
+                  title: 'Minhas Casas',
+                  textColor: textColor,
+                  onTap: () => _navigateToMinhasCasas(context),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.person,
+                  title: 'Meu Perfil',
+                  textColor: textColor,
+                  onTap: () => _navigateToPerfil(context),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings,
+                  title: 'Configurações',
+                  textColor: textColor,
+                  onTap: () => _navigateToConfig(context),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  // ✅ CORREÇÃO: languageService adicionado como parâmetro
-  Widget _buildDrawerHeader(ThemeService themeService, LanguageService languageService) {
+  Widget _buildDrawerHeader(ThemeService themeService) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -262,10 +256,10 @@ class _EconomicoState extends State<Economico> {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              languageService.translate('usuario') ?? 'Usuário', // ✅ CORRIGIDO
+            const Text(
+              'Usuário',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white70,
                 fontSize: 14,
               ),
             ),
@@ -351,11 +345,11 @@ class _EconomicoState extends State<Economico> {
   // ✅ MÉTODO build ADICIONADO (estava faltando)
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ThemeService, LanguageService>(
-      builder: (context, themeService, languageService, child) {
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(languageService.translate('economico') ?? 'Econômico'),
+            title: const Text('Econômico'),
             backgroundColor: ThemeService.primaryColor,
             foregroundColor: Colors.white,
             actions: [
@@ -372,15 +366,15 @@ class _EconomicoState extends State<Economico> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Cards de Resumo
-                _buildResumoCards(languageService),
+                _buildResumoCards(),
                 const SizedBox(height: 24),
                 
                 // Gráfico
-                _buildGraficoSection(languageService),
+                _buildGraficoSection(),
                 const SizedBox(height: 24),
                 
                 // Histórico Recente
-                _buildHistoricoRecente(languageService),
+                _buildHistoricoRecente(),
               ],
             ),
           ),
@@ -389,12 +383,12 @@ class _EconomicoState extends State<Economico> {
     );
   }
 
-  Widget _buildResumoCards(LanguageService languageService) {
+  Widget _buildResumoCards() {
     return Row(
       children: [
         Expanded(
           child: _buildResumoCard(
-            title: languageService.translate('saldo') ?? 'Saldo',
+            title: 'Saldo',
             valor: saldo,
             cor: saldo >= 0 ? Colors.green : Colors.red,
             icon: Icons.account_balance_wallet,
@@ -403,7 +397,7 @@ class _EconomicoState extends State<Economico> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildResumoCard(
-            title: languageService.translate('receitas') ?? 'Receitas',
+            title: 'Receitas',
             valor: renda,
             cor: Colors.green,
             icon: Icons.arrow_upward,
@@ -412,7 +406,7 @@ class _EconomicoState extends State<Economico> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildResumoCard(
-            title: languageService.translate('despesas') ?? 'Despesas',
+            title: 'Despesas',
             valor: gastos,
             cor: Colors.red,
             icon: Icons.arrow_downward,
@@ -459,7 +453,7 @@ class _EconomicoState extends State<Economico> {
     );
   }
 
-  Widget _buildGraficoSection(LanguageService languageService) {
+  Widget _buildGraficoSection() {
     return Card(
       elevation: 2,
       child: Padding(
@@ -467,9 +461,9 @@ class _EconomicoState extends State<Economico> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              languageService.translate('resumo_mensal') ?? 'Resumo Mensal',
-              style: const TextStyle(
+            const Text(
+              'Resumo Mensal',
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -482,7 +476,7 @@ class _EconomicoState extends State<Economico> {
     );
   }
 
-  Widget _buildHistoricoRecente(LanguageService languageService) {
+  Widget _buildHistoricoRecente() {
     final transacoesRecentes = historicoTransacoes.take(5).toList();
     
     return Card(
@@ -494,9 +488,9 @@ class _EconomicoState extends State<Economico> {
           children: [
             Row(
               children: [
-                Text(
-                  languageService.translate('historico_recente') ?? 'Histórico Recente',
-                  style: const TextStyle(
+                const Text(
+                  'Histórico Recente',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -504,7 +498,7 @@ class _EconomicoState extends State<Economico> {
                 const Spacer(),
                 TextButton(
                   onPressed: () => _navigateToHistorico(context),
-                  child: Text(languageService.translate('ver_tudo') ?? 'Ver tudo'),
+                  child: const Text('Ver tudo'),
                 ),
               ],
             ),
@@ -544,8 +538,8 @@ class _EconomicoState extends State<Economico> {
     showDialog(
       context: context,
       builder: (context) {
-        return Consumer2<ThemeService, LanguageService>(
-          builder: (context, themeService, languageService, child) {
+        return Consumer<ThemeService>(
+          builder: (context, themeService, child) {
             final cardColor = themeService.cardColor;
             final textColor = themeService.textColor;
             
@@ -557,7 +551,7 @@ class _EconomicoState extends State<Economico> {
                   padding: const EdgeInsets.all(16),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(
-                      languageService.translate('adicionar_transacao') ?? 'Adicionar Transação',
+                      'Adicionar Transação',
                       style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
@@ -565,7 +559,7 @@ class _EconomicoState extends State<Economico> {
                     // Campo Valor
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('${languageService.translate('valor') ?? 'Valor'} (R\$):',
+                      child: Text('Valor (R\$):',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -587,7 +581,7 @@ class _EconomicoState extends State<Economico> {
                     // Campo Local
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('${languageService.translate('descricao') ?? 'Descrição'}:',
+                      child: Text('Descrição:',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -595,7 +589,7 @@ class _EconomicoState extends State<Economico> {
                       controller: localController,
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
-                        hintText: languageService.translate('informe_descricao') ?? 'Informe a descrição',
+                        hintText: 'Informe a descrição',
                         hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
                         filled: true,
                         fillColor: themeService.backgroundColor.withOpacity(0.8),
@@ -608,7 +602,7 @@ class _EconomicoState extends State<Economico> {
                     // Seletor de Ação
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('${languageService.translate('tipo') ?? 'Tipo'}:',
+                      child: Text('Tipo:',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -625,11 +619,11 @@ class _EconomicoState extends State<Economico> {
                         items: [
                           DropdownMenuItem(
                               value: 'entrada',
-                              child: Text('${languageService.translate('entrada') ?? 'Entrada'} (${languageService.translate('renda') ?? 'Renda'})',
+                              child: Text('Entrada (Renda)',
                                   style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'saida',
-                              child: Text('${languageService.translate('saida') ?? 'Saída'} (${languageService.translate('gasto') ?? 'Gasto'})',
+                              child: Text('Saída (Gasto)',
                                   style: TextStyle(color: textColor))),
                         ],
                         onChanged: (v) => setState(() => acao = v ?? 'entrada'),
@@ -641,7 +635,7 @@ class _EconomicoState extends State<Economico> {
                     // Seletor de Categoria
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('${languageService.translate('categoria') ?? 'Categoria'}:',
+                      child: Text('Categoria:',
                           style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
@@ -658,27 +652,27 @@ class _EconomicoState extends State<Economico> {
                         items: [
                           DropdownMenuItem(
                               value: 'alimentacao',
-                              child: Text(languageService.translate('alimentacao') ?? 'Alimentação',
+                              child: Text('Alimentação',
                                   style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'transporte',
-                              child: Text(languageService.translate('transporte') ?? 'Transporte',
+                              child: Text('Transporte',
                                   style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'lazer',
-                              child: Text(languageService.translate('lazer') ?? 'Lazer',
+                              child: Text('Lazer',
                                   style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'saude',
-                              child: Text(languageService.translate('saude') ?? 'Saúde',
+                              child: Text('Saúde',
                                   style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'educacao',
-                              child: Text(languageService.translate('educacao') ?? 'Educação',
+                              child: Text('Educação',
                                   style: TextStyle(color: textColor))),
                           DropdownMenuItem(
                               value: 'outros',
-                              child: Text(languageService.translate('outros') ?? 'Outros',
+                              child: Text('Outros',
                                   style: TextStyle(color: textColor))),
                         ],
                         onChanged: (v) => setState(() => categoria = v ?? 'outros'),
@@ -697,8 +691,8 @@ class _EconomicoState extends State<Economico> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text(languageService.translate('cancelar') ?? 'Cancelar',
-                                style: const TextStyle(color: Colors.white)),
+                            child: const Text('Cancelar',
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -728,11 +722,11 @@ class _EconomicoState extends State<Economico> {
                                 });
                                 
                                 Navigator.pop(context);
-                                _mostrarModalConfirmacao(languageService);
+                                _mostrarModalConfirmacao();
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(languageService.translate('preencha_campos') ?? 'Preencha todos os campos corretamente'),
+                                  const SnackBar(
+                                    content: Text('Preencha todos os campos corretamente'),
                                     backgroundColor: Colors.red,
                                   ),
                                 );
@@ -744,8 +738,8 @@ class _EconomicoState extends State<Economico> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text(languageService.translate('confirmar') ?? 'Confirmar',
-                                style: const TextStyle(color: Colors.white)),
+                            child: const Text('Confirmar',
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ),
                       ],
@@ -760,7 +754,7 @@ class _EconomicoState extends State<Economico> {
     );
   }
 
-  void _mostrarModalConfirmacao(LanguageService languageService) {
+  void _mostrarModalConfirmacao() {
     showDialog(
       context: context,
       builder: (context) {
@@ -777,9 +771,9 @@ class _EconomicoState extends State<Economico> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   const Icon(Icons.check_circle, color: Colors.green, size: 60),
                   const SizedBox(height: 12),
-                  Text(languageService.translate('transacao_adicionada') ?? 'Transação adicionada!',
+                  const Text('Transação adicionada!',
                       style: TextStyle(
-                          color: textColor,
+                          color: Colors.black,
                           fontSize: 18,
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
@@ -789,9 +783,9 @@ class _EconomicoState extends State<Economico> {
                         backgroundColor: ThemeService.primaryColor,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8))),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: Text(languageService.translate('ok') ?? 'OK', style: const TextStyle(color: Colors.white)),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Text('OK', style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ]),

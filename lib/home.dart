@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 // Serviços
 import './services/theme_service.dart';
-import './services/language_service.dart';
 import './services/formatting_service.dart'; // ✅ NOVO SERViÇO
 
 // Telas
@@ -45,8 +44,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, ThemeService themeService) {
-    final languageService = Provider.of<LanguageService>(context, listen: false);
-    final formattingService = Provider.of<FormattingService>(context, listen: false); // ✅ NOVO
+    final formattingService = Provider.of<FormattingService>(context, listen: false);
 
     return AppBar(
       leading: IconButton(
@@ -56,19 +54,15 @@ class _HomePageState extends State<HomePage> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer<LanguageService>(
-            builder: (context, languageService, child) {
-              return Text(
-                '${languageService.translate('ola')} $_userName',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              );
-            },
+          Text(
+            'Olá $_userName',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Consumer2<LanguageService, FormattingService>(
-            builder: (context, languageService, formattingService, child) {
+          Consumer<FormattingService>(
+            builder: (context, formattingService, child) {
               // ✅ USANDO FORMATTING SERVICE PARA DATA
               final currentDate = formattingService.formatDate(DateTime.now());
               return Text(
@@ -83,121 +77,80 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       actions: [
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.language),
-          onSelected: (value) {
-            languageService.changeLanguageByCode(value);
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'pt',
-              child: Row(
-                children: [
-                  Icon(Icons.language, color: Theme.of(context).primaryColor),
-                  const SizedBox(width: 8),
-                  Text('Português'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'en',
-              child: Row(
-                children: [
-                  Icon(Icons.language, color: Theme.of(context).primaryColor),
-                  const SizedBox(width: 8),
-                  Text('English'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'es',
-              child: Row(
-                children: [
-                  Icon(Icons.language, color: Theme.of(context).primaryColor),
-                  const SizedBox(width: 8),
-                  Text('Español'),
-                ],
-              ),
-            ),
-          ],
-        ),
+        // Removido o seletor de idioma
       ],
     );
   }
 
   Widget _buildDrawer(BuildContext context, ThemeService themeService) {
-    return Consumer<LanguageService>(
-      builder: (context, languageService, child) {
-        final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
-        final textColor = Theme.of(context).colorScheme.onSurface;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = Theme.of(context).colorScheme.onSurface;
 
-        return Drawer(
-          backgroundColor: backgroundColor,
-          child: Column(
-            children: [
-              _buildDrawerHeader(context),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildDrawerItem(
-                      icon: Icons.attach_money,
-                      title: languageService.translate('economico'),
-                      textColor: textColor,
-                      onTap: () => _navigateToEconomico(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.calendar_today,
-                      title: languageService.translate('calendario'),
-                      textColor: textColor,
-                      onTap: () => _navigateTo(context, const CalendarioPage()),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.people,
-                      title: languageService.translate('usuarios'),
-                      textColor: textColor,
-                      onTap: () => _navigateTo(context, const Usuarios()),
-                    ),
-                    Divider(color: Theme.of(context).dividerColor),
-                    _buildDrawerItem(
-                      icon: Icons.house,
-                      title: languageService.translate('minhas_casas'),
-                      textColor: textColor,
-                      onTap: () => _navigateToHome(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.person,
-                      title: languageService.translate('meu_perfil'),
-                      textColor: textColor,
-                      onTap: () => _navigateTo(context, const PerfilPage()),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.settings,
-                      title: languageService.translate('configuracoes'),
-                      textColor: textColor,
-                      onTap: () => _navigateTo(context, const ConfigPage()),
-                    ),
-                  ],
+    return Drawer(
+      backgroundColor: backgroundColor,
+      child: Column(
+        children: [
+          _buildDrawerHeader(context),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.attach_money,
+                  title: 'Econômico',
+                  textColor: textColor,
+                  onTap: () => _navigateToEconomico(context),
                 ),
-              ),
-            ],
+                _buildDrawerItem(
+                  icon: Icons.calendar_today,
+                  title: 'Calendário',
+                  textColor: textColor,
+                  onTap: () => _navigateTo(context, const CalendarioPage()),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.people,
+                  title: 'Usuários',
+                  textColor: textColor,
+                  onTap: () => _navigateTo(context, const Usuarios()),
+                ),
+                Divider(color: Theme.of(context).dividerColor),
+                _buildDrawerItem(
+                  icon: Icons.house,
+                  title: 'Minhas Casas',
+                  textColor: textColor,
+                  onTap: () => _navigateToHome(context),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.person,
+                  title: 'Meu Perfil',
+                  textColor: textColor,
+                  onTap: () => _navigateTo(context, const PerfilPage()),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings,
+                  title: 'Configurações',
+                  textColor: textColor,
+                  onTap: () => _navigateTo(context, const ConfigPage()),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
   Widget _buildBody(BuildContext context, ThemeService themeService) {
-    return Consumer2<LanguageService, FormattingService>(
-      builder: (context, languageService, formattingService, child) {
+    return Consumer<FormattingService>(
+      builder: (context, formattingService, child) {
         return Container(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: Column(
             children: [
-              _buildListaTarefas(context, languageService),
-              _buildResumoFinanceiro(context, languageService, formattingService), // ✅ NOVA SEÇÃO
-              _buildSecaoOpcoes(context, languageService),
-              _buildFooter(context, languageService, formattingService), // ✅ ATUALIZADO
+              _buildListaTarefas(context),
+              _buildResumoFinanceiro(context, formattingService), // ✅ NOVA SEÇÃO
+              _buildSecaoOpcoes(context),
+              _buildFooter(context, formattingService), // ✅ ATUALIZADO
             ],
           ),
         );
@@ -206,7 +159,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ✅ NOVA SEÇÃO: RESUMO FINANCEIRO
-  Widget _buildResumoFinanceiro(BuildContext context, LanguageService languageService, FormattingService formattingService) {
+  Widget _buildResumoFinanceiro(BuildContext context, FormattingService formattingService) {
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -225,7 +178,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            languageService.translate('resumo_financeiro') ?? 'Resumo Financeiro',
+            'Resumo Financeiro',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -238,14 +191,14 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildInfoFinanceira(
                 context: context,
-                label: languageService.translate('saldo') ?? 'Saldo',
+                label: 'Saldo',
                 value: formattingService.formatCurrency(2500.75), // ✅ MOEDA FORMATADA
                 icon: Icons.account_balance_wallet,
                 color: Colors.green,
               ),
               _buildInfoFinanceira(
                 context: context,
-                label: languageService.translate('despesas') ?? 'Despesas',
+                label: 'Despesas',
                 value: formattingService.formatCurrency(1250.30), // ✅ MOEDA FORMATADA
                 icon: Icons.money_off,
                 color: Colors.red,
@@ -288,7 +241,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildListaTarefas(BuildContext context, LanguageService languageService) {
+  Widget _buildListaTarefas(BuildContext context) {
     return Expanded(
       child: Container(
         color: Theme.of(context).scaffoldBackgroundColor,
@@ -306,8 +259,8 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, formattingService, child) {
                   // ✅ EXEMPLO DE PLURALIZAÇÃO DINÂMICA
                   final mensagemTarefas = formattingService.pluralize(
-                    languageService.translate('uma_tarefa') ?? 'uma tarefa',
-                    languageService.translate('varias_tarefas') ?? '{{count}} tarefas',
+                    'uma tarefa',
+                    '{{count}} tarefas',
                     0
                   );
                   
@@ -322,7 +275,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 8),
               Text(
-                languageService.translate('adicione_tarefas') ?? 'Adicione tarefas para começar',
+                'Adicione tarefas para começar',
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
@@ -335,7 +288,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSecaoOpcoes(BuildContext context, LanguageService languageService) {
+  Widget _buildSecaoOpcoes(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Theme.of(context).scaffoldBackgroundColor,
@@ -343,7 +296,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            languageService.translate('acesso_rapido') ?? 'Acesso Rápido',
+            'Acesso Rápido',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -351,32 +304,32 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildGridOpcoes(context, languageService),
+          _buildGridOpcoes(context),
         ],
       ),
     );
   }
 
-  Widget _buildGridOpcoes(BuildContext context, LanguageService languageService) {
+  Widget _buildGridOpcoes(BuildContext context) {
     final opcoes = [
       {
         'icon': Icons.people,
-        'label': languageService.translate('usuarios') ?? 'Usuários',
+        'label': 'Usuários',
         'onTap': () => _navigateTo(context, const Usuarios()),
       },
       {
         'icon': Icons.attach_money,
-        'label': languageService.translate('economico') ?? 'Econômico',
+        'label': 'Econômico',
         'onTap': () => _navigateToEconomico(context),
       },
       {
         'icon': Icons.calendar_today,
-        'label': languageService.translate('calendario') ?? 'Calendário',
+        'label': 'Calendário',
         'onTap': () => _navigateTo(context, const CalendarioPage()),
       },
       {
         'icon': Icons.house,
-        'label': languageService.translate('minhas_casas') ?? 'Minhas Casas',
+        'label': 'Minhas Casas',
         'onTap': () => _navigateToHome(context),
       },
     ];
@@ -403,7 +356,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildFooter(BuildContext context, LanguageService languageService, FormattingService formattingService) {
+  Widget _buildFooter(BuildContext context, FormattingService formattingService) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -412,7 +365,7 @@ class _HomePageState extends State<HomePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            languageService.translate('organize_tarefas') ?? 'Organize suas tarefas de forma simples',
+            'Organize suas tarefas de forma simples',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onPrimary, 
               fontSize: 14
@@ -434,7 +387,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 10),
           Text(
-            languageService.translate('direitos_reservados') ?? 'Todos os direitos reservados',
+            'Todos os direitos reservados',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7), 
               fontSize: 12

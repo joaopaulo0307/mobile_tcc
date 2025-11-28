@@ -1,10 +1,17 @@
-// currency_formatter_service.dart
+import 'package:intl/intl.dart';
+
 class CurrencyFormatterService {
   String formatCurrency(double value) {
-    // Especializado em moedas
+    return NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    ).format(value);
   }
-  
+
   String formatCompactCurrency(double value) {
-    // Formatação compacta (ex: 1.5K)
+    return NumberFormat.compactCurrency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    ).format(value);
   }
 }

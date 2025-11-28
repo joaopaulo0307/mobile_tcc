@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_service.dart';
-import '../services/language_service.dart'; 
 import '../home.dart'; 
 import '../meu_casas.dart'; 
 import '../perfil.dart';
@@ -58,69 +57,65 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== DRAWER ====================
   Widget _buildDrawer(BuildContext context) {
-    return Consumer2<ThemeService, LanguageService>(
-      builder: (context, themeService, languageService, child) {
-        final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
-        final textColor = Theme.of(context).colorScheme.onSurface;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = Theme.of(context).colorScheme.onSurface;
 
-        return Drawer(
-          backgroundColor: backgroundColor,
-          child: Column(
-            children: [
-              _buildDrawerHeader(context, languageService),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildDrawerItem(
-                      icon: Icons.attach_money,
-                      title: languageService.translate('economico') ?? 'Econômico',
-                      textColor: textColor,
-                      onTap: () => _navigateToEconomico(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.calendar_today,
-                      title: languageService.translate('calendario') ?? 'Calendário',
-                      textColor: textColor,
-                      onTap: () => _navigateTo(context, const CalendarioPage()),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.people,
-                      title: languageService.translate('usuarios') ?? 'Usuários',
-                      textColor: textColor,
-                      onTap: () => Navigator.pop(context),
-                      isSelected: true,
-                    ),
-                    Divider(color: Theme.of(context).dividerColor),
-                    _buildDrawerItem(
-                      icon: Icons.house,
-                      title: languageService.translate('minhas_casas') ?? 'Minhas Casas',
-                      textColor: textColor,
-                      onTap: () => _navigateToHome(context),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.person,
-                      title: languageService.translate('meu_perfil') ?? 'Meu Perfil',
-                      textColor: textColor,
-                      onTap: () => _navigateTo(context, const PerfilPage()),
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.settings,
-                      title: languageService.translate('configuracoes') ?? 'Configurações',
-                      textColor: textColor,
-                      onTap: () => _navigateTo(context, const ConfigPage()),
-                    ),
-                  ],
+    return Drawer(
+      backgroundColor: backgroundColor,
+      child: Column(
+        children: [
+          _buildDrawerHeader(context),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.attach_money,
+                  title: 'Econômico',
+                  textColor: textColor,
+                  onTap: () => _navigateToEconomico(context),
                 ),
-              ),
-            ],
+                _buildDrawerItem(
+                  icon: Icons.calendar_today,
+                  title: 'Calendário',
+                  textColor: textColor,
+                  onTap: () => _navigateTo(context, const CalendarioPage()),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.people,
+                  title: 'Usuários',
+                  textColor: textColor,
+                  onTap: () => Navigator.pop(context),
+                  isSelected: true,
+                ),
+                Divider(color: Theme.of(context).dividerColor),
+                _buildDrawerItem(
+                  icon: Icons.house,
+                  title: 'Minhas Casas',
+                  textColor: textColor,
+                  onTap: () => _navigateToHome(context),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.person,
+                  title: 'Meu Perfil',
+                  textColor: textColor,
+                  onTap: () => _navigateTo(context, const PerfilPage()),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings,
+                  title: 'Configurações',
+                  textColor: textColor,
+                  onTap: () => _navigateTo(context, const ConfigPage()),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Widget _buildDrawerHeader(BuildContext context, LanguageService languageService) {
+  Widget _buildDrawerHeader(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -141,19 +136,19 @@ class _UsuariosState extends State<Usuarios> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              languageService.translate('membros') ?? 'Membros',
+            const Text(
+              'Membros',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              languageService.translate('administracao_usuarios') ?? 'Administração de Usuários',
+            const Text(
+              'Administração de Usuários',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
+                color: Colors.white70,
                 fontSize: 14,
               ),
             ),
@@ -186,104 +181,55 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== APP BAR ====================
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return Consumer<LanguageService>(
-      builder: (context, languageService, child) {
-        return AppBar(
-          backgroundColor: ThemeService.primaryColor,
-          leading: IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                languageService.translate('membros') ?? 'Membros',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                // ✅ CORREÇÃO: Versão simplificada sem translateWithParams
-                _membros.isEmpty 
-                  ? (languageService.translate('nenhum_membro') ?? 'Nenhum membro')
-                  : '${_membros.length} ${languageService.translate('membros') ?? 'membros'}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withOpacity(0.8),
-                ),
-              ),
-            ],
-          ),
-          centerTitle: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search, color: Colors.white),
-              onPressed: () => _showSearchDialog(context, languageService),
+    return AppBar(
+      backgroundColor: ThemeService.primaryColor,
+      leading: IconButton(
+        icon: const Icon(Icons.menu, color: Colors.white),
+        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+      ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Membros',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.language, color: Colors.white),
-              onSelected: (value) {
-                if (value == 'pt') {
-                  languageService.setLocale(const Locale('pt', 'BR'));
-                } else if (value == 'en') {
-                  languageService.setLocale(const Locale('en', 'US'));
-                } else if (value == 'es') {
-                  languageService.setLocale(const Locale('es', 'ES'));
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'pt',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.language, color: Colors.green),
-                      const SizedBox(width: 8),
-                      const Text('Português'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'en',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.language, color: Colors.blue),
-                      const SizedBox(width: 8),
-                      const Text('English'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'es',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.language, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      const Text('Español'),
-                    ],
-                  ),
-                ),
-              ],
+          ),
+          Text(
+            _membros.isEmpty 
+              ? 'Nenhum membro'
+              : '${_membros.length} membros',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.8),
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
+      centerTitle: false,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search, color: Colors.white),
+          onPressed: () => _showSearchDialog(context),
+        ),
+      ],
     );
   }
 
   // ==================== BARRA DE PESQUISA ====================
-  void _showSearchDialog(BuildContext context, LanguageService languageService) {
+  void _showSearchDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(languageService.translate('pesquisar') ?? 'Pesquisar'),
+        title: const Text('Pesquisar'),
         content: TextField(
           controller: _searchController,
-          decoration: InputDecoration(
-            hintText: languageService.translate('pesquisar_membros') ?? 'Pesquisar membros...',
-            prefixIcon: const Icon(Icons.search),
+          decoration: const InputDecoration(
+            hintText: 'Pesquisar membros...',
+            prefixIcon: Icon(Icons.search),
           ),
           onChanged: (value) {
             setState(() {
@@ -300,11 +246,11 @@ class _UsuariosState extends State<Usuarios> {
               });
               Navigator.pop(context);
             },
-            child: Text(languageService.translate('limpar') ?? 'Limpar'),
+            child: const Text('Limpar'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('fechar') ?? 'Fechar'),
+            child: const Text('Fechar'),
           ),
         ],
       ),
@@ -321,13 +267,11 @@ class _UsuariosState extends State<Usuarios> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final languageService = Provider.of<LanguageService>(context, listen: false);
-        
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text(
-            languageService.translate('adicionar_membro') ?? 'Adicionar Membro',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          title: const Text(
+            'Adicionar Membro',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -335,25 +279,25 @@ class _UsuariosState extends State<Usuarios> {
               children: [
                 _buildTextField(
                   controller: nomeController,
-                  label: languageService.translate('nome') ?? 'Nome',
+                  label: 'Nome',
                   isRequired: true,
                 ),
                 const SizedBox(height: 12),
                 _buildTextField(
                   controller: emailController,
-                  label: languageService.translate('email') ?? 'E-mail',
+                  label: 'E-mail',
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 12),
                 _buildTextField(
                   controller: telefoneController,
-                  label: languageService.translate('telefone') ?? 'Telefone',
+                  label: 'Telefone',
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
                 _buildTextField(
                   controller: descricaoController,
-                  label: languageService.translate('descricao') ?? 'Descrição',
+                  label: 'Descrição',
                   maxLines: 3,
                 ),
               ],
@@ -362,7 +306,7 @@ class _UsuariosState extends State<Usuarios> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(languageService.translate('cancelar') ?? 'Cancelar'),
+              child: const Text('Cancelar'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -378,14 +322,14 @@ class _UsuariosState extends State<Usuarios> {
                     });
                   });
                   Navigator.of(context).pop();
-                  _showSuccessMessage(context, languageService);
+                  _showSuccessMessage(context);
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeService.primaryColor,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: Text(languageService.translate('confirmar') ?? 'Confirmar'),
+              child: const Text('Confirmar'),
             ),
           ],
         );
@@ -418,7 +362,6 @@ class _UsuariosState extends State<Usuarios> {
   // ==================== MODAL DETALHES DO MEMBRO ====================
   void _showMemberDetailsModal(int index, BuildContext context) {
     final membro = _filteredMembros[index];
-    final languageService = Provider.of<LanguageService>(context, listen: false);
 
     showDialog(
       context: context,
@@ -440,7 +383,7 @@ class _UsuariosState extends State<Usuarios> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('fechar') ?? 'Fechar'),
+            child: const Text('Fechar'),
           ),
         ],
       ),
@@ -462,57 +405,51 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== LISTA DE MEMBROS ====================
   Widget _buildListaMembros(BuildContext context) {
-    return Consumer<LanguageService>(
-      builder: (context, languageService, child) {
-        return Expanded(
-          child: Container(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: _filteredMembros.isEmpty
-                ? _buildEmptyState(languageService: languageService)
-                : Column(
-                    children: [
-                      // ✅ CONTADOR DE RESULTADOS (CORRIGIDO)
-                      if (_searchQuery.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Row(
-                            children: [
-                              Icon(Icons.search, size: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-                              const SizedBox(width: 8),
-                              Text(
-                                // ✅ CORREÇÃO: Texto simples sem translateWithParams
-                                '${_filteredMembros.length} resultados encontrados',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+    return Expanded(
+      child: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: _filteredMembros.isEmpty
+            ? _buildEmptyState()
+            : Column(
+                children: [
+                  // ✅ CONTADOR DE RESULTADOS
+                  if (_searchQuery.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.search, size: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${_filteredMembros.length} resultados encontrados',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                      // ✅ LISTA DE MEMBROS
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _filteredMembros.length,
-                          itemBuilder: (context, index) {
-                            return _buildMembroItem(
-                              membro: _filteredMembros[index],
-                              index: index,
-                              languageService: languageService,
-                            );
-                          },
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
+                  // ✅ LISTA DE MEMBROS
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _filteredMembros.length,
+                      itemBuilder: (context, index) {
+                        return _buildMembroItem(
+                          membro: _filteredMembros[index],
+                          index: index,
+                        );
+                      },
+                    ),
                   ),
-          ),
-        );
-      },
+                ],
+              ),
+      ),
     );
   }
 
-  Widget _buildEmptyState({required LanguageService languageService}) {
+  Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -524,7 +461,7 @@ class _UsuariosState extends State<Usuarios> {
           ),
           const SizedBox(height: 16),
           Text(
-            languageService.translate('nenhum_membro_cadastrado') ?? 'Nenhum membro cadastrado',
+            'Nenhum membro cadastrado',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
               fontSize: 16,
@@ -532,7 +469,7 @@ class _UsuariosState extends State<Usuarios> {
           ),
           const SizedBox(height: 8),
           Text(
-            languageService.translate('clique_adicionar_membro') ?? 'Clique em "+ Add Membro" para adicionar',
+            'Clique em "+ Add Membro" para adicionar',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
               fontSize: 14,
@@ -547,7 +484,6 @@ class _UsuariosState extends State<Usuarios> {
   Widget _buildMembroItem({
     required Map<String, String> membro,
     required int index,
-    required LanguageService languageService,
   }) {
     return Card(
       elevation: 2,
@@ -606,33 +542,33 @@ class _UsuariosState extends State<Usuarios> {
             }
           },
           itemBuilder: (context) => [
-            PopupMenuItem(
+            const PopupMenuItem(
               value: 'details',
               child: Row(
                 children: [
-                  const Icon(Icons.info, size: 18),
-                  const SizedBox(width: 8),
-                  Text(languageService.translate('detalhes') ?? 'Detalhes'),
+                  Icon(Icons.info, size: 18),
+                  SizedBox(width: 8),
+                  Text('Detalhes'),
                 ],
               ),
             ),
-            PopupMenuItem(
+            const PopupMenuItem(
               value: 'edit',
               child: Row(
                 children: [
-                  const Icon(Icons.edit, size: 18),
-                  const SizedBox(width: 8),
-                  Text(languageService.translate('editar') ?? 'Editar'),
+                  Icon(Icons.edit, size: 18),
+                  SizedBox(width: 8),
+                  Text('Editar'),
                 ],
               ),
             ),
-            PopupMenuItem(
+            const PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
-                  const Icon(Icons.delete, color: Colors.red, size: 18),
-                  const SizedBox(width: 8),
-                  Text(languageService.translate('excluir') ?? 'Excluir'),
+                  Icon(Icons.delete, color: Colors.red, size: 18),
+                  SizedBox(width: 8),
+                  Text('Excluir'),
                 ],
               ),
             ),
@@ -645,85 +581,80 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== BOTÕES DE AÇÃO ====================
   Widget _buildBotoesAcao(BuildContext context) {
-    return Consumer<LanguageService>(
-      builder: (context, languageService, child) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: Row(
-            children: [
-              // ✅ BOTÃO ADICIONAR MEMBRO
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _showAddMemberModal(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeService.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  icon: const Icon(Icons.add, color: Colors.white, size: 20),
-                  label: Text(
-                    languageService.translate('adicionar_membro') ?? '+ Add Membro',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Row(
+        children: [
+          // ✅ BOTÃO ADICIONAR MEMBRO
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _showAddMemberModal(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeService.primaryColor,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              const SizedBox(width: 12),
-              // ✅ BOTÃO EXPORTAR
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _membros.isEmpty ? null : () => _exportMembers(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: ThemeService.primaryColor,
-                    side: BorderSide(color: ThemeService.primaryColor),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  icon: const Icon(Icons.file_download, size: 20),
-                  label: Text(
-                    languageService.translate('exportar') ?? 'Exportar',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
+              icon: const Icon(Icons.add, color: Colors.white, size: 20),
+              label: const Text(
+                '+ Add Membro',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
-            ],
+            ),
           ),
-        );
-      },
+          const SizedBox(width: 12),
+          // ✅ BOTÃO EXPORTAR
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _membros.isEmpty ? null : () => _exportMembers(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: ThemeService.primaryColor,
+                side: BorderSide(color: ThemeService.primaryColor),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.file_download, size: 20),
+              label: const Text(
+                'Exportar',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   // ==================== MODAL REMOVER MEMBRO ====================
   void _showRemoveMemberModal(int index, BuildContext context) {
     final membro = _filteredMembros[index];
-    final languageService = Provider.of<LanguageService>(context, listen: false);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text(
-            languageService.translate('remover_membro') ?? 'Remover Membro',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          title: const Text(
+            'Remover Membro',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${languageService.translate('nome') ?? 'Nome'}: ${membro['nome']}',
+                'Nome: ${membro['nome']}',
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
               if (membro['descricao']!.isNotEmpty)
                 Text(
-                  '${languageService.translate('descricao') ?? 'Descrição'}: ${membro['descricao']}',
+                  'Descrição: ${membro['descricao']}',
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8)),
                 ),
               const SizedBox(height: 16),
               Text(
-                languageService.translate('confirmar_exclusao') ?? 'Tem certeza que deseja remover este membro?',
+                'Tem certeza que deseja remover este membro?',
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 14),
               ),
             ],
@@ -731,7 +662,7 @@ class _UsuariosState extends State<Usuarios> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(languageService.translate('cancelar') ?? 'Cancelar'),
+              child: const Text('Cancelar'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -742,13 +673,13 @@ class _UsuariosState extends State<Usuarios> {
                   });
                 }
                 Navigator.of(context).pop();
-                _showSuccessMessage(context, languageService, isDelete: true);
+                _showSuccessMessage(context, isDelete: true);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: Text(languageService.translate('remover') ?? 'Remover'),
+              child: const Text('Remover'),
             ),
           ],
         );
@@ -757,12 +688,12 @@ class _UsuariosState extends State<Usuarios> {
   }
 
   // ==================== MENSAGENS DE SUCESSO ====================
-  void _showSuccessMessage(BuildContext context, LanguageService languageService, {bool isDelete = false}) {
+  void _showSuccessMessage(BuildContext context, {bool isDelete = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(isDelete
-            ? languageService.translate('membro_removido_sucesso') ?? 'Membro removido com sucesso!'
-            : languageService.translate('membro_adicionado_sucesso') ?? 'Membro adicionado com sucesso!'
+            ? 'Membro removido com sucesso!'
+            : 'Membro adicionado com sucesso!'
         ),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
@@ -772,11 +703,9 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== EXPORTAR MEMBROS ====================
   void _exportMembers(BuildContext context) {
-    final languageService = Provider.of<LanguageService>(context, listen: false);
-    
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(languageService.translate('exportando_membros') ?? 'Exportando lista de membros...'),
+      const SnackBar(
+        content: Text('Exportando lista de membros...'),
         backgroundColor: Colors.blue,
       ),
     );
@@ -784,30 +713,26 @@ class _UsuariosState extends State<Usuarios> {
 
   // ==================== FOOTER ====================
   Widget _buildFooter(BuildContext context) {
-    return Consumer<LanguageService>(
-      builder: (context, languageService, child) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          color: ThemeService.primaryColor,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                languageService.translate('organize_tarefas') ?? "Organize suas tarefas de forma simples",
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                languageService.translate('direitos_reservados') ?? "© Todos os direitos reservados - 2025",
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-                textAlign: TextAlign.center,
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      color: ThemeService.primaryColor,
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Organize suas tarefas de forma simples",
+            style: TextStyle(color: Colors.white, fontSize: 14),
+            textAlign: TextAlign.center,
           ),
-        );
-      },
+          SizedBox(height: 10),
+          Text(
+            "© Todos os direitos reservados - 2025",
+            style: TextStyle(color: Colors.white70, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 

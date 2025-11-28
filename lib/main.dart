@@ -9,7 +9,6 @@ import '../acesso/esqueci_senha.dart';
 import 'package:mobile_tcc/home.dart';
 import 'package:mobile_tcc/config.dart';
 import '../services/theme_service.dart';
-import '../services/language_service.dart';
 import '../services/formatting_service.dart'; // ✅ NOVO SERViÇO ADICIONADO
 
 void main() async {
@@ -25,7 +24,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => LanguageService()),
         ChangeNotifierProvider(create: (context) => ThemeService()),
         Provider(create: (context) => FormattingService()), // ✅ NOVO PROVIDER
       ],
@@ -39,17 +37,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ThemeService, LanguageService>(
-      builder: (context, themeService, languageService, child) {
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: themeService.themeData,
-          locale: languageService.currentLocale,
-          supportedLocales: const [
-            Locale('pt', 'BR'),
-            Locale('en', 'US'),
-            Locale('es', 'ES'),
-          ],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -74,11 +66,7 @@ class MyApp extends StatelessWidget {
               default:
                 return MaterialPageRoute(builder: (_) => Scaffold(
                   body: Center(
-                    child: Consumer<LanguageService>(
-                      builder: (context, languageService, child) {
-                        return Text(languageService.translate('route_not_found'));
-                      },
-                    ),
+                    child: Text('Página não encontrada'),
                   ),
                 ));
             }
@@ -108,20 +96,13 @@ class _LandingPageState extends State<LandingPage> {
   // ✅ EXEMPLOS DE USO DO NOVO FORMATTING SERVICE
   void _exemplosFormatacao(BuildContext context) {
     final formattingService = Provider.of<FormattingService>(context, listen: false);
-    final languageService = Provider.of<LanguageService>(context, listen: false);
     
     // Exemplos de uso:
     final dataFormatada = formattingService.formatDate(DateTime.now());
     final moedaFormatada = formattingService.formatCurrency(1500.50);
-    final plural = formattingService.pluralize(
-      languageService.translate('one_task'),
-      languageService.translate('many_tasks'),
-      5
-    );
     
     print('Data: $dataFormatada');
     print('Moeda: $moedaFormatada');
-    print('Plural: $plural');
   }
 
   String? _validarEmail(String? value) {
@@ -212,53 +193,6 @@ class _LandingPageState extends State<LandingPage> {
                             child: Text("TD", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           ),
                           const SizedBox(width: 12),
-                          // Seletor de idioma
-                          Consumer<LanguageService>(
-                            builder: (context, languageService, child) {
-                              return PopupMenuButton<String>(
-                                icon: const Icon(Icons.language, color: Colors.white),
-                                onSelected: (String languageCode) {
-                                  final parts = languageCode.split('_');
-                                  languageService.setLocale(Locale(parts[0], parts[1]));
-                                },
-                                itemBuilder: (BuildContext context) {
-                                  return [
-                                    PopupMenuItem(
-                                      value: 'pt_BR',
-                                      child: Row(
-                                        children: [
-                                          const Text('Português (BR)'),
-                                          if (languageService.currentLocale.languageCode == 'pt')
-                                            const Icon(Icons.check, color: Colors.green, size: 16),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'en_US',
-                                      child: Row(
-                                        children: [
-                                          const Text('English (US)'),
-                                          if (languageService.currentLocale.languageCode == 'en')
-                                            const Icon(Icons.check, color: Colors.green, size: 16),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'es_ES',
-                                      child: Row(
-                                        children: [
-                                          const Text('Español'),
-                                          if (languageService.currentLocale.languageCode == 'es')
-                                            const Icon(Icons.check, color: Colors.green, size: 16),
-                                        ],
-                                      ),
-                                    ),
-                                  ];
-                                },
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 12),
                           // Botão para alternar tema
                           IconButton(
                             icon: Icon(
@@ -295,19 +229,15 @@ class _LandingPageState extends State<LandingPage> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
-                                      // Título "LOGIN" com tradução
-                                      Consumer<LanguageService>(
-                                        builder: (context, languageService, child) {
-                                          return Text(
-                                            languageService.translate('login'),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          );
-                                        },
+                                      // Título "LOGIN"
+                                      const Text(
+                                        'LOGIN',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
                                       ),
                                       const SizedBox(height: 30),
                                       
@@ -315,13 +245,9 @@ class _LandingPageState extends State<LandingPage> {
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Consumer<LanguageService>(
-                                            builder: (context, languageService, child) {
-                                              return Text(
-                                                languageService.translate('email'),
-                                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                                              );
-                                            },
+                                          const Text(
+                                            'Email',
+                                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 8),
                                           TextFormField(
@@ -356,13 +282,9 @@ class _LandingPageState extends State<LandingPage> {
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Consumer<LanguageService>(
-                                            builder: (context, languageService, child) {
-                                              return Text(
-                                                languageService.translate('password'),
-                                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                                              );
-                                            },
+                                          const Text(
+                                            'Senha',
+                                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 8),
                                           TextFormField(
@@ -402,73 +324,65 @@ class _LandingPageState extends State<LandingPage> {
                                       const SizedBox(height: 12),
                                       
                                       // Link Esqueceu a senha
-                                      Consumer<LanguageService>(
-                                        builder: (context, languageService, child) {
-                                          return GestureDetector(
-                                            onTap: () => Navigator.pushNamed(context, '/esqueci_senha'),
-                                            child: Text(
-                                              languageService.translate('forgot_password'),
-                                              style: TextStyle(
-                                                color: ThemeService.primaryColor.withOpacity(0.8), 
-                                                fontSize: 14, 
-                                                decoration: TextDecoration.underline
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          );
-                                        },
+                                      GestureDetector(
+                                        onTap: () => Navigator.pushNamed(context, '/esqueci_senha'),
+                                        child: const Text(
+                                          'Esqueceu a senha?',
+                                          style: TextStyle(
+                                            color: Colors.white, 
+                                            fontSize: 14, 
+                                            decoration: TextDecoration.underline
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
                                       const SizedBox(height: 30),
                                       
                                       // Botões
-                                      Consumer<LanguageService>(
-                                        builder: (context, languageService, child) {
-                                          return Row(
-                                            children: [
-                                              Expanded(
-                                                child: OutlinedButton(
-                                                  onPressed: () => Navigator.pushNamed(context, '/cadastro'),
-                                                  style: OutlinedButton.styleFrom(
-                                                    foregroundColor: Colors.white,
-                                                    side: const BorderSide(color: Colors.white),
-                                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                                  ),
-                                                  child: Text(
-                                                    languageService.translate('sign_up').toUpperCase(), 
-                                                    style: const TextStyle(fontWeight: FontWeight.bold)
-                                                  ),
-                                                ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: OutlinedButton(
+                                              onPressed: () => Navigator.pushNamed(context, '/cadastro'),
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor: Colors.white,
+                                                side: const BorderSide(color: Colors.white),
+                                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                               ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: ElevatedButton(
-                                                  onPressed: _isLoading ? null : _fazerLogin,
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: ThemeService.primaryColor,
-                                                    foregroundColor: Colors.white,
-                                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                                    disabledBackgroundColor: ThemeService.primaryColor.withOpacity(0.5),
-                                                  ),
-                                                  child: _isLoading
-                                                      ? const SizedBox(
-                                                          height: 20, 
-                                                          width: 20, 
-                                                          child: CircularProgressIndicator(
-                                                            strokeWidth: 2, 
-                                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white)
-                                                          )
-                                                        )
-                                                      : Text(
-                                                          languageService.translate('enter').toUpperCase(), 
-                                                          style: const TextStyle(fontWeight: FontWeight.bold)
-                                                        ),
-                                                ),
+                                              child: const Text(
+                                                'CADASTRAR', 
+                                                style: TextStyle(fontWeight: FontWeight.bold)
                                               ),
-                                            ],
-                                          );
-                                        },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: ElevatedButton(
+                                              onPressed: _isLoading ? null : _fazerLogin,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: ThemeService.primaryColor,
+                                                foregroundColor: Colors.white,
+                                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                disabledBackgroundColor: ThemeService.primaryColor.withOpacity(0.5),
+                                              ),
+                                              child: _isLoading
+                                                  ? const SizedBox(
+                                                      height: 20, 
+                                                      width: 20, 
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2, 
+                                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white)
+                                                      )
+                                                    )
+                                                  : const Text(
+                                                      'ENTRAR', 
+                                                      style: TextStyle(fontWeight: FontWeight.bold)
+                                                    ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -484,16 +398,16 @@ class _LandingPageState extends State<LandingPage> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       color: Colors.black.withOpacity(0.7),
-                      child: Consumer2<LanguageService, FormattingService>(
-                        builder: (context, languageService, formattingService, child) {
+                      child: Consumer<FormattingService>(
+                        builder: (context, formattingService, child) {
                           // ✅ EXEMPLO DE USO NO RODAPÉ
                           final currentDate = formattingService.formatDate(DateTime.now());
                           
                           return Column(
                             children: [
-                              Text(
-                                languageService.translate('organize_tasks'),
-                                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                              const Text(
+                                'Organize suas tarefas de forma simples e eficiente',
+                                style: TextStyle(color: Colors.white70, fontSize: 14),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 6),
@@ -502,9 +416,9 @@ class _LandingPageState extends State<LandingPage> {
                                 style: const TextStyle(color: Colors.white60, fontSize: 12),
                               ),
                               const SizedBox(height: 10),
-                              Text(
-                                languageService.translate('rights_reserved'),
-                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              const Text(
+                                '© 2025 TaskDomus. Todos os direitos reservados.',
+                                style: TextStyle(color: Colors.white70, fontSize: 12),
                                 textAlign: TextAlign.center,
                               ),
                             ],

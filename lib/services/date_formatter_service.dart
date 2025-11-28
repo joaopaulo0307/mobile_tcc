@@ -1,10 +1,11 @@
-// date_formatter_service.dart
+import 'package:intl/intl.dart';
+
 class DateFormatterService {
   String formatDate(DateTime date) {
-    // Especializado apenas em datas
+    return DateFormat('dd/MM/yyyy').format(date);
   }
-  
+
   String formatTime(DateTime time) {
-    // Formatação de horas
+    return DateFormat('HH:mm').format(time);
   }
 }

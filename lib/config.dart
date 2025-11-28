@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../services/theme_service.dart';
-import '../services/language_service.dart';
+import 'package:mobile_tcc/services/theme_service.dart';
 import 'package:provider/provider.dart';
 
 class ConfigPage extends StatefulWidget {
@@ -20,11 +19,7 @@ class _ConfigPageState extends State<ConfigPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Consumer<LanguageService>(
-          builder: (context, languageService, child) {
-            return Text(languageService.translate('configuracoes') ?? 'Configurações');
-          },
-        ),
+        title: const Text('Configurações'),
         backgroundColor: ThemeService.primaryColor,
         foregroundColor: Colors.white,
       ),
@@ -33,56 +28,50 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   Widget _buildContent(BuildContext context) {
-    return Consumer2<ThemeService, LanguageService>(
-      builder: (context, themeService, languageService, child) {
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // ✅ SEÇÃO: PREFERÊNCIAS DO USUÁRIO
-            _buildSectionTitle('preferencias', themeService, languageService),
-            _buildThemeSwitch(themeService, languageService),
-            _buildNotificationSwitch(themeService, languageService),
-            _buildBiometricSwitch(themeService, languageService),
-            _buildAutoSyncSwitch(themeService, languageService),
-            const SizedBox(height: 8),
-            const Divider(),
-            
-            // ✅ SEÇÃO IDIOMA
-            _buildSectionTitle('idioma', themeService, languageService),
-            _buildLanguageTile(context, themeService, languageService),
+            _buildSectionTitle('Preferências'),
+            _buildThemeSwitch(themeService),
+            _buildNotificationSwitch(themeService),
+            _buildBiometricSwitch(themeService),
+            _buildAutoSyncSwitch(themeService),
             const SizedBox(height: 8),
             const Divider(),
 
             // ✅ SEÇÃO: PRIVACIDADE E SEGURANÇA
-            _buildSectionTitle('privacidade_seguranca', themeService, languageService),
-            _buildPrivacyTile(context, themeService, languageService),
-            _buildSecurityTile(context, themeService, languageService),
+            _buildSectionTitle('Privacidade & Segurança'),
+            _buildPrivacyTile(context, themeService),
+            _buildSecurityTile(context, themeService),
             const SizedBox(height: 8),
             const Divider(),
 
             // ✅ SEÇÃO SOBRE
-            _buildSectionTitle('sobre', themeService, languageService),
-            _buildAppInfo(themeService, languageService),
-            _buildRateAppTile(themeService, languageService),
-            _buildShareAppTile(themeService, languageService),
+            _buildSectionTitle('Sobre'),
+            _buildAppInfo(themeService),
+            _buildRateAppTile(themeService),
+            _buildShareAppTile(themeService),
             const SizedBox(height: 32),
 
             // ✅ BOTÕES DE AÇÃO
-            _buildActionButtons(context, themeService, languageService),
+            _buildActionButtons(context, themeService),
             
             // ✅ RODAPÉ COM INFORMAÇÕES ADICIONAIS
-            _buildFooter(themeService, languageService),
+            _buildFooter(context),
           ],
         );
       },
     );
   }
 
-  Widget _buildSectionTitle(String titleKey, ThemeService themeService, LanguageService languageService) {
+  Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Text(
-        languageService.translate(titleKey) ?? _getDefaultTitle(titleKey),
+        title,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -92,29 +81,15 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
-  String _getDefaultTitle(String key) {
-    switch (key) {
-      case 'preferencias': return 'Preferências';
-      case 'idioma': return 'Idioma';
-      case 'privacidade_seguranca': return 'Privacidade & Segurança';
-      case 'sobre': return 'Sobre';
-      default: return key;
-    }
-  }
-
   // ✅ SWITCH DO TEMA ATUALIZADO
-  Widget _buildThemeSwitch(ThemeService themeService, LanguageService languageService) {
+  Widget _buildThemeSwitch(ThemeService themeService) {
     return ListTile(
       leading: Icon(
         themeService.isDarkMode ? Icons.dark_mode : Icons.light_mode,
         color: ThemeService.primaryColor,
       ),
-      title: Text(themeService.isDarkMode ? 
-        languageService.translate('modo_escuro') ?? 'Modo Escuro' : 
-        languageService.translate('modo_claro') ?? 'Modo Claro'),
-      subtitle: Text(themeService.isDarkMode ? 
-        languageService.translate('tema_escuro_ativado') ?? 'Tema escuro ativado' : 
-        languageService.translate('tema_claro_ativado') ?? 'Tema claro ativado'),
+      title: Text(themeService.isDarkMode ? 'Modo Escuro' : 'Modo Claro'),
+      subtitle: Text(themeService.isDarkMode ? 'Tema escuro ativado' : 'Tema claro ativado'),
       trailing: Switch(
         value: themeService.isDarkMode,
         onChanged: (value) {
@@ -127,13 +102,11 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   // ✅ SWITCH: NOTIFICAÇÕES
-  Widget _buildNotificationSwitch(ThemeService themeService, LanguageService languageService) {
+  Widget _buildNotificationSwitch(ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.notifications, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('notificacoes') ?? 'Notificações'),
-      subtitle: Text(_notificationsEnabled ? 
-        languageService.translate('notificacoes_ativas') ?? 'Notificações ativas' : 
-        languageService.translate('notificacoes_inativas') ?? 'Notificações inativas'),
+      title: const Text('Notificações'),
+      subtitle: Text(_notificationsEnabled ? 'Notificações ativas' : 'Notificações inativas'),
       trailing: Switch(
         value: _notificationsEnabled,
         onChanged: (value) {
@@ -148,13 +121,11 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   // ✅ SWITCH: BIOMETRIA
-  Widget _buildBiometricSwitch(ThemeService themeService, LanguageService languageService) {
+  Widget _buildBiometricSwitch(ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.fingerprint, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('biometria') ?? 'Biometria'),
-      subtitle: Text(_biometricEnabled ? 
-        languageService.translate('biometria_ativa') ?? 'Biometria ativa' : 
-        languageService.translate('biometria_inativa') ?? 'Biometria inativa'),
+      title: const Text('Biometria'),
+      subtitle: Text(_biometricEnabled ? 'Biometria ativa' : 'Biometria inativa'),
       trailing: Switch(
         value: _biometricEnabled,
         onChanged: (value) {
@@ -169,13 +140,11 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   // ✅ SWITCH: SINCRONIZAÇÃO AUTOMÁTICA
-  Widget _buildAutoSyncSwitch(ThemeService themeService, LanguageService languageService) {
+  Widget _buildAutoSyncSwitch(ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.sync, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('sincronizacao_auto') ?? 'Sincronização Automática'),
-      subtitle: Text(_autoSyncEnabled ? 
-        languageService.translate('sinc_auto_ativa') ?? 'Sincronização automática ativa' : 
-        languageService.translate('sinc_auto_inativa') ?? 'Sincronização automática inativa'),
+      title: const Text('Sincronização Automática'),
+      subtitle: Text(_autoSyncEnabled ? 'Sincronização automática ativa' : 'Sincronização automática inativa'),
       trailing: Switch(
         value: _autoSyncEnabled,
         onChanged: (value) {
@@ -189,82 +158,59 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
-  Widget _buildLanguageTile(BuildContext context, ThemeService themeService, LanguageService languageService) {
-    String getCurrentLanguageName() {
-      switch (languageService.currentLocale.languageCode) {
-        case 'pt':
-          return languageService.translate('portugues') ?? 'Português (Brasil)';
-        case 'en':
-          return languageService.translate('ingles') ?? 'English (US)';
-        case 'es':
-          return languageService.translate('espanhol') ?? 'Español';
-        default:
-          return languageService.translate('portugues') ?? 'Português (Brasil)';
-      }
-    }
-
-    return ListTile(
-      leading: Icon(Icons.language, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('idioma') ?? 'Idioma'),
-      subtitle: Text(getCurrentLanguageName()),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () => _showLanguageOptions(context, languageService),
-    );
-  }
-
   // ✅ OPÇÃO: PRIVACIDADE
-  Widget _buildPrivacyTile(BuildContext context, ThemeService themeService, LanguageService languageService) {
+  Widget _buildPrivacyTile(BuildContext context, ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.privacy_tip, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('privacidade') ?? 'Privacidade'),
-      subtitle: Text(languageService.translate('config_privacidade') ?? 'Configurar privacidade'),
+      title: const Text('Privacidade'),
+      subtitle: const Text('Configurar privacidade'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () => _showPrivacyOptions(context, languageService),
+      onTap: () => _showPrivacyOptions(context),
     );
   }
 
   // ✅ OPÇÃO: SEGURANÇA
-  Widget _buildSecurityTile(BuildContext context, ThemeService themeService, LanguageService languageService) {
+  Widget _buildSecurityTile(BuildContext context, ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.security, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('seguranca') ?? 'Segurança'),
-      subtitle: Text(languageService.translate('config_seguranca') ?? 'Configurar segurança'),
+      title: const Text('Segurança'),
+      subtitle: const Text('Configurar segurança'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () => _showSecurityOptions(context, languageService),
+      onTap: () => _showSecurityOptions(context),
     );
   }
 
-  Widget _buildAppInfo(ThemeService themeService, LanguageService languageService) {
+  Widget _buildAppInfo(ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.info, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('versao_app') ?? 'Versão do App'),
+      title: const Text('Versão do App'),
       subtitle: const Text('1.0.0'),
     );
   }
 
   // ✅ OPÇÃO: AVALIAR APP
-  Widget _buildRateAppTile(ThemeService themeService, LanguageService languageService) {
+  Widget _buildRateAppTile(ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.star, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('avaliar_app') ?? 'Avaliar App'),
-      subtitle: Text(languageService.translate('avaliar_na_loja') ?? 'Avaliar na loja de aplicativos'),
+      title: const Text('Avaliar App'),
+      subtitle: const Text('Avaliar na loja de aplicativos'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () => _rateApp(context, languageService),
+      onTap: () => _rateApp(context),
     );
   }
 
   // ✅ OPÇÃO: COMPARTILHAR APP
-  Widget _buildShareAppTile(ThemeService themeService, LanguageService languageService) {
+  Widget _buildShareAppTile(ThemeService themeService) {
     return ListTile(
       leading: Icon(Icons.share, color: ThemeService.primaryColor),
-      title: Text(languageService.translate('compartilhar_app') ?? 'Compartilhar App'),
-      subtitle: Text(languageService.translate('compartilhar_amigos') ?? 'Compartilhar com amigos'),
+      title: const Text('Compartilhar App'),
+      subtitle: const Text('Compartilhar com amigos'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () => _shareApp(context, languageService),
+      onTap: () => _shareApp(context),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, ThemeService themeService, LanguageService languageService) {
+  Widget _buildActionButtons(BuildContext context, ThemeService themeService) {
     return Column(
       children: [
         ElevatedButton(
@@ -277,17 +223,17 @@ class _ConfigPageState extends State<ConfigPage> {
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 50),
           ),
-          child: Text(languageService.translate('alternar_tema') ?? 'ALTERNAR TEMA AGORA'),
+          child: const Text('ALTERNAR TEMA AGORA'),
         ),
         const SizedBox(height: 12),
         OutlinedButton(
-          onPressed: () => _showResetDialog(context, languageService),
+          onPressed: () => _showResetDialog(context),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.red,
             side: const BorderSide(color: Colors.red),
             minimumSize: const Size(double.infinity, 50),
           ),
-          child: Text(languageService.translate('redefinir_config') ?? 'REDEFINIR CONFIGURAÇÕES'),
+          child: const Text('REDEFINIR CONFIGURAÇÕES'),
         ),
         const SizedBox(height: 12),
         OutlinedButton(
@@ -297,24 +243,24 @@ class _ConfigPageState extends State<ConfigPage> {
             side: BorderSide(color: ThemeService.primaryColor),
             minimumSize: const Size(double.infinity, 50),
           ),
-          child: Text(languageService.translate('voltar') ?? 'VOLTAR'),
+          child: const Text('VOLTAR'),
         ),
       ],
     );
   }
 
   // ✅ FOOTER
-  Widget _buildFooter(ThemeService themeService, LanguageService languageService) {
+  Widget _buildFooter(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           const Divider(),
           const SizedBox(height: 16),
-          Text(
-            languageService.translate('direitos_reservados') ?? '© Todos os direitos reservados - 2025',
+          const Text(
+            '© Todos os direitos reservados - 2025',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Colors.grey,
               fontSize: 12,
             ),
             textAlign: TextAlign.center,
@@ -323,7 +269,7 @@ class _ConfigPageState extends State<ConfigPage> {
           Text(
             'TaskDomus v1.0.0',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+              color: Colors.grey.withOpacity(0.6),
               fontSize: 10,
             ),
           ),
@@ -332,194 +278,67 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
-  // ✅ MÉTODO _showLanguageOptions CORRIGIDO E MELHORADO
-  void _showLanguageOptions(BuildContext context, LanguageService languageService) {
-    final languages = [
-      {
-        'name': languageService.translate('portugues') ?? 'Português (Brasil)',
-        'code': 'pt',
-        'locale': const Locale('pt', 'BR'),
-        'flag': '🇧🇷'
-      },
-      {
-        'name': languageService.translate('ingles') ?? 'English (US)',
-        'code': 'en', 
-        'locale': const Locale('en', 'US'),
-        'flag': '🇺🇸'
-      },
-      {
-        'name': languageService.translate('espanhol') ?? 'Español',
-        'code': 'es',
-        'locale': const Locale('es', 'ES'),
-        'flag': '🇪🇸'
-      },
-    ];
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(languageService.translate('selecionar_idioma') ?? 'Selecionar Idioma'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: languages.map((language) {
-              final bool isSelected = languageService.currentLocale.languageCode == language['code'];
-              
-              return ListTile(
-                leading: Text(
-                  language['flag'] ?? '🏳️', 
-                  style: const TextStyle(fontSize: 24)
-                ),
-                title: Text(language['name'] ?? 'Idioma'),
-                trailing: isSelected 
-                    ? Icon(Icons.check_circle, color: ThemeService.primaryColor)
-                    : null,
-                onTap: () {
-                  // ✅ CORREÇÃO: Verificação segura do locale
-                  final locale = language['locale'];
-                  if (locale != null && locale is Locale) {
-                    languageService.setLocale(locale);
-                  }
-                  Navigator.pop(context);
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${languageService.translate('idioma_alterado') ?? 'Idioma alterado para'} ${language['name'] ?? ''}'
-                      ),
-                      backgroundColor: Colors.green,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-              );
-            }).toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('fechar') ?? 'FECHAR'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ✅ MÉTODO ALTERNATIVO MAIS SEGURO PARA SELEÇÃO DE IDIOMA
-  void _showLanguageOptionsAlternative(BuildContext context, LanguageService languageService) {
-    // ✅ Usando o método do LanguageService que já está corrigido
-    final languages = languageService.getLanguagesWithFlags();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(languageService.translate('selecionar_idioma') ?? 'Selecionar Idioma'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: languages.map((language) {
-              final isSelected = languageService.currentLocale.languageCode == language['code'];
-              
-              return ListTile(
-                leading: Text(
-                  language['flag'] ?? '',// ✅ Agora pode usar ! porque temos certeza
-                  style: TextStyle(fontSize: 24)
-                ),
-                title: Text(language['name'] ?? 'Idioma'),
-                trailing: isSelected 
-                    ? Icon(Icons.check_circle, color: ThemeService.primaryColor)
-                    : null,
-                onTap: () {
-                
-                  languageService.changeLanguageByCode(language['code']!);
-                  Navigator.pop(context);
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${languageService.translate('idioma_alterado') ?? 'Idioma alterado para'} ${language['name']}'
-                      ),
-                      backgroundColor: Colors.green,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-              );
-            }).toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('fechar') ?? 'FECHAR'),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ✅ MÉTODOS PARA AS NOVAS FUNCIONALIDADES
-  void _showPrivacyOptions(BuildContext context, LanguageService languageService) {
+  void _showPrivacyOptions(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(languageService.translate('privacidade') ?? 'Privacidade'),
-        content: Text(languageService.translate('em_desenvolvimento') ?? 'Funcionalidade em desenvolvimento...'),
+        title: const Text('Privacidade'),
+        content: const Text('Funcionalidade em desenvolvimento...'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('fechar') ?? 'FECHAR'),
+            child: const Text('FECHAR'),
           ),
         ],
       ),
     );
   }
 
-  void _showSecurityOptions(BuildContext context, LanguageService languageService) {
+  void _showSecurityOptions(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(languageService.translate('seguranca') ?? 'Segurança'),
-        content: Text(languageService.translate('em_desenvolvimento') ?? 'Funcionalidade em desenvolvimento...'),
+        title: const Text('Segurança'),
+        content: const Text('Funcionalidade em desenvolvimento...'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('fechar') ?? 'FECHAR'),
+            child: const Text('FECHAR'),
           ),
         ],
       ),
     );
   }
 
-  void _rateApp(BuildContext context, LanguageService languageService) {
+  void _rateApp(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(languageService.translate('abrindo_loja') ?? 'Abrindo loja de aplicativos...'),
+      const SnackBar(
+        content: Text('Abrindo loja de aplicativos...'),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  void _shareApp(BuildContext context, LanguageService languageService) {
+  void _shareApp(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(languageService.translate('compartilhando_app') ?? 'Compartilhando aplicativo...'),
+      const SnackBar(
+        content: Text('Compartilhando aplicativo...'),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  void _showResetDialog(BuildContext context, LanguageService languageService) {
+  void _showResetDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(languageService.translate('redefinir_config') ?? 'Redefinir Configurações'),
-        content: Text(languageService.translate('confirmar_redefinir') ?? 'Tem certeza que deseja redefinir todas as configurações para os padrões?'),
+        title: const Text('Redefinir Configurações'),
+        content: const Text('Tem certeza que deseja redefinir todas as configurações para os padrões?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('cancelar') ?? 'CANCELAR'),
+            child: const Text('CANCELAR'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -531,43 +350,13 @@ class _ConfigPageState extends State<ConfigPage> {
               });
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(languageService.translate('config_redefinidas') ?? 'Configurações redefinidas com sucesso!'),
+                const SnackBar(
+                  content: Text('Configurações redefinidas com sucesso!'),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: Text(languageService.translate('redefinir') ?? 'REDEFINIR'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ✅ NOVO MÉTODO: Limpar cache (opcional)
-  void _clearCache(BuildContext context, LanguageService languageService) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(languageService.translate('limpar_cache') ?? 'Limpar Cache'),
-        content: Text(languageService.translate('confirmar_limpar_cache') ?? 'Tem certeza que deseja limpar o cache do aplicativo?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(languageService.translate('cancelar') ?? 'CANCELAR'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(languageService.translate('cache_limpo') ?? 'Cache limpo com sucesso!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            child: Text(languageService.translate('limpar') ?? 'LIMPAR'),
+            child: const Text('REDEFINIR'),
           ),
         ],
       ),
