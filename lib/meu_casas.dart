@@ -11,14 +11,12 @@ class MeuCasas extends StatefulWidget {
 }
 
 class _MeuCasasState extends State<MeuCasas> {
-  final List<Map<String, String>> _casas = []; // ✅ LISTA VAZIA INICIALMENTE
+  final List<Map<String, String>> _casas = []; 
   final TextEditingController _nomeController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // ✅ REMOVIDA A CRIAÇÃO AUTOMÁTICA DE CASA
-    // A lista _casas começa vazia e só terá casas quando o usuário criar
   }
 
   void _entrarNaCasa(Map<String, String> casa) {
@@ -67,118 +65,135 @@ class _MeuCasasState extends State<MeuCasas> {
 
   Widget _buildCasaItem({
     required Map<String, String> casa,
-    required int index,
-    required Color cardColor,
     required Color textColor,
     required Color primaryColor,
-    required Color secondaryTextColor,
   }) {
-    return GestureDetector(
-      onTap: () => _entrarNaCasa(casa),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.house,
+            color: primaryColor,
+            size: 24,
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.house,
-              color: primaryColor,
-              size: 24,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                casa['nome']!,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: secondaryTextColor,
-              size: 16,
-            ),
-          ],
+        title: Text(
+          casa['nome']!,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: textColor,
+            fontSize: 16,
+          ),
         ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.grey[400],
+          size: 16,
+        ),
+        onTap: () => _entrarNaCasa(casa),
       ),
     );
   }
 
   Widget _buildListaCasas({
-    required Color cardColor,
     required Color textColor,
     required Color primaryColor,
-    required Color secondaryTextColor,
   }) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _casas.length,
-      itemBuilder: (context, index) {
-        final casa = _casas[index];
-        return _buildCasaItem(
-          casa: casa,
-          index: index,
-          cardColor: cardColor,
-          textColor: textColor,
-          primaryColor: primaryColor,
-          secondaryTextColor: secondaryTextColor,
-        );
-      },
-    );
-  }
-
-  Widget _buildTextoFilosofico({
-    required Color backgroundColor,
-    required Color secondaryTextColor,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      color: backgroundColor,
-      child: Text(
-        "Quem significa uma família de forma simples?",
-        style: TextStyle(
-          color: secondaryTextColor,
-          fontSize: 14,
-          fontStyle: FontStyle.italic,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget _buildFooter({required Color primaryColor}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      color: primaryColor,
-      child: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Organize suas tarefas de forma simples",
-            style: TextStyle(color: Colors.white, fontSize: 14),
-            textAlign: TextAlign.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Título "Residencias:"
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
+          child: Text(
+            'Residencias:',
+            style: TextStyle(
+              color: textColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          SizedBox(height: 10),
-          Text(
-            "© Todos os direitos reservados - 2025",
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-            textAlign: TextAlign.center,
+        ),
+        
+        // Lista de casas
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 16),
+            itemCount: _casas.length,
+            itemBuilder: (context, index) {
+              final casa = _casas[index];
+              return _buildCasaItem(
+                casa: casa,
+                textColor: textColor,
+                primaryColor: primaryColor,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF133A67),
+            Color(0xFF1E4A7A),
+          ],
+        ),
+      ),
+      child: Column(
+        children: [
+          // Logo/Imagem
+          Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            child: CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.white.withOpacity(0.1),
+              child: Icon(
+                Icons.task_alt,
+                size: 40,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          
+          // Textos
+          const Column(
+            children: [
+              Text(
+                'Organize suas tarefas de forma simples',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Todos os direitos reservados - 2025',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ],
       ),
@@ -231,7 +246,7 @@ class _MeuCasasState extends State<MeuCasas> {
                   ),
                 ),
                 textCapitalization: TextCapitalization.words,
-                autofocus: true, // ✅ FOCO AUTOMÁTICO NO CAMPO
+                autofocus: true,
               ),
             ],
           ),
@@ -338,7 +353,6 @@ class _MeuCasasState extends State<MeuCasas> {
       builder: (context, themeService, child) {
         final isDarkMode = themeService.isDarkMode;
         final backgroundColor = themeService.backgroundColor;
-        final cardColor = themeService.cardColor;
         final textColor = themeService.textColor;
         final secondaryTextColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
         final primaryColor = ThemeService.primaryColor;
@@ -351,6 +365,7 @@ class _MeuCasasState extends State<MeuCasas> {
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
             ),
             centerTitle: true,
@@ -366,22 +381,14 @@ class _MeuCasasState extends State<MeuCasas> {
                   child: _casas.isEmpty
                       ? _buildEmptyState(secondaryTextColor: secondaryTextColor)
                       : _buildListaCasas(
-                          cardColor: cardColor,
                           textColor: textColor,
                           primaryColor: primaryColor,
-                          secondaryTextColor: secondaryTextColor,
                         ),
                 ),
               ),
               
-              // Texto filosófico
-              _buildTextoFilosofico(
-                backgroundColor: backgroundColor,
-                secondaryTextColor: secondaryTextColor,
-              ),
-              
-              // Rodapé
-              _buildFooter(primaryColor: primaryColor),
+              // Rodapé com gradiente azul e imagem
+              _buildFooter(),
             ],
           ),
           floatingActionButton: FloatingActionButton(

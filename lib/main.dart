@@ -396,34 +396,54 @@ class _LandingPageState extends State<LandingPage> {
                     
                     // Rodapé
                     Container(
-                      padding: const EdgeInsets.all(20),
-                      color: Colors.black.withOpacity(0.7),
-                      child: Consumer<FormattingService>(
-                        builder: (context, formattingService, child) {
-                          // ✅ EXEMPLO DE USO NO RODAPÉ
-                          final currentDate = formattingService.formatDate(DateTime.now());
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF133A67), // Azul escuro
+                            Color(0xFF1E4A7A), // Azul médio
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          // Logo/Imagem
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 20),
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage: AssetImage('lib/assets/images/logo-mobile.png'),
+                            ),
+                          ),
                           
-                          return Column(
+                          // Textos
+                          const Column(
                             children: [
-                              const Text(
-                                'Organize suas tarefas de forma simples e eficiente',
-                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                              Text(
+                                'Organize suas tarefas de forma simples',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 6),
+                              SizedBox(height: 8),
                               Text(
-                                currentDate, // ✅ DATA FORMATADA
-                                style: const TextStyle(color: Colors.white60, fontSize: 12),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                '© 2025 TaskDomus. Todos os direitos reservados.',
-                                style: TextStyle(color: Colors.white70, fontSize: 12),
+                                'Todos os direitos reservados - 2025',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ],
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
                   ],
