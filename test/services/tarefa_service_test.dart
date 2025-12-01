@@ -1,6 +1,7 @@
 // test/services/tarefa_service_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_tcc/services/tarefa_service.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   group('TarefaService - Testes de Sucesso', () {

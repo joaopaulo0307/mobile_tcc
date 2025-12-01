@@ -19,6 +19,16 @@ class _CadastroPageState extends State<CadastroPage> {
   bool _obscureSenha = true;
   bool _obscureConfirmarSenha = true;
 
+  // ✅ ADICIONE ESTAS KEYS PARA OS TESTES
+  final Key _nomeFieldKey = const Key('nome_field');
+  final Key _emailFieldKey = const Key('email_field');
+  final Key _senhaFieldKey = const Key('senha_field');
+  final Key _confirmarSenhaFieldKey = const Key('confirmar_senha_field');
+  final Key _senhaVisibilityKey = const Key('senha_visibility');
+  final Key _confirmarVisibilityKey = const Key('confirmar_visibility');
+  final Key _botaoCadastrarKey = const Key('botao_cadastrar');
+  final Key _botaoVoltarKey = const Key('botao_voltar');
+
   // ==================== MÉTODOS DE VALIDAÇÃO ====================
   String? _validarNome(String? value) {
     if (value == null || value.isEmpty) {
@@ -130,6 +140,7 @@ class _CadastroPageState extends State<CadastroPage> {
           borderRadius: BorderRadius.circular(25),
         ),
         child: IconButton(
+          key: _botaoVoltarKey, // ✅ KEY ADICIONADA
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
@@ -233,6 +244,7 @@ class _CadastroPageState extends State<CadastroPage> {
 
   Widget _buildCampoNome() {
     return TextFormField(
+      key: _nomeFieldKey, // ✅ KEY ADICIONADA
       controller: _nomeController,
       textInputAction: TextInputAction.next,
       decoration: InputDecoration(
@@ -252,6 +264,7 @@ class _CadastroPageState extends State<CadastroPage> {
 
   Widget _buildCampoEmail() {
     return TextFormField(
+      key: _emailFieldKey, // ✅ KEY ADICIONADA
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
@@ -272,6 +285,7 @@ class _CadastroPageState extends State<CadastroPage> {
 
   Widget _buildCampoSenha() {
     return TextFormField(
+      key: _senhaFieldKey, // ✅ KEY ADICIONADA
       controller: _senhaController,
       obscureText: _obscureSenha,
       textInputAction: TextInputAction.next,
@@ -286,6 +300,7 @@ class _CadastroPageState extends State<CadastroPage> {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         suffixIcon: IconButton(
+          key: _senhaVisibilityKey, // ✅ KEY ADICIONADA
           icon: Icon(
             _obscureSenha ? Icons.visibility : Icons.visibility_off,
             color: Colors.grey,
@@ -303,6 +318,7 @@ class _CadastroPageState extends State<CadastroPage> {
 
   Widget _buildCampoConfirmarSenha() {
     return TextFormField(
+      key: _confirmarSenhaFieldKey, // ✅ KEY ADICIONADA
       controller: _confirmarSenhaController,
       obscureText: _obscureConfirmarSenha,
       textInputAction: TextInputAction.done,
@@ -317,6 +333,7 @@ class _CadastroPageState extends State<CadastroPage> {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         suffixIcon: IconButton(
+          key: _confirmarVisibilityKey, // ✅ KEY ADICIONADA
           icon: Icon(
             _obscureConfirmarSenha ? Icons.visibility : Icons.visibility_off,
             color: Colors.grey,
@@ -351,6 +368,7 @@ class _CadastroPageState extends State<CadastroPage> {
     }
 
     return ElevatedButton(
+      key: _botaoCadastrarKey, // ✅ KEY ADICIONADA
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF5E83AE),
         foregroundColor: Colors.white,
@@ -398,7 +416,6 @@ class _CadastroPageState extends State<CadastroPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      // REMOVEU o appBar daqui
       body: Stack(
         children: [
           // Fundo ocupando toda a tela

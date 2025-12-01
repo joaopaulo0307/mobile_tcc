@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/services/user_service.dart';
 import 'package:mobile_tcc/services/theme_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('PerfilPage - Testes de Widget', () {

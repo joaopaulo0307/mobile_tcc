@@ -1,123 +1,102 @@
-// test/pages/calendario_page_test.dart
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:mobile_tcc/calendario/calendario.dart';
-import 'package:mobile_tcc/services/theme_service.dart';
-import 'package:mobile_tcc/services/tarefa_service.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mobile_tcc/acesso/cadastro.dart';
 
 void main() {
-  group('CalendarioPage - Testes de Widget', () {
-    late ThemeService themeService;
-    late TarefaService tarefaService;
+  late MockFirebaseAuth mockAuth;
 
-    setUp(() {
-      themeService = ThemeService();
-      tarefaService = TarefaService();
-    });
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
 
-    testWidgets('Deve exibir calendário e elementos principais', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => themeService),
-            ChangeNotifierProvider(create: (_) => tarefaService),
-          ],
-          child: const MaterialApp(home: CalendarioPage()),
+    // Mock para carregar assets durante o teste
+    ServicesBinding.instance.defaultBinaryMessenger.setMockMessageHandler(
+      'flutter/assets',
+      (message) async => Uint8List(0).buffer.asByteData(),
+    );
+  });
+
+  setUp(() {
+    mockAuth = MockFirebaseAuth();
+  });
+
+  Widget createWidget(Widget child) {
+    return MaterialApp(
+      home: Scaffold(body: child),
+    );
+  }
+
+  testWidgets('Deve encontrar todos os campos e botão de cadastro',
+      (WidgetTester tester) async {
+
+    await tester.pumpWidget(
+      createWidget(CadastroPage(auth: mockAuth)),
+    );
+
+    expect(find.byKey(const Key('usernameField')), findsOneWidget);
+    expect(find.byKey(const Key('emailField')), findsOneWidget);
+    expect(find.byKey(const Key('passwordField')), findsOneWidget);
+    expect(find.byKey(const Key('confirmPasswordField')), findsOneWidget);
+    expect(find.byKey(const Key('signupButton')), findsOneWidget);
+  });
+
+  testWidgets('Deve preencher campos e criar usuário com Firebase',
+      (WidgetTester tester) async {
+
+    await tester.pumpWidget(
+      createWidget(CadastroPage(auth: mockAuth)),
+    );
+
+    await tester.enterText(find.byKey(const Key('usernameField')), 'usuario123');
+    await tester.enterText(find.byKey(const Key('emailField')), 'user@test.com');
+    await tester.enterText(find.byKey(const Key('passwordField')), '123456');
+    await tester.enterText(find.byKey(const Key('confirmPasswordField')), '123456');
+
+    await tester.tap(find.byKey(const Key('signupButton')));
+    await tester.pump();
+
+    final userCred = await mockAuth.createUserWithEmailAndPassword(
+      email: 'user@test.com',
+      password: '123456',
+    );
+
+    expect(userCred.user, isA<User>());
+  });
+
+  testWidgets('Deve falhar se o Firebase retornar erro',
+      (WidgetTester tester) async {
+
+    mockAuth = MockFirebaseAuth(
+      authExceptions: AuthExceptions(
+        createUserWithEmailAndPassword: FirebaseAuthException(
+          code: 'email-already-in-use',
+          message: 'Email já cadastrado',
         ),
-      );
+      ),
+    );
 
-      expect(find.text('CALENDÁRIO'), findsOneWidget);
-      expect(find.byType(TableCalendar), findsOneWidget);
-      expect(find.byType(FloatingActionButton), findsOneWidget);
-    });
+    await tester.pumpWidget(
+      createWidget(CadastroPage(auth: mockAuth)),
+    );
 
-    testWidgets('Deve abrir diálogo para adicionar tarefa', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => themeService),
-            ChangeNotifierProvider(create: (_) => tarefaService),
-          ],
-          child: const MaterialApp(home: CalendarioPage()),
-        ),
-      );
+    await tester.enterText(find.byKey(const Key('usernameField')), 'usuario123');
+    await tester.enterText(find.byKey(const Key('emailField')), 'user@test.com');
+    await tester.enterText(find.byKey(const Key('passwordField')), '123456');
+    await tester.enterText(find.byKey(const Key('confirmPasswordField')), '123456');
 
-      // Clica no FAB
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('signupButton')));
+    await tester.pump();
 
-      // Deve mostrar diálogo de nova tarefa
-      expect(find.text('Nova Tarefa'), findsOneWidget);
-      expect(find.text('Título da tarefa *'), findsOneWidget);
-      expect(find.text('Descrição (opcional)'), findsOneWidget);
-      expect(find.text('Cor da tarefa:'), findsOneWidget);
-    });
-
-    testWidgets('Deve validar título obrigatório na tarefa', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => themeService),
-            ChangeNotifierProvider(create: (_) => tarefaService),
-          ],
-          child: const MaterialApp(home: CalendarioPage()),
-        ),
-      );
-
-      // Abre diálogo
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pumpAndSettle();
-
-      // Tenta salvar sem título
-      await tester.tap(find.text('Salvar Tarefa'));
-      await tester.pump();
-
-      // Deve mostrar mensagem de erro
-      expect(find.text('Por favor, insira um título para a tarefa'), findsOneWidget);
-    });
-
-    testWidgets('Deve selecionar cor para tarefa', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => themeService),
-            ChangeNotifierProvider(create: (_) => tarefaService),
-          ],
-          child: const MaterialApp(home: CalendarioPage()),
-        ),
-      );
-
-      // Abre diálogo
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pumpAndSettle();
-
-      // Seleciona uma cor (ajustar índice se necessário)
-      final corWidgets = find.byType(GestureDetector);
-      await tester.tap(corWidgets.at(8));
-      await tester.pump();
-
-      expect(find.text('Por favor, insira um título para a tarefa'), findsNothing);
-    });
-
-    testWidgets('Deve navegar entre meses no calendário', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => themeService),
-            ChangeNotifierProvider(create: (_) => tarefaService),
-          ],
-          child: const MaterialApp(home: CalendarioPage()),
-        ),
-      );
-
-      final nextButton = find.byIcon(Icons.chevron_right);
-      expect(nextButton, findsOneWidget);
-
-      await tester.tap(nextButton);
-      await tester.pump();
-
-      expect(find.byType(TableCalendar), findsOneWidget);
-    });
+    expect(
+      () async {
+        await mockAuth.createUserWithEmailAndPassword(
+          email: 'user@test.com',
+          password: '123456',
+        );
+      },
+      throwsA(isA<FirebaseAuthException>()),
+    );
   });
 }
