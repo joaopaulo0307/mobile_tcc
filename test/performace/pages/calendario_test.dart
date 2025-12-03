@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:mobile_tcc/calendario/calendario.dart';
 import 'package:mobile_tcc/services/theme_service.dart';
 import 'package:mobile_tcc/services/tarefa_service.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 void main() {
   group('CalendarioPage - Testes de Widget', () {
