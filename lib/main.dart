@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'firebase_options.dart'; // ✅ NOVO ARQUIVO FIREBASE
+import 'firebase_options.dart'; 
 import 'package:mobile_tcc/meu_casas.dart';
 import 'package:provider/provider.dart';
 import '../acesso/auth_service.dart';
@@ -12,6 +12,10 @@ import 'package:mobile_tcc/home.dart';
 import 'package:mobile_tcc/config.dart';
 import '../services/theme_service.dart';
 import '../services/formatting_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_database/firebase_database.dart'; 
+import 'package:universal_io/io.dart';
 import 'dart:async';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,7 +76,7 @@ class MyApp extends StatelessWidget {
           supportedLocales: const [
             Locale('pt', 'BR'),
           ],
-          home: const AuthWrapper(), // ✅ ALTERADO PARA WRAPPER DE AUTENTICAÇÃO
+          home: const AuthWrapper(), // ALTERADO PARA WRAPPER DE AUTENTICAÇÃO
           routes: {
             '/cadastro': (context) => const CadastroPage(),
             '/minhas_casas': (context) => const MeuCasas(),
@@ -109,7 +113,7 @@ class AuthWrapper extends StatelessWidget {
   }
 }
 
-// ✅ TELA DE VERIFICAÇÃO DE EMAIL
+// ✅ TELA DE VERIFICAÇÃO DE EMAIL 
 class EmailVerificationScreen extends StatefulWidget {
   final User user;
   
@@ -121,20 +125,187 @@ class EmailVerificationScreen extends StatefulWidget {
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   bool _isSendingEmail = false;
-  bool _isLoading = true;
+  bool _isChecking = false;
+  bool _isCreatingHouse = false; // NOVO: controle criação de casa
   int _resendCooldown = 0;
   Timer? _cooldownTimer;
+  Timer? _autoCheckTimer;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance; // Analytics
+  final DatabaseReference _database = FirebaseDatabase.instance.ref(); // Database
+
+  // NOVO: Método para registrar evento no Analytics
+  Future<void> _logVerificationEvent() async {
+    try {
+      await _analytics.logEvent(
+        name: 'email_verification_completed',
+        parameters: {
+          'user_id': widget.user.uid,
+          'user_email': widget.user.email ?? 'unknown',
+          'timestamp': DateTime.now().toIso8601String(),
+          'verification_method': 'email_link',
+          'platform': Platform.operatingSystem,
+        },
+      );
+      debugPrint(' Evento de verificação registrado no Analytics');
+    } catch (e) {
+      debugPrint('⚠️ Erro no Analytics: $e');
+    }
+  }
+
+  //  NOVO: Método para criar casa do usuário
+  Future<void> _createUserHouse() async {
+    if (_isCreatingHouse) return;
+    
+    setState(() => _isCreatingHouse = true);
+    
+    try {
+      final userId = widget.user.uid;
+      final userEmail = widget.user.email ?? 'sem-email';
+      final userName = widget.user.displayName ?? userEmail.split('@')[0];
+      
+      // Criar dados da casa
+      final houseData = {
+        'owner_id': userId,
+        'owner_email': userEmail,
+        'owner_name': userName,
+        'house_name': 'Casa de $userName',
+        'created_at': ServerValue.timestamp,
+        'members': {
+          userId: {
+            'email': userEmail,
+            'name': userName,
+            'role': 'owner',
+            'joined_at': ServerValue.timestamp,
+          }
+        },
+        'settings': {
+          'theme': 'light',
+          'notifications': true,
+          'language': 'pt-BR',
+        },
+        'rooms': {
+          'sala': {
+            'name': 'Sala',
+            'type': 'living_room',
+            'created_at': ServerValue.timestamp,
+          }
+        }
+      };
+      
+      // Gerar ID único para a casa
+      final houseRef = _database.child('houses').push();
+      final houseId = houseRef.key!;
+      
+      // Salvar casa no Firebase
+      await houseRef.set(houseData);
+      
+      // Salvar referência da casa no perfil do usuário
+      await _database.child('users').child(userId).set({
+        'email': userEmail,
+        'name': userName,
+        'house_id': houseId,
+        'verified': true,
+        'created_at': ServerValue.timestamp,
+        'last_login': ServerValue.timestamp,
+      });
+      
+      debugPrint('🏠 Casa criada com ID: $houseId');
+      
+      // Registrar evento no Analytics
+      await _analytics.logEvent(
+        name: 'house_created',
+        parameters: {
+          'user_id': userId,
+          'house_id': houseId,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+      
+    } catch (e) {
+      debugPrint('❌ Erro ao criar casa: $e');
+      _showErrorSnackBar('Erro ao configurar sua casa: ${_getErrorMessage(e)}');
+      // Mesmo com erro, permite navegar para home
+    } finally {
+      setState(() => _isCreatingHouse = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _checkEmailVerification();
-    widget.user.reload(); // Recarrega o usuário para verificar status atualizado
+    _initializeVerification();
+    _checkIfAlreadyVerified(); // ✅ NOVO: Verifica se já está verificado
+  }
+
+  // ✅ NOVO: Verifica se usuário já está verificado (ao abrir tela)
+  Future<void> _checkIfAlreadyVerified() async {
+    await widget.user.reload();
+    if (widget.user.emailVerified && mounted) {
+      // Já está verificado, criar casa e navegar
+      await _createUserHouse();
+      _navigateToHome();
+    }
+  }
+
+  Future<void> _initializeVerification() async {
+    await widget.user.reload();
+    _startAutoVerificationChecker();
+    if (mounted) setState(() {});
+  }
+
+  void _startAutoVerificationChecker() {
+    _autoCheckTimer?.cancel();
+    
+    _autoCheckTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      
+      await widget.user.reload();
+      if (widget.user.emailVerified) {
+        timer.cancel();
+        await _onEmailVerified(); // ✅ NOVO: Processo completo
+      }
+    });
+  }
+
+  // ✅ NOVO: Processo completo quando email é verificado
+  Future<void> _onEmailVerified() async {
+    // 1. Registrar evento no Analytics
+    await _logVerificationEvent();
+    
+    // 2. Criar casa para o usuário
+    await _createUserHouse();
+    
+    // 3. Navegar para home
+    _navigateToHome();
   }
 
   Future<void> _checkEmailVerification() async {
-    await widget.user.reload();
-    setState(() => _isLoading = false);
+    setState(() => _isChecking = true);
+    
+    try {
+      await widget.user.reload();
+      
+      if (widget.user.emailVerified) {
+        await _onEmailVerified(); // ✅ Usa o processo completo
+        return;
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Email ainda não verificado'),
+          backgroundColor: Colors.orange.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      _showErrorSnackBar('Erro ao verificar: ${_getErrorMessage(e)}');
+    } finally {
+      if (mounted) setState(() => _isChecking = false);
+    }
   }
 
   Future<void> _sendVerificationEmail() async {
@@ -144,59 +315,223 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     
     try {
       await widget.user.sendEmailVerification();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Email de verificação enviado!'),
-          backgroundColor: Colors.green,
-        ),
+      
+      // Registrar evento de reenvio
+      await _analytics.logEvent(
+        name: 'email_verification_resent',
+        parameters: {
+          'user_id': widget.user.uid,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
       );
       
-      // Configurar cooldown de 60 segundos
-      setState(() => _resendCooldown = 60);
-      _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (mounted) {
-          setState(() {
-            if (_resendCooldown > 0) {
-              _resendCooldown--;
-            } else {
-              timer.cancel();
-            }
-          });
+      _showSuccessDialog();
+      
+      setState(() => _resendCooldown = 45);
+      _startCooldownTimer();
+      
+    } catch (e) {
+      _showErrorSnackBar('Erro ao enviar: ${_getErrorMessage(e)}');
+    } finally {
+      if (mounted) setState(() => _isSendingEmail = false);
+    }
+  }
+
+  void _startCooldownTimer() {
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      
+      setState(() {
+        if (_resendCooldown > 0) {
+          _resendCooldown--;
+        } else {
+          timer.cancel();
         }
       });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao enviar email: ${e.toString()}'),
-          backgroundColor: Colors.red,
+    });
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 10),
+            Text('Email Enviado!'),
+          ],
         ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isSendingEmail = false);
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Verifique sua caixa de entrada.'),
+            const SizedBox(height: 8),
+            Text(
+              'Dica: Clique no link e volte para este app',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('• O app detectará automaticamente', style: TextStyle(fontSize: 13)),
+                  Text('• Sua casa será criada automaticamente', style: TextStyle(fontSize: 13)),
+                  Text('• Não precisa clicar em "Já verifiquei"', style: TextStyle(fontSize: 13)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ENTENDI'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'Fechar',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
+
+  String _getErrorMessage(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    
+    if (errorString.contains('too-many-requests')) {
+      return 'Muitas tentativas. Aguarde alguns minutos.';
+    } else if (errorString.contains('user-not-found')) {
+      return 'Usuário não encontrado.';
+    } else if (errorString.contains('network')) {
+      return 'Erro de conexão. Verifique sua internet.';
+    } else if (errorString.contains('requires-recent-login')) {
+      return 'Sessão expirada. Faça login novamente.';
+    } else if (errorString.contains('database')) {
+      return 'Erro no banco de dados. Tente novamente.';
+    }
+    
+    return 'Tente novamente mais tarde.';
+  }
+
+  Future<void> _openEmailApp() async {
+    final email = widget.user.email;
+    if (email == null) {
+      _showErrorSnackBar('Email não disponível');
+      return;
+    }
+    
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: email,
+    );
+    
+    try {
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri);
+        
+        // Registrar evento
+        await _analytics.logEvent(
+          name: 'email_app_opened',
+          parameters: {'user_id': widget.user.uid},
+        );
+      } else {
+        _showErrorSnackBar('Não foi possível abrir o app de email');
       }
+    } catch (e) {
+      _showErrorSnackBar('Erro: ${_getErrorMessage(e)}');
     }
   }
 
   Future<void> _logout() async {
     try {
-      await FirebaseAuth.instance.signOut();
+      await _auth.signOut();
+      await _analytics.logEvent(name: 'user_logged_out');
     } catch (e) {
-      print('Erro ao fazer logout: $e');
+      debugPrint('Erro ao fazer logout: $e');
+    }
+  }
+
+  void _navigateToHome() {
+    // ✅ NOVO: Adicionar loading se estiver criando casa
+    if (_isCreatingHouse) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Criando sua casa...'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Configurando tudo para você',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      
+      // Aguarda criação e navega
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.of(context).pop(); // Fecha dialog
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      });
+    } else {
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
   @override
   void dispose() {
     _cooldownTimer?.cancel();
+    _autoCheckTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final email = widget.user.email ?? 'Email não disponível';
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Verifique seu email'),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -205,83 +540,263 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.email_outlined,
-              size: 80,
-              color: Theme.of(context).primaryColor,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Verificação de Email',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Ícone com animação condicional
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isCreatingHouse 
+                    ? Colors.orange.withOpacity(0.1) 
+                    : theme.primaryColor.withOpacity(0.1),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      Icons.email_outlined,
+                      size: 80,
+                      color: _isCreatingHouse ? Colors.orange : theme.primaryColor,
+                    ),
+                    if (_isCreatingHouse)
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.home,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Enviamos um email de verificação para:',
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.user.email ?? 'Email não disponível',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+              
+              const SizedBox(height: 32),
+              
+              // Título dinâmico
+              Text(
+                _isCreatingHouse ? 'Criando sua casa...' : 'Verificação de Email',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: _isCreatingHouse ? Colors.orange : theme.primaryColor,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Por favor, verifique sua caixa de entrada e clique no link de verificação.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Após verificar, clique no botão abaixo para continuar.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: _isLoading ? null : _checkEmailVerification,
-              icon: _isLoading 
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.refresh),
-              label: Text(_isLoading ? 'Verificando...' : 'Já verifiquei meu email'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              
+              const SizedBox(height: 16),
+              
+              // Informação do email
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      _isCreatingHouse 
+                        ? 'Email verificado! Criando sua casa...' 
+                        : 'Email de verificação enviado para:',
+                      style: theme.textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      email,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: _isCreatingHouse ? Colors.green : theme.primaryColor,
+                      ),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                    if (_isCreatingHouse) ...[
+                      const SizedBox(height: 12),
+                      const LinearProgressIndicator(),
+                    ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: _isSendingEmail || _resendCooldown > 0 ? null : _sendVerificationEmail,
-              icon: const Icon(Icons.send),
-              label: _resendCooldown > 0
-                  ? Text('Reenviar em $_resendCooldown')
-                  : Text(_isSendingEmail ? 'Enviando...' : 'Reenviar email'),
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-              },
-              child: const Text('Usar outra conta'),
-            ),
-          ],
+              
+              const SizedBox(height: 24),
+              
+              // Instruções dinâmicas
+              Text(
+                _isCreatingHouse
+                  ? 'Sua casa está sendo configurada com todas as funcionalidades.'
+                  : 'Por favor, verifique sua caixa de entrada e clique no link de verificação.',
+                style: theme.textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Dica importante
+              if (!_isCreatingHouse) // Só mostra se não estiver criando casa
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade100),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Como funciona:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '1. Clique no link do email\n'
+                            '2. Volte para este app automaticamente\n'
+                            '3. Sua casa será criada automaticamente\n'
+                            '4. Pronto para usar!',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Botão principal - Dinâmico
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isChecking || _isCreatingHouse ? null : _checkEmailVerification,
+                  icon: _isChecking
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        )
+                      : _isCreatingHouse
+                        ? const Icon(Icons.home)
+                        : const Icon(Icons.check_circle_outline),
+                  label: Text(
+                    _isCreatingHouse
+                      ? 'Criando sua casa...'
+                      : _isChecking
+                        ? 'Verificando...'
+                        : 'Já verifiquei meu email',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: _isCreatingHouse ? Colors.orange : null,
+                  ),
+                ),
+              ),
+              
+              if (!_isCreatingHouse) ...[
+                const SizedBox(height: 16),
+                
+                // Botão secundário - Reenviar
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: (_isSendingEmail || _resendCooldown > 0) ? null : _sendVerificationEmail,
+                    icon: _isSendingEmail
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.primaryColor,
+                            ),
+                          )
+                        : const Icon(Icons.send),
+                    label: _resendCooldown > 0
+                        ? Text('Reenviar em $_resendCooldown')
+                        : Text(_isSendingEmail ? 'Enviando...' : 'Reenviar email'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Botão para abrir app de email
+                TextButton.icon(
+                  onPressed: _openEmailApp,
+                  icon: const Icon(Icons.open_in_browser),
+                  label: const Text('Abrir app de email'),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Divisor
+                const Row(
+                  children: [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text('OU'),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+              ],
+              
+              // Usar outra conta
+              TextButton(
+                onPressed: _isCreatingHouse ? null : () => _auth.signOut(),
+                child: Text(
+                  _isCreatingHouse ? 'Aguarde...' : 'Usar outra conta',
+                  style: TextStyle(
+                    color: _isCreatingHouse ? Colors.grey : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

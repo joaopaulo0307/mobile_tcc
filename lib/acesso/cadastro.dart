@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../acesso/auth_service.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});

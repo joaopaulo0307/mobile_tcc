@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart'; 
 import '../services/theme_service.dart';
 import '../services/tarefa_service.dart';
 
@@ -19,6 +20,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
   final TextEditingController _descricaoController = TextEditingController();
   bool _isEditing = false;
   String _editingId = '';
+  bool _isDateFormattingInitialized = false; // NOVO: controle de inicialização
   
   // Cores baseadas nas imagens
   final Color _corPrincipal = const Color(0xFF4A6572); // Cinza azulado
@@ -33,6 +35,23 @@ class _CalendarioPageState extends State<CalendarioPage> {
     _calendarFormat = CalendarFormat.month;
     _focusedDay = DateTime.now();
     _selectedDay = DateTime.now();
+    
+    // INICIALIZAÇÃO OBRIGATÓRIA para TableCalendar
+    _initializeDateFormatting();
+  }
+
+  // Função para inicializar formatação de datas
+  Future<void> _initializeDateFormatting() async {
+    try {
+      await initializeDateFormatting('pt_BR', null);
+      if (mounted) {
+        setState(() {
+          _isDateFormattingInitialized = true;
+        });
+      }
+    } catch (e) {
+      print('Erro ao inicializar formatação de datas: $e');
+    }
   }
 
   @override
@@ -111,19 +130,19 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     icon: Icons.home,
                     text: 'HOME',
                     isActive: false,
-                    onTap: () {},
+                    onTap: () => _navegarParaHome(context),
                   ),
                   _buildMenuItem(
                     icon: Icons.attach_money,
-                    text: 'ECONÓMICO',
+                    text: 'ECONÔMICO',
                     isActive: false,
-                    onTap: () {},
+                    onTap: () => _navegarParaEconomico(context),
                   ),
                   _buildMenuItem(
                     icon: Icons.people,
                     text: 'USUÁRIOS',
                     isActive: false,
-                    onTap: () {},
+                    onTap: () => _navegarParaUsuarios(context),
                   ),
                   _buildMenuItem(
                     icon: Icons.calendar_today,
@@ -136,19 +155,19 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     icon: Icons.house,
                     text: 'MINHAS CASAS',
                     isActive: false,
-                    onTap: () {},
+                    onTap: () => _navegarParaCasas(context),
                   ),
                   _buildMenuItem(
                     icon: Icons.person,
                     text: 'MEU PERFIL',
                     isActive: false,
-                    onTap: () {},
+                    onTap: () => _navegarParaPerfil(context),
                   ),
                   _buildMenuItem(
                     icon: Icons.settings,
                     text: 'CONFIGURAÇÕES',
                     isActive: false,
-                    onTap: () {},
+                    onTap: () => _navegarParaConfiguracoes(context),
                   ),
                 ],
               ),
@@ -186,6 +205,31 @@ class _CalendarioPageState extends State<CalendarioPage> {
     );
   }
 
+  // Funções de navegação (implementar conforme necessário)
+  void _navegarParaHome(BuildContext context) {
+    // TODO: Implementar navegação para Home
+  }
+
+  void _navegarParaEconomico(BuildContext context) {
+    // TODO: Implementar navegação para Econômico
+  }
+
+  void _navegarParaUsuarios(BuildContext context) {
+    // TODO: Implementar navegação para Usuários
+  }
+
+  void _navegarParaCasas(BuildContext context) {
+    // TODO: Implementar navegação para Minhas Casas
+  }
+
+  void _navegarParaPerfil(BuildContext context) {
+    // TODO: Implementar navegação para Meu Perfil
+  }
+
+  void _navegarParaConfiguracoes(BuildContext context) {
+    // TODO: Implementar navegação para Configurações
+  }
+
   Widget _buildMenuItem({
     required IconData icon,
     required String text,
@@ -196,6 +240,8 @@ class _CalendarioPageState extends State<CalendarioPage> {
       color: isActive ? _corPrincipal.withOpacity(0.3) : Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        splashColor: _corDestaque.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: Row(
@@ -214,6 +260,16 @@ class _CalendarioPageState extends State<CalendarioPage> {
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
+              const Spacer(),
+              if (isActive)
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _corDestaque,
+                    shape: BoxShape.circle,
+                  ),
+                ),
             ],
           ),
         ),
@@ -248,6 +304,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                       IconButton(
                         icon: Icon(Icons.chevron_left, color: _corPrincipal),
                         onPressed: _mesAnterior,
+                        tooltip: 'Mês anterior',
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -269,6 +326,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                       IconButton(
                         icon: Icon(Icons.chevron_right, color: _corPrincipal),
                         onPressed: _proximoMes,
+                        tooltip: 'Próximo mês',
                       ),
                     ],
                   ),
@@ -279,6 +337,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
             // Calendário
             Expanded(
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
                     _buildCalendar(context),
@@ -295,6 +354,43 @@ class _CalendarioPageState extends State<CalendarioPage> {
   }
 
   Widget _buildCalendar(BuildContext context) {
+    // Mostra loading enquanto inicializa formatação
+    if (!_isDateFormattingInitialized) {
+      return Container(
+        margin: const EdgeInsets.all(20),
+        height: 400,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: _corDestaque,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Carregando calendário...',
+                style: TextStyle(
+                  color: _corPrincipal,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Consumer<TarefaService>(
       builder: (context, tarefaService, child) {
         return Container(
@@ -311,6 +407,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
             ],
           ),
           child: TableCalendar(
+            locale: 'pt_BR', // DEFINE O LOCALE
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
@@ -363,6 +460,9 @@ class _CalendarioPageState extends State<CalendarioPage> {
               ),
               weekendDecoration: const BoxDecoration(),
               holidayDecoration: const BoxDecoration(),
+              defaultDecoration: BoxDecoration(
+                shape: BoxShape.circle,
+              ),
             ),
             headerStyle: HeaderStyle(
               formatButtonVisible: false,
@@ -434,13 +534,25 @@ class _CalendarioPageState extends State<CalendarioPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Tarefas do dia',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: _corPrincipal,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Tarefas do dia',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _corPrincipal,
+                    ),
+                  ),
+                  Text(
+                    _formatarDataSimples(_selectedDay),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _corPrincipal.withOpacity(0.7),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 15),
               
@@ -468,6 +580,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    elevation: 2,
                   ),
                   onPressed: _adicionarTarefa,
                 ),
@@ -561,16 +674,31 @@ class _CalendarioPageState extends State<CalendarioPage> {
                     IconButton(
                       icon: Icon(Icons.edit, color: _corPrincipal, size: 20),
                       onPressed: onEdit,
+                      tooltip: 'Editar tarefa',
                     ),
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red[400], size: 20),
                       onPressed: onDelete,
+                      tooltip: 'Excluir tarefa',
                     ),
                   ],
                 ),
               ],
             ),
           ),
+          
+          // Barra de status
+          if (tarefa.concluida)
+            Container(
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(10),
+                  bottomRight: Radius.circular(10),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -648,7 +776,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
             borderRadius: BorderRadius.circular(15),
           ),
           title: Text(
-            _isEditing ? 'Alteração' : 'Nova Tarefa',
+            _isEditing ? 'Editar Tarefa' : 'Nova Tarefa',
             style: TextStyle(
               color: _corPrincipal,
               fontWeight: FontWeight.bold,
@@ -658,21 +786,21 @@ class _CalendarioPageState extends State<CalendarioPage> {
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Título
                 Text(
-                  'Nome:',
+                  'Título *',
                   style: TextStyle(
                     color: _corPrincipal,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 8),
                 TextField(
                   controller: _tituloController,
                   decoration: InputDecoration(
-                    hintText: 'Digite o nome da tarefa',
+                    hintText: 'Digite o título da tarefa',
                     filled: true,
                     fillColor: Colors.grey[100],
                     border: OutlineInputBorder(
@@ -683,26 +811,28 @@ class _CalendarioPageState extends State<CalendarioPage> {
                       horizontal: 15,
                       vertical: 12,
                     ),
+                    errorText: _tituloController.text.isEmpty && 
+                               _isEditing ? null : null,
                   ),
                   style: TextStyle(color: _corPrincipal),
+                  autofocus: true,
                 ),
                 
                 const SizedBox(height: 20),
                 
-                // Descrição
                 Text(
-                  'Descrição:',
+                  'Descrição',
                   style: TextStyle(
                     color: _corPrincipal,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 8),
                 TextField(
                   controller: _descricaoController,
                   decoration: InputDecoration(
-                    hintText: 'Digite a descrição da tarefa',
+                    hintText: 'Digite a descrição da tarefa (opcional)',
                     filled: true,
                     fillColor: Colors.grey[100],
                     border: OutlineInputBorder(
@@ -720,76 +850,106 @@ class _CalendarioPageState extends State<CalendarioPage> {
                 
                 const SizedBox(height: 20),
                 
-                // Data
-                Text(
-                  'Data: ${_formatarDataSimples(_selectedDay)}',
-                  style: TextStyle(
-                    color: _corPrincipal.withOpacity(0.8),
-                    fontSize: 14,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _corPrincipal.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today, 
+                           color: _corPrincipal, 
+                           size: 18),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Data: ${_formatarDataSimples(_selectedDay)}',
+                        style: TextStyle(
+                          color: _corPrincipal,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
           actions: [
-            // Botão REMOVER (só aparece no modo edição)
-            if (_isEditing)
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _excluirTarefa(context, _editingId);
-                },
-                child: Text(
-                  'REMOVER',
-                  style: TextStyle(
-                    color: Colors.red[400],
-                    fontWeight: FontWeight.bold,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (_isEditing)
+                  TextButton.icon(
+                    icon: Icon(Icons.delete_outline,
+                        color: Colors.red, size: 20),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _excluirTarefa(context, _editingId);
+                    },
+                    label: Text(
+                      'REMOVER',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'CANCELAR',
+                    style: TextStyle(
+                      color: _corPrincipal,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            
-            // Botão CANCELAR
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'CANCELAR',
-                style: TextStyle(
-                  color: _corPrincipal,
-                  fontWeight: FontWeight.w500,
+
+                ElevatedButton(
+                  onPressed: () {
+                    if (_tituloController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content:
+                              Text('O título da tarefa é obrigatório.'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final tarefaService =
+                        Provider.of<TarefaService>(context, listen: false);
+
+                    tarefaService.adicionarTarefa(
+                      Tarefa(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        titulo: _tituloController.text.trim(),
+                        descricao: _descricaoController.text.trim(),
+                        data: _selectedDay,
+                        cor: _corDestaque,
+                        casaId: 'default',
+                        concluida: false,
+                      ),
+                    );
+
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _corPrincipal,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(_isEditing ? 'SALVAR' : 'ADICIONAR'),
                 ),
-              ),
-            ),
-            
-            // Botão CONFIRMAR/CRIAR
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _corDestaque,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 25,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: _salvarTarefa,
-              child: Text(
-                _isEditing ? 'CONFIRMAR' : 'CRIAR',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              ],
             ),
           ],
-          actionsPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 15,
-          ),
         );
       },
     );
   }
+       
 
   void _salvarTarefa() {
     final titulo = _tituloController.text.trim();
@@ -797,8 +957,12 @@ class _CalendarioPageState extends State<CalendarioPage> {
     if (titulo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Por favor, insira um nome para a tarefa'),
+          content: const Text('Por favor, insira um título para a tarefa'),
           backgroundColor: Colors.red[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
@@ -807,9 +971,7 @@ class _CalendarioPageState extends State<CalendarioPage> {
     final tarefaService = Provider.of<TarefaService>(context, listen: false);
     
     if (_isEditing) {
-      // Buscar a tarefa existente para manter o estado de conclusão
-      final tarefas = tarefaService.tarefas;
-      final tarefaExistente = tarefas.firstWhere(
+      final tarefaExistente = tarefaService.tarefas.firstWhere(
         (t) => t.id == _editingId,
         orElse: () => Tarefa(
           id: _editingId,
@@ -822,7 +984,6 @@ class _CalendarioPageState extends State<CalendarioPage> {
         ),
       );
       
-      // Atualizar tarefa existente
       final tarefaAtualizada = Tarefa(
         id: _editingId,
         titulo: titulo,
@@ -830,19 +991,23 @@ class _CalendarioPageState extends State<CalendarioPage> {
         data: _selectedDay,
         cor: const Color(0xFFF9AA33),
         casaId: 'default',
-        concluida: tarefaExistente.concluida, // Mantém o estado de conclusão
+        concluida: tarefaExistente.concluida,
       );
       
       tarefaService.atualizarTarefa(tarefaAtualizada);
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tarefa atualizada com sucesso!'),
+        SnackBar(
+          content: const Text('Tarefa atualizada com sucesso!'),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
         ),
       );
     } else {
-      // Criar nova tarefa
       final novaTarefa = Tarefa(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         titulo: titulo,
@@ -854,11 +1019,16 @@ class _CalendarioPageState extends State<CalendarioPage> {
       );
 
       tarefaService.adicionarTarefa(novaTarefa);
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tarefa criada com sucesso!'),
+        SnackBar(
+          content: const Text('Tarefa criada com sucesso!'),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -884,9 +1054,21 @@ class _CalendarioPageState extends State<CalendarioPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          content: const Text(
-            'Tem certeza que deseja excluir esta tarefa?',
-            style: TextStyle(color: Colors.grey),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Tem certeza que deseja excluir esta tarefa?',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -910,10 +1092,14 @@ class _CalendarioPageState extends State<CalendarioPage> {
                 Navigator.pop(context);
                 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Tarefa excluída!'),
+                  SnackBar(
+                    content: const Text('Tarefa excluída!'),
                     backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },

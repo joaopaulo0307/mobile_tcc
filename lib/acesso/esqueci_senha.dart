@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../acesso/auth_service.dart';
-import 'dart:ui';
+import '../acesso/auth_service.dart'; 
 
 class EsqueciSenhaPage extends StatefulWidget {
   const EsqueciSenhaPage({super.key});
@@ -15,7 +14,7 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
   bool _isLoading = false;
   bool _emailEnviado = false;
 
-  // ==================== MÉTODOS DE AÇÃO ====================
+  // ==================== MÉTODO CORRIGIDO ====================
   Future<void> _enviarEmailRecuperacao() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -24,7 +23,7 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
     });
 
     try {
-      final result = await AuthService.esqueciSenha(_emailController.text.trim());
+      final result = await AuthService.esqueciSenha(_emailController.text.trim()); // CORRIGIDO
 
       if (!mounted) return;
 
@@ -55,6 +54,7 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
         backgroundColor: Colors.red,
         content: Text(mensagem),
         duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -65,6 +65,7 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
         backgroundColor: Colors.green,
         content: Text(mensagem),
         duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -84,31 +85,360 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
     return null;
   }
 
-  // ==================== WIDGETS ====================
-
-  // BOTÃO DE VOLTAR FLUTUANTE
-  Widget _buildBotaoVoltar() {
-    return Positioned(
-      top: MediaQuery.of(context).padding.top + 16,
-      left: 16,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: _voltarParaLogin,
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Background
+          _buildBackground(),
+          
+          // Conteúdo principal
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Card(
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  color: const Color.fromARGB(255, 79, 73, 72),
+                  child: Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.lock_reset,
+                            size: 60,
+                            color: Colors.white,
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          const Text(
+                            'RECUPERAR SENHA',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          if (!_emailEnviado) ...[
+                            const Text(
+                              'Digite seu email cadastrado para receber um link de recuperação:',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            
+                            const SizedBox(height: 25),
+                            
+                            // Campo de email
+                            TextFormField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                                hintText: 'seu@email.com',
+                                prefixIcon: const Icon(Icons.email),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 16,
+                                ),
+                              ),
+                              validator: _validarEmail,
+                              onFieldSubmitted: (_) => _enviarEmailRecuperacao(),
+                            ),
+                            
+                            const SizedBox(height: 30),
+                            
+                            // Botão de envio
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _enviarEmailRecuperacao,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF5E83AE),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'ENVIAR INSTRUÇÕES',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 15),
+                            
+                            // Informação adicional
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.info_outline, size: 16, color: Colors.white70),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'O link será enviado por email',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.info_outline, size: 16, color: Colors.white70),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Verifique também a pasta de spam',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ] else ...[
+                            // Tela de sucesso
+                            const Icon(
+                              Icons.mark_email_read,
+                              color: Color(0xFF5E83AE),
+                              size: 70,
+                            ),
+                            
+                            const SizedBox(height: 20),
+                            
+                            const Text(
+                              'Email enviado!',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 15),
+                            
+                            Text(
+                              'Enviamos as instruções para:',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 16,
+                              ),
+                            ),
+                            
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Color(0xFF5E83AE)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  _emailController.text,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 20),
+                            
+                            Container(
+                              padding: const EdgeInsets.all(15),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.check_circle, color: Colors.green, size: 16),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Verifique sua caixa de entrada',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.warning, color: Colors.orange, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Verifique também a pasta de spam',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.timer, color: Colors.blue, size: 16),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'O link expira em 1 hora',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 30),
+                            
+                            // Botões em linha
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Color(0xFF5E83AE)),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      _emailController.clear();
+                                      setState(() => _emailEnviado = false);
+                                    },
+                                    child: const Text(
+                                      'ENVIAR PARA OUTRO EMAIL',
+                                      style: TextStyle(color: Color(0xFF5E83AE)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: _voltarParaLogin,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF5E83AE),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: const Text('VOLTAR AO LOGIN'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          
+                          const SizedBox(height: 20),
+                          
+                          // Link para voltar (apenas quando não enviado)
+                          if (!_emailEnviado)
+                            TextButton(
+                              onPressed: _voltarParaLogin,
+                              child: const Text(
+                                'Voltar ao login',
+                                style: TextStyle(
+                                  color: Color(0xFF5E83AE),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          // Botão de voltar flutuante
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 10,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+                onPressed: _voltarParaLogin,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // BACKGROUND
+  // Método para background
   Widget _buildBackground() {
     return Stack(
       children: [
-        // Imagem de fundo que ocupa toda a tela
+        // Imagem de fundo
         SizedBox.expand(
           child: Image.asset(
             'lib/assets/images/fundo-tcc-mobile.png',
@@ -118,245 +448,16 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
             },
           ),
         ),
-        // Overlay com blur
+        // Overlay escuro
         Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-            ),
+          child: Container(
+            color: Colors.black.withOpacity(0.5),
           ),
         ),
       ],
     );
   }
 
-  // FORMULÁRIO DE RECUPERAÇÃO
-  Widget _buildRecuperacaoForm() {
-    return Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 79, 73, 72),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              width: MediaQuery.of(context).size.width * 0.85,
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Título
-                    _buildTitulo(),
-                    const SizedBox(height: 20),
-                    
-                    // Conteúdo dinâmico baseado no estado
-                    _emailEnviado ? _buildSucesso() : _buildFormulario(),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Link para voltar ao login (apenas quando não enviado)
-                    if (!_emailEnviado) _buildLinkVoltar(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // COMPONENTES DO FORMULÁRIO
-  Widget _buildTitulo() {
-    return const Text(
-      'RECUPERAR SENHA',
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-      ),
-      textAlign: TextAlign.center,
-    );
-  }
-
-  Widget _buildFormulario() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text(
-          'Digite seu email para receber as instruções de recuperação de senha:',
-          style: TextStyle(color: Colors.white, fontSize: 16),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 20),
-        
-        // Campo Email com título
-        _buildCampoEmail(),
-        const SizedBox(height: 20),
-        
-        // Botão de envio
-        _buildBotaoEnviar(),
-      ],
-    );
-  }
-
-  Widget _buildCampoEmail() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Email',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            hintText: 'seu@email.com',
-            hintStyle: const TextStyle(color: Colors.black54),
-          ),
-          validator: _validarEmail,
-          onFieldSubmitted: (_) => _enviarEmailRecuperacao(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBotaoEnviar() {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5E83AE)),
-        ),
-      );
-    }
-
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF5E83AE),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        elevation: 2,
-      ),
-      onPressed: _enviarEmailRecuperacao,
-      child: const Text(
-        'ENVIAR INSTRUÇÕES',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSucesso() {
-    return Column(
-      children: [
-        const Icon(
-          Icons.check_circle,
-          color: Colors.green,
-          size: 60,
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'Email enviado com sucesso!',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'Verifique sua caixa de entrada (${_emailController.text}) e siga as instruções para redefinir sua senha.',
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 20),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF5E83AE),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            elevation: 2,
-          ),
-          onPressed: _voltarParaLogin,
-          child: const Text(
-            'VOLTAR AO LOGIN',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLinkVoltar() {
-    return TextButton(
-      onPressed: _voltarParaLogin,
-      child: const Text(
-        'Voltar ao login',
-        style: TextStyle(
-          color: Color(0xFF5E83AE),
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  // ==================== BUILD PRINCIPAL ====================
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Fundo ocupando toda a tela
-          _buildBackground(),
-          
-          // Formulário centralizado
-          _buildRecuperacaoForm(),
-          
-          // Botão de voltar flutuante
-          _buildBotaoVoltar(),
-        ],
-      ),
-    );
-  }
-
-  // ==================== DISPOSE ====================
   @override
   void dispose() {
     _emailController.dispose();

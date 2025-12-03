@@ -1,265 +1,302 @@
-// lib/services/auth_service.dart
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 
 class AuthService {
-  static const String baseUrl = 'http://192.168.1.100:3000/api';
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final DatabaseReference _database = FirebaseDatabase.instance.ref();
   static String? _token;
 
   // Getter para o token
   static String? get token => _token;
 
-  // Inicializar o serviço
+  // ==================== INICIALIZAÇÃO ====================
   static Future<void> initialize() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _token = prefs.getString('token');
-      print('AuthService inicializado. Token: ${_token != null ? "Presente" : "Nulo"}');
+      
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser != null) {
+        print('Usuário Firebase já logado: ${firebaseUser.email}');
+        _token = 'firebase_${firebaseUser.uid}';
+        await prefs.setString('token', _token!);
+      }
+      
+      print('AuthService inicializado');
     } catch (e) {
       print('Erro na inicialização do AuthService: $e');
     }
   }
 
-  // Salvar token
-  static Future<void> _saveToken(String token) async {
-    _token = token;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
-    print('Token salvo: $token');
-  }
-
-  // Salvar dados do usuário
-  static Future<void> _saveUserData(Map<String, dynamic> userData) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userData', json.encode(userData));
-    print('Dados do usuário salvos: ${userData['nome']}');
-  }
-
-  // Obter dados do usuário salvos
-  static Future<Map<String, dynamic>> _getUserData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final userDataString = prefs.getString('userData');
-      if (userDataString != null) {
-        return json.decode(userDataString);
-      }
-    } catch (e) {
-      print('Erro ao obter dados do usuário: $e');
-    }
-    return {};
-  }
-
-  // Remover token (logout)
-  static Future<void> removeToken() async {
-    _token = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    await prefs.remove('userData');
-    print('Token e dados removidos');
-  }
-
-  // Cadastro - Salva o nome real do usuário
+  // ==================== CADASTRO ====================
   static Future<Map<String, dynamic>> cadastrar({
     required String nome,
     required String email,
     required String senha,
   }) async {
     try {
-      print('Tentando cadastrar: $email - Nome: $nome');
+      print('🔄 Iniciando cadastro para: $nome - $email');
+
+      // 1. Criar usuário no Firebase Auth
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: senha.trim(),
+      );
       
-      // SIMULAÇÃO TEMPORÁRIA
-      await Future.delayed(const Duration(seconds: 2));
-      
-      final prefs = await SharedPreferences.getInstance();
-      final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
-      
-      // Verificar se email já existe
-      if (usuarios.any((user) => user.contains(email))) {
-        return {
-          'success': false, 
-          'message': 'Este email já está cadastrado'
-        };
-      }
-      
-      // Criar dados do usuário com nome real
+      final User user = userCredential.user!;
+      print('✅ Usuário criado no Firebase Auth: ${user.uid}');
+
+      // 2. Atualizar displayName
+      await user.updateDisplayName(nome);
+      await user.reload();
+
+      // 3. Enviar email de verificação
+      await user.sendEmailVerification();
+
+      // 4. Salvar Firestore
+      await _firestore.collection("usuarios").doc(user.uid).set({
+        "nome": nome.trim(),
+        "email": email.trim(),
+        "uid": user.uid,
+        "emailVerificado": false,
+        "criadoEm": FieldValue.serverTimestamp(),
+        "atualizadoEm": FieldValue.serverTimestamp(),
+      });
+
+      // 5. Criar casa automática
+      await _criarCasaAutomatica(user.uid, nome, email);
+
+      // 6. Registrar evento Analytics
+      await _analytics.logEvent(
+        name: 'user_registered',
+        parameters: {
+          'user_id': user.uid,
+          'user_email': email,
+          'platform': _getPlatform(),
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+
+      // 7. Salvar dados localmente
       final userData = {
-        'nome': nome, // NOME REAL DO USUÁRIO
+        'nome': nome,
         'email': email,
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      };
-      
-      // Salvar dados do usuário para uso no login
-      await prefs.setString('user_data_$email', json.encode(userData));
-      
-      // Adicionar à lista de usuários cadastrados
-      usuarios.add('$email|${DateTime.now().millisecondsSinceEpoch}');
-      await prefs.setStringList('usuarios_cadastrados', usuarios);
-      
-      print('Usuário cadastrado com sucesso: $nome');
-      
-      return {
-        'success': true, 
-        'message': 'Cadastro realizado com sucesso! Faça login para continuar.',
-        'user': userData,
+        'id': user.uid,
+        'emailVerified': false,
       };
 
+      final token = 'firebase_${user.uid}';
+      await _saveToken(token);
+      await _saveUserData(userData);
+
+      return {
+        'success': true,
+        'message': '✅ Cadastro realizado com sucesso!\n'
+                   '📧 Enviamos um email de verificação para $email.',
+        'user': userData,
+        'requiresEmailVerification': true,
+        'userId': user.uid,
+      };
+
+    } on FirebaseAuthException catch (e) {
+      return {
+        'success': false,
+        'message': _getFirebaseErrorMessage(e),
+        'errorCode': e.code,
+      };
     } catch (e) {
-      return {'success': false, 'message': 'Erro: $e'};
+      return {
+        'success': false,
+        'message': 'Erro inesperado. Tente novamente.',
+        'error': e.toString(),
+      };
     }
   }
 
-  // Login - Retorna o nome real do cadastro
+  // ==================== CRIAR CASA AUTOMÁTICA ====================
+  static Future<void> _criarCasaAutomatica(String userId, String nome, String email) async {
+    try {
+      final userName = nome.split(' ').first;
+      
+      final houseData = {
+        'owner_id': userId,
+        'owner_email': email,
+        'owner_name': nome,
+        'house_name': 'Casa de $userName',
+        'created_at': ServerValue.timestamp,
+        'members': {
+          userId: {
+            'email': email,
+            'name': nome,
+            'role': 'owner',
+            'joined_at': ServerValue.timestamp,
+          }
+        },
+        'settings': {
+          'theme': 'light',
+          'notifications': true,
+          'language': 'pt-BR',
+        },
+        'rooms': {
+          'sala_principal': {
+            'name': 'Sala Principal',
+            'type': 'living_room',
+            'created_at': ServerValue.timestamp,
+          }
+        }
+      };
+      
+      final houseRef = _database.child('houses').push();
+      final houseId = houseRef.key!;
+      
+      await houseRef.set(houseData);
+
+      await _database.child('users').child(userId).set({
+        'email': email,
+        'name': nome,
+        'house_id': houseId,
+        'created_at': ServerValue.timestamp,
+      });
+
+    } catch (e) {
+      print('⚠️ Erro ao criar casa automática: $e');
+    }
+  }
+
+  // ==================== LOGIN ====================
   static Future<Map<String, dynamic>> login({
     required String email,
     required String senha,
   }) async {
     try {
-      print('Tentando login: $email');
+      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: senha.trim(),
+      );
       
-      // SIMULAÇÃO TEMPORÁRIA
-      await Future.delayed(const Duration(seconds: 2));
-      
-      final prefs = await SharedPreferences.getInstance();
-      final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
-      
-      // Verificar se usuário existe
-      final usuarioCadastrado = usuarios.any((user) => user.contains(email));
-      
-      if (usuarioCadastrado && senha.length >= 6) {
-        // Buscar dados reais do cadastro
-        final userDataCadastrado = prefs.getString('user_data_$email');
-        
-        Map<String, dynamic> userData;
-        
-        if (userDataCadastrado != null) {
-          // Usar dados reais do cadastro
-          userData = json.decode(userDataCadastrado);
-          print('Nome real do usuário: ${userData['nome']}');
-        } else {
-          // Fallback se não encontrar dados (não deveria acontecer)
-          userData = {
-            'nome': email.split('@')[0],
+      final User user = userCredential.user!;
+
+      if (!user.emailVerified) {
+        return {
+          'success': false,
+          'message': '📧 Por favor, verifique seu email antes de entrar.',
+          'requiresEmailVerification': true,
+          'user': {
+            'nome': user.displayName ?? email.split('@')[0],
             'email': email,
-            'id': DateTime.now().millisecondsSinceEpoch.toString(),
-          };
-          print('Usando nome fallback: ${userData['nome']}');
-        }
-        
-        final token = 'simulated_token_${DateTime.now().millisecondsSinceEpoch}';
-        
-        // Salvar token e dados para sessão
-        await _saveToken(token);
-        await _saveUserData(userData);
-        
-        print('Login bem-sucedido para: ${userData['nome']}');
-        
-        return {
-          'success': true, 
-          'user': userData,
-          'message': 'Login realizado com sucesso!'
-        };
-        
-      } else if (!usuarioCadastrado) {
-        return {
-          'success': false, 
-          'message': 'Usuário não encontrado. Faça o cadastro primeiro.'
-        };
-      } else {
-        return {
-          'success': false, 
-          'message': 'Senha incorreta'
+            'id': user.uid,
+            'emailVerified': false,
+          }
         };
       }
-      
+
+      final userData = {
+        'nome': user.displayName ?? email.split('@')[0],
+        'email': email,
+        'id': user.uid,
+        'emailVerified': user.emailVerified,
+      };
+
+      final token = 'firebase_${user.uid}';
+      await _saveToken(token);
+      await _saveUserData(userData);
+
+      return {
+        'success': true,
+        'user': userData,
+        'message': 'Login realizado com sucesso!',
+      };
+
+    } on FirebaseAuthException catch (e) {
+      return {
+        'success': false,
+        'message': _getFirebaseErrorMessage(e),
+        'errorCode': e.code,
+      };
     } catch (e) {
-      return {'success': false, 'message': 'Erro: $e'};
+      return {
+        'success': false,
+        'message': 'Erro inesperado no login',
+        'error': e.toString(),
+      };
     }
   }
 
-  // Esqueci senha
+  // ==================== RECUPERAR SENHA ====================
   static Future<Map<String, dynamic>> esqueciSenha(String email) async {
     try {
-      await Future.delayed(const Duration(seconds: 2));
-      
-      final prefs = await SharedPreferences.getInstance();
-      final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
-      final usuarioExiste = usuarios.any((user) => user.contains(email));
-      
-      if (usuarioExiste) {
-        return {
-          'success': true, 
-          'message': 'Instruções de recuperação enviadas para $email'
-        };
-      } else {
-        return {
-          'success': false, 
-          'message': 'Email não cadastrado no sistema'
-        };
-      }
+      await _auth.sendPasswordResetEmail(email: email.trim());
+
+      return {
+        'success': true,
+        'message': 'Enviamos um email com instruções para redefinição de senha.'
+      };
+    } on FirebaseAuthException catch (e) {
+      return {
+        'success': false,
+        'message': _getFirebaseErrorMessage(e),
+        'errorCode': e.code,
+      };
     } catch (e) {
-      return {'success': false, 'message': 'Erro: $e'};
+      return {
+        'success': false,
+        'message': 'Erro inesperado ao tentar recuperar senha.',
+        'error': e.toString(),
+      };
     }
   }
 
-  // Verificar se está autenticado
-  static Future<bool> isAuthenticated() async {
-    if (_token == null) {
-      await initialize();
-    }
-    final bool autenticado = _token != null;
-    print('Usuário autenticado: $autenticado');
-    return autenticado;
+  // ==================== MÉTODOS AUXILIARES ====================
+  static Future<void> _saveToken(String token) async {
+    _token = token;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
   }
 
-  // Obter dados do usuário
-  static Future<Map<String, dynamic>> getUserData() async {
-    try {
-      // Primeiro tenta obter dos dados salvos
-      final savedData = await _getUserData();
-      if (savedData.isNotEmpty) {
-        print('Dados do usuário obtidos do cache: ${savedData['nome']}');
-        return savedData;
-      }
-      
-      return {};
-    } catch (e) {
-      print('Erro ao obter dados do usuário: $e');
-      return await _getUserData();
+  static Future<void> _saveUserData(Map<String, dynamic> userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userData', json.encode(userData));
+  }
+
+  static String _getPlatform() {
+    if (kIsWeb) return 'web';
+    return Platform.operatingSystem;
+  }
+
+  static String _getFirebaseErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use': return 'Este email já está cadastrado.';
+      case 'invalid-email': return 'O formato do email é inválido.';
+      case 'user-not-found': return 'Usuário não encontrado.';
+      case 'wrong-password': return 'Senha incorreta.';
+      case 'weak-password': return 'A senha deve ter pelo menos 6 caracteres.';
+      case 'too-many-requests': return 'Muitas tentativas. Tente novamente mais tarde.';
+      case 'network-request-failed': return 'Erro de conexão. Verifique sua internet.';
+      default: return 'Erro: ${e.message ?? e.code}';
     }
   }
 
-  // Logout
+  // ==================== MÉTODOS PÚBLICOS ====================
   static Future<void> logout() async {
-    await removeToken();
-    print('Logout realizado com sucesso');
+    await _auth.signOut();
+    _token = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('token');
+    prefs.remove('userData');
   }
 
-  // Verificar se email já está cadastrado
-  static Future<bool> isEmailCadastrado(String email) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final usuarios = prefs.getStringList('usuarios_cadastrados') ?? [];
-      return usuarios.any((user) => user.contains(email));
-    } catch (e) {
-      return false;
-    }
+  static Future<bool> isAuthenticated() async {
+    return _auth.currentUser != null;
   }
 
-  // Obter nome do usuário pelo email
-  static Future<String?> getNomeUsuario(String email) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final userDataCadastrado = prefs.getString('user_data_$email');
-      
-      if (userDataCadastrado != null) {
-        final userData = json.decode(userDataCadastrado);
-        return userData['nome'];
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
+  static User? get currentUser => _auth.currentUser;
 }
