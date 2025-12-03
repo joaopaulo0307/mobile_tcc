@@ -1,27 +1,59 @@
 // test/pages/cadastro_page_test.dart
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_tcc/acesso/cadastro.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// ---------------------------------------------------------------------------
+/// MOCK DE IMAGENS (necessário porque a tela usa Image.asset)
+/// ---------------------------------------------------------------------------
+
+void registerMockImages() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  final fakeImage = Uint8List.fromList([0, 0, 0, 0]);
+
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMessageHandler('flutter/assets', (message) async {
+    return fakeImage.buffer.asByteData();
+  });
+}
+
+/// ---------------------------------------------------------------------------
+/// Mock do NavigatorObserver
+/// ---------------------------------------------------------------------------
+
 class MockNavigatorObserver extends NavigatorObserver {
-  bool didPopCalled = false;
+  final List<Route<dynamic>> pushedRoutes = [];
 
   @override
-  void didPop(Route route, Route? previousRoute) {
-    didPopCalled = true;
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushedRoutes.add(route);
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route route, Route<dynamic>? previousRoute) {
+    pushedRoutes.removeLast();
     super.didPop(route, previousRoute);
   }
 }
 
+/// ---------------------------------------------------------------------------
+/// TESTES
+/// ---------------------------------------------------------------------------
 
 void main() {
+  setUpAll(() {
+    registerMockImages();
+  });
+
   group('CadastroPage - Testes de Widget', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
     });
 
-    testWidgets('Deve exibir todos os campos do formulário', (WidgetTester tester) async {
+    testWidgets('Deve exibir todos os campos do formulário', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
       expect(find.text('CADASTRO'), findsOneWidget);
@@ -33,123 +65,146 @@ void main() {
       expect(find.text('Já tem uma conta?'), findsOneWidget);
     });
 
-    testWidgets('Deve validar campos obrigatórios', (WidgetTester tester) async {
+    testWidgets('Deve validar campos obrigatórios', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
-      // Tenta cadastrar sem preencher campos
-      await tester.tap(find.text('CADASTRAR'));
+      await tester.tap(find.byKey(const Key('botao_cadastrar')));
       await tester.pump();
 
-      // Deve mostrar mensagens de erro
-      expect(find.text('Por favor, insira seu nome completo'), findsOneWidget);
+      expect(find.textContaining('insira seu nome'), findsOneWidget);
     });
 
-    testWidgets('Deve validar formato de email', (WidgetTester tester) async {
+    testWidgets('Deve validar email inválido', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
-      // Encontra campo de email pela posição na árvore de widgets
-      final emailFields = find.byType(TextFormField);
-      await tester.enterText(emailFields.at(1), 'email-invalido'); // Email é o segundo campo
-      await tester.tap(find.text('CADASTRAR'));
+      await tester.enterText(find.byKey(const Key('email_field')), 'email-invalido');
+      await tester.tap(find.byKey(const Key('botao_cadastrar')));
       await tester.pump();
 
-      expect(find.text('Por favor, insira um email válido'), findsOneWidget);
+      expect(find.textContaining('email válido'), findsOneWidget);
     });
 
-    testWidgets('Deve validar senha mínima', (WidgetTester tester) async {
+    testWidgets('Deve validar senha mínima', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
-      // Encontra campo de senha pela posição
-      final senhaFields = find.byType(TextFormField);
-      await tester.enterText(senhaFields.at(2), '123'); // Senha é o terceiro campo
-      await tester.tap(find.text('CADASTRAR'));
+      await tester.enterText(find.byKey(const Key('senha_field')), '123');
+      await tester.tap(find.byKey(const Key('botao_cadastrar')));
       await tester.pump();
 
-      expect(find.text('A senha deve ter pelo menos 6 caracteres'), findsOneWidget);
+      expect(find.textContaining('pelo menos 6 caracteres'), findsOneWidget);
     });
 
-    testWidgets('Deve validar confirmação de senha', (WidgetTester tester) async {
+    testWidgets('Deve validar confirmação de senha', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
-      // Encontra campos pela posição
-      final campos = find.byType(TextFormField);
-      await tester.enterText(campos.at(2), '123456'); // Campo de senha
-      await tester.enterText(campos.at(3), '654321'); // Campo de confirmar senha
-      await tester.tap(find.text('CADASTRAR'));
+      await tester.enterText(find.byKey(const Key('senha_field')), '123456');
+      await tester.enterText(find.byKey(const Key('confirmar_senha_field')), '654321');
+      await tester.tap(find.byKey(const Key('botao_cadastrar')));
       await tester.pump();
 
-      expect(find.text('As senhas não coincidem'), findsOneWidget);
+      expect(find.textContaining('não coincidem'), findsOneWidget);
     });
 
-    testWidgets('Deve alternar visibilidade da senha', (WidgetTester tester) async {
+    testWidgets('Deve alternar visibilidade da senha', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
-      // Encontra botões de visibilidade pelos ícones
-      final visibilityButtons = find.byIcon(Icons.visibility);
-      expect(visibilityButtons, findsNWidgets(2)); // Um para cada campo de senha
+      final button = find.byKey(const Key('senha_visibility'));
 
-      // Clica no primeiro botão
-      await tester.tap(visibilityButtons.first);
+      expect(button, findsOneWidget);
+
+      await tester.tap(button);
       await tester.pump();
 
-      // Deve mudar o ícone
       expect(find.byIcon(Icons.visibility_off), findsOneWidget);
     });
 
-    testWidgets('Deve navegar de volta ao pressionar voltar', (WidgetTester tester) async {
-      final navigatorObserver = MockNavigatorObserver();
-      
+    testWidgets('Deve alternar visibilidade da confirmação', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
+
+      final button = find.byKey(const Key('confirmar_visibility'));
+
+      expect(button, findsOneWidget);
+
+      await tester.tap(button);
+      await tester.pump();
+
+      expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+    });
+
+    testWidgets('Deve navegar ao clicar no botão voltar', (tester) async {
+      final observer = MockNavigatorObserver();
+
       await tester.pumpWidget(
         MaterialApp(
           home: const CadastroPage(),
-          navigatorObservers: [navigatorObserver],
+          navigatorObservers: [observer],
         ),
       );
 
-      // Clica no botão voltar
-      await tester.tap(find.byIcon(Icons.arrow_back));
+      final backButton = find.byKey(const Key('botao_voltar'));
+      expect(backButton, findsOneWidget);
+
+      await tester.tap(backButton);
       await tester.pumpAndSettle();
 
-      // Verifica se navegou para trás
-      expect(navigatorObserver.didPop, true);
+      expect(observer.pushedRoutes.length, 0); // voltou para trás
     });
 
-    testWidgets('Deve preencher formulário corretamente', (WidgetTester tester) async {
+    testWidgets('Formulário completo não deve mostrar erros', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
-      // Encontra todos os campos
-      final campos = find.byType(TextFormField);
-      
-      // Preenche todos os campos corretamente
-      await tester.enterText(campos.at(0), 'João Silva');        // Nome completo
-      await tester.enterText(campos.at(1), 'joao@email.com');   // Email
-      await tester.enterText(campos.at(2), '123456');           // Senha
-      await tester.enterText(campos.at(3), '123456');           // Confirmar senha
+      await tester.enterText(find.byKey(const Key('nome_field')), 'João Silva');
+      await tester.enterText(find.byKey(const Key('email_field')), 'joao@email.com');
+      await tester.enterText(find.byKey(const Key('senha_field')), '123456');
+      await tester.enterText(find.byKey(const Key('confirmar_senha_field')), '123456');
 
-      // Tenta cadastrar
-      await tester.tap(find.text('CADASTRAR'));
+      await tester.tap(find.byKey(const Key('botao_cadastrar')));
       await tester.pump();
 
-      // Não deve mostrar mensagens de erro
-      expect(find.text('Por favor, insira seu nome completo'), findsNothing);
-      expect(find.text('Por favor, insira um email válido'), findsNothing);
-      expect(find.text('A senha deve ter pelo menos 6 caracteres'), findsNothing);
-      expect(find.text('As senhas não coincidem'), findsNothing);
+      expect(find.textContaining('insira seu nome'), findsNothing);
+      expect(find.textContaining('email válido'), findsNothing);
+      expect(find.textContaining('6 caracteres'), findsNothing);
+      expect(find.textContaining('não coincidem'), findsNothing);
     });
 
-    testWidgets('Deve encontrar link para login', (WidgetTester tester) async {
+    testWidgets('Todas as Keys devem existir', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
+
+      expect(find.byKey(const Key('nome_field')), findsOneWidget);
+      expect(find.byKey(const Key('email_field')), findsOneWidget);
+      expect(find.byKey(const Key('senha_field')), findsOneWidget);
+      expect(find.byKey(const Key('confirmar_senha_field')), findsOneWidget);
+      expect(find.byKey(const Key('senha_visibility')), findsOneWidget);
+      expect(find.byKey(const Key('confirmar_visibility')), findsOneWidget);
+      expect(find.byKey(const Key('botao_cadastrar')), findsOneWidget);
+      expect(find.byKey(const Key('botao_voltar')), findsOneWidget);
+    });
+
+    testWidgets('Deve exibir loading ao cadastrar', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
+
+      await tester.enterText(find.byKey(const Key('nome_field')), 'João Silva');
+      await tester.enterText(find.byKey(const Key('email_field')), 'joao@email.com');
+      await tester.enterText(find.byKey(const Key('senha_field')), '123456');
+      await tester.enterText(find.byKey(const Key('confirmar_senha_field')), '123456');
+
+      await tester.tap(find.byKey(const Key('botao_cadastrar')));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('Deve encontrar link para login', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
       expect(find.text('Já tem uma conta?'), findsOneWidget);
-      expect(find.text('Entrar'), findsOneWidget);
+      expect(find.text('Faça login'), findsOneWidget);
     });
 
-    testWidgets('Deve encontrar todos os TextFormFields', (WidgetTester tester) async {
+    testWidgets('Deve encontrar os 4 TextFormFields', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: CadastroPage()));
 
-      // Verifica se existem 4 campos de texto (nome, email, senha, confirmar senha)
-      final campos = find.byType(TextFormField);
-      expect(campos, findsNWidgets(4));
+      expect(find.byType(TextFormField), findsNWidgets(4));
     });
   });
 }

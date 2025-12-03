@@ -19,6 +19,27 @@ class Tarefa {
     required this.casaId,
   });
 
+  // Adicione este método factory para criar uma cópia com campos atualizados
+  Tarefa copyWith({
+    String? id,
+    String? titulo,
+    String? descricao,
+    DateTime? data,
+    Color? cor,
+    bool? concluida,
+    String? casaId,
+  }) {
+    return Tarefa(
+      id: id ?? this.id,
+      titulo: titulo ?? this.titulo,
+      descricao: descricao ?? this.descricao,
+      data: data ?? this.data,
+      cor: cor ?? this.cor,
+      concluida: concluida ?? this.concluida,
+      casaId: casaId ?? this.casaId,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -79,18 +100,33 @@ class TarefaService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // MÉTODO CORRIGIDO: toggleConcluida (inverte o estado)
+  void toggleConcluida(String id) {
+    final index = _tarefas.indexWhere((tarefa) => tarefa.id == id);
+    if (index != -1) {
+      final tarefa = _tarefas[index];
+      _tarefas[index] = tarefa.copyWith(
+        concluida: !tarefa.concluida,
+      );
+      notifyListeners();
+    }
+  }
+
+  // NOVO MÉTODO: atualizarTarefa
+  void atualizarTarefa(Tarefa tarefaAtualizada) {
+    final index = _tarefas.indexWhere((tarefa) => tarefa.id == tarefaAtualizada.id);
+    if (index != -1) {
+      _tarefas[index] = tarefaAtualizada;
+      notifyListeners();
+    }
+  }
+
+  // Método existente (mantenha)
   void marcarComoConcluida(String id) {
     final index = _tarefas.indexWhere((tarefa) => tarefa.id == id);
     if (index != -1) {
-      _tarefas[index] = Tarefa(
-        id: _tarefas[index].id,
-        titulo: _tarefas[index].titulo,
-        descricao: _tarefas[index].descricao,
-        data: _tarefas[index].data,
-        cor: _tarefas[index].cor,
-        concluida: true,
-        casaId: _tarefas[index].casaId,
-      );
+      final tarefa = _tarefas[index];
+      _tarefas[index] = tarefa.copyWith(concluida: true);
       notifyListeners();
     }
   }
