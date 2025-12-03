@@ -12,7 +12,7 @@ import 'package:mobile_tcc/home.dart';
 import 'package:mobile_tcc/config.dart';
 import '../services/theme_service.dart';
 import '../services/formatting_service.dart';
-
+import 'dart:async';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -271,7 +271,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               onPressed: _isSendingEmail || _resendCooldown > 0 ? null : _sendVerificationEmail,
               icon: const Icon(Icons.send),
               label: _resendCooldown > 0
-                  ? Text('Reenviar em $_resendCooldowns')
+                  ? Text('Reenviar em $_resendCooldown')
                   : Text(_isSendingEmail ? 'Enviando...' : 'Reenviar email'),
             ),
             const SizedBox(height: 16),
