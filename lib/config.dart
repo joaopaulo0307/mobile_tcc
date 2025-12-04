@@ -20,7 +20,8 @@ class _ConfigPageState extends State<ConfigPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configurações'),
-        backgroundColor: ThemeService.primaryColor,
+        // ✅ CORRIGIDO: Usar Provider para obter a cor
+        backgroundColor: Provider.of<BaseThemeService>(context).primaryColor,
         foregroundColor: Colors.white,
       ),
       body: _buildContent(context),
@@ -28,13 +29,13 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   Widget _buildContent(BuildContext context) {
-    return Consumer<ThemeService>(
+    return Consumer<BaseThemeService>( // ✅ ALTERADO: BaseThemeService
       builder: (context, themeService, child) {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // ✅ SEÇÃO: PREFERÊNCIAS DO USUÁRIO
-            _buildSectionTitle('Preferências'),
+            _buildSectionTitle('Preferências', themeService),
             _buildThemeSwitch(themeService),
             _buildNotificationSwitch(themeService),
             _buildBiometricSwitch(themeService),
@@ -43,14 +44,14 @@ class _ConfigPageState extends State<ConfigPage> {
             const Divider(),
 
             // ✅ SEÇÃO: PRIVACIDADE E SEGURANÇA
-            _buildSectionTitle('Privacidade & Segurança'),
+            _buildSectionTitle('Privacidade & Segurança', themeService),
             _buildPrivacyTile(context, themeService),
             _buildSecurityTile(context, themeService),
             const SizedBox(height: 8),
             const Divider(),
 
             // ✅ SEÇÃO SOBRE
-            _buildSectionTitle('Sobre'),
+            _buildSectionTitle('Sobre', themeService),
             _buildAppInfo(themeService),
             _buildRateAppTile(themeService),
             _buildShareAppTile(themeService),
@@ -67,7 +68,7 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, BaseThemeService themeService) { // ✅ Adicionado parâmetro
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Text(
@@ -75,18 +76,18 @@ class _ConfigPageState extends State<ConfigPage> {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: ThemeService.primaryColor,
+          color: themeService.primaryColor, // ✅ CORRIGIDO
         ),
       ),
     );
   }
 
   // ✅ SWITCH DO TEMA ATUALIZADO
-  Widget _buildThemeSwitch(ThemeService themeService) {
+  Widget _buildThemeSwitch(BaseThemeService themeService) { // ✅ ALTERADO: BaseThemeService
     return ListTile(
       leading: Icon(
         themeService.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-        color: ThemeService.primaryColor,
+        color: themeService.primaryColor, // ✅ CORRIGIDO
       ),
       title: Text(themeService.isDarkMode ? 'Modo Escuro' : 'Modo Claro'),
       subtitle: Text(themeService.isDarkMode ? 'Tema escuro ativado' : 'Tema claro ativado'),
@@ -96,15 +97,15 @@ class _ConfigPageState extends State<ConfigPage> {
           HapticFeedback.lightImpact();
           themeService.setDarkMode(value);
         },
-        activeColor: ThemeService.primaryColor,
+        activeColor: themeService.primaryColor, // ✅ CORRIGIDO
       ),
     );
   }
 
   // ✅ SWITCH: NOTIFICAÇÕES
-  Widget _buildNotificationSwitch(ThemeService themeService) {
+  Widget _buildNotificationSwitch(BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.notifications, color: ThemeService.primaryColor),
+      leading: Icon(Icons.notifications, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Notificações'),
       subtitle: Text(_notificationsEnabled ? 'Notificações ativas' : 'Notificações inativas'),
       trailing: Switch(
@@ -115,15 +116,15 @@ class _ConfigPageState extends State<ConfigPage> {
           });
           HapticFeedback.lightImpact();
         },
-        activeColor: ThemeService.primaryColor,
+        activeColor: themeService.primaryColor, // ✅ CORRIGIDO
       ),
     );
   }
 
   // ✅ SWITCH: BIOMETRIA
-  Widget _buildBiometricSwitch(ThemeService themeService) {
+  Widget _buildBiometricSwitch(BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.fingerprint, color: ThemeService.primaryColor),
+      leading: Icon(Icons.fingerprint, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Biometria'),
       subtitle: Text(_biometricEnabled ? 'Biometria ativa' : 'Biometria inativa'),
       trailing: Switch(
@@ -134,15 +135,15 @@ class _ConfigPageState extends State<ConfigPage> {
           });
           HapticFeedback.lightImpact();
         },
-        activeColor: ThemeService.primaryColor,
+        activeColor: themeService.primaryColor, // ✅ CORRIGIDO
       ),
     );
   }
 
   // ✅ SWITCH: SINCRONIZAÇÃO AUTOMÁTICA
-  Widget _buildAutoSyncSwitch(ThemeService themeService) {
+  Widget _buildAutoSyncSwitch(BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.sync, color: ThemeService.primaryColor),
+      leading: Icon(Icons.sync, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Sincronização Automática'),
       subtitle: Text(_autoSyncEnabled ? 'Sincronização automática ativa' : 'Sincronização automática inativa'),
       trailing: Switch(
@@ -153,15 +154,15 @@ class _ConfigPageState extends State<ConfigPage> {
           });
           HapticFeedback.lightImpact();
         },
-        activeColor: ThemeService.primaryColor,
+        activeColor: themeService.primaryColor, // ✅ CORRIGIDO
       ),
     );
   }
 
   // ✅ OPÇÃO: PRIVACIDADE
-  Widget _buildPrivacyTile(BuildContext context, ThemeService themeService) {
+  Widget _buildPrivacyTile(BuildContext context, BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.privacy_tip, color: ThemeService.primaryColor),
+      leading: Icon(Icons.privacy_tip, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Privacidade'),
       subtitle: const Text('Configurar privacidade'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -170,9 +171,9 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   // ✅ OPÇÃO: SEGURANÇA
-  Widget _buildSecurityTile(BuildContext context, ThemeService themeService) {
+  Widget _buildSecurityTile(BuildContext context, BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.security, color: ThemeService.primaryColor),
+      leading: Icon(Icons.security, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Segurança'),
       subtitle: const Text('Configurar segurança'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -180,18 +181,18 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
-  Widget _buildAppInfo(ThemeService themeService) {
+  Widget _buildAppInfo(BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.info, color: ThemeService.primaryColor),
+      leading: Icon(Icons.info, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Versão do App'),
       subtitle: const Text('1.0.0'),
     );
   }
 
   // ✅ OPÇÃO: AVALIAR APP
-  Widget _buildRateAppTile(ThemeService themeService) {
+  Widget _buildRateAppTile(BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.star, color: ThemeService.primaryColor),
+      leading: Icon(Icons.star, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Avaliar App'),
       subtitle: const Text('Avaliar na loja de aplicativos'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -200,9 +201,9 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   // ✅ OPÇÃO: COMPARTILHAR APP
-  Widget _buildShareAppTile(ThemeService themeService) {
+  Widget _buildShareAppTile(BaseThemeService themeService) { // ✅ ALTERADO
     return ListTile(
-      leading: Icon(Icons.share, color: ThemeService.primaryColor),
+      leading: Icon(Icons.share, color: themeService.primaryColor), // ✅ CORRIGIDO
       title: const Text('Compartilhar App'),
       subtitle: const Text('Compartilhar com amigos'),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -210,7 +211,7 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, ThemeService themeService) {
+  Widget _buildActionButtons(BuildContext context, BaseThemeService themeService) { // ✅ ALTERADO
     return Column(
       children: [
         ElevatedButton(
@@ -219,7 +220,7 @@ class _ConfigPageState extends State<ConfigPage> {
             themeService.toggleTheme();
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: ThemeService.primaryColor,
+            backgroundColor: themeService.primaryColor, // ✅ CORRIGIDO
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 50),
           ),
@@ -239,8 +240,8 @@ class _ConfigPageState extends State<ConfigPage> {
         OutlinedButton(
           onPressed: () => Navigator.pop(context),
           style: OutlinedButton.styleFrom(
-            foregroundColor: ThemeService.primaryColor,
-            side: BorderSide(color: ThemeService.primaryColor),
+            foregroundColor: themeService.primaryColor, // ✅ CORRIGIDO
+            side: BorderSide(color: themeService.primaryColor), // ✅ CORRIGIDO
             minimumSize: const Size(double.infinity, 50),
           ),
           child: const Text('VOLTAR'),
@@ -315,7 +316,7 @@ class _ConfigPageState extends State<ConfigPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Abrindo loja de aplicativos...'),
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
       ),
     );
   }
@@ -324,7 +325,7 @@ class _ConfigPageState extends State<ConfigPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Compartilhando aplicativo...'),
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
       ),
     );
   }

@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import '../acesso/auth_service.dart'; 
 
 class EsqueciSenhaPage extends StatefulWidget {
-  const EsqueciSenhaPage({super.key});
+  final AuthService authService;
+  
+  const EsqueciSenhaPage({
+    super.key,
+    required this.authService, // ✅ Adiciona parâmetro obrigatório
+  });
 
   @override
   State<EsqueciSenhaPage> createState() => _EsqueciSenhaPageState();
@@ -23,7 +28,8 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
     });
 
     try {
-      final result = await AuthService.esqueciSenha(_emailController.text.trim()); // CORRIGIDO
+      // ✅ Usa a instância injetada
+      final result = await widget.authService.esqueciSenha(_emailController.text.trim());
 
       if (!mounted) return;
 

@@ -1,3 +1,4 @@
+// lib/economic/economico.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
@@ -6,27 +7,9 @@ import 'package:mobile_tcc/home.dart';
 import 'package:mobile_tcc/perfil.dart';
 import 'package:mobile_tcc/usuarios.dart';
 import 'package:mobile_tcc/meu_casas.dart';
-import 'historico.dart';
-import '../services/theme_service.dart';
-
-// ✅ CLASSE Transacao ADICIONADA
-class Transacao {
-  final String id;
-  final double valor;
-  final String local;
-  final DateTime data;
-  final String tipo;
-  final String categoria;
-
-  Transacao({
-    required this.id,
-    required this.valor,
-    required this.local,
-    required this.data,
-    required this.tipo,
-    required this.categoria,
-  });
-}
+import 'package:mobile_tcc/economic/historico.dart';
+import 'package:mobile_tcc/services/theme_service.dart';
+import 'package:mobile_tcc/models/transacao.dart';
 
 class Economico extends StatefulWidget {
   final Map<String, String> casa;
@@ -45,7 +28,7 @@ class _EconomicoState extends State<Economico> {
   List<Transacao> historicoTransacoes = [
     Transacao(
       id: '1',
-      valor: 2500.0, // ✅ VALOR CORRIGIDO (não pode ser 0.0)
+      valor: 2500.0,
       local: 'Salário',
       data: DateTime.now().subtract(const Duration(days: 2)),
       tipo: 'entrada',
@@ -82,7 +65,6 @@ class _EconomicoState extends State<Economico> {
   }
 
   void _atualizarGrafico() {
-    // Agrupar transações por mês
     Map<String, double> transacoesPorMes = {};
     
     for (var transacao in historicoTransacoes) {
@@ -106,11 +88,8 @@ class _EconomicoState extends State<Economico> {
     return meses[data.month - 1];
   }
 
-  // ✅ MÉTODO _buildGrafico COMPLETADO
-  Widget _buildGrafico() {
+  Widget _buildGrafico(ThemeService themeService) {
     final meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-    
-    // Criar spots baseados nos valores mensais
     final spots = List.generate(
       meses.length,
       (i) {
@@ -124,7 +103,7 @@ class _EconomicoState extends State<Economico> {
       padding: const EdgeInsets.all(16),
       child: LineChart(
         LineChartData(
-          gridData: FlGridData(show: false),
+          gridData: const FlGridData(show: false),
           titlesData: FlTitlesData(
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
@@ -143,22 +122,16 @@ class _EconomicoState extends State<Economico> {
                 },
               ),
             ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              color: ThemeService.primaryColor,
+              color: themeService.primaryColor,
               barWidth: 3,
               belowBarData: BarAreaData(show: false),
             ),
@@ -171,6 +144,7 @@ class _EconomicoState extends State<Economico> {
   Widget _buildDrawer(BuildContext context, ThemeService themeService) {
     final backgroundColor = themeService.backgroundColor;
     final textColor = themeService.textColor;
+    final primaryColor = themeService.primaryColor;
 
     return Drawer(
       backgroundColor: backgroundColor,
@@ -182,41 +156,47 @@ class _EconomicoState extends State<Economico> {
               padding: EdgeInsets.zero,
               children: [
                 _buildDrawerItem(
-                  icon: Icons.home,
-                  title: 'Home',
-                  textColor: textColor,
-                  onTap: () => _navigateToHome(context),
+                  icon: Icons.home, 
+                  title: 'Home', 
+                  textColor: textColor, 
+                  primaryColor: primaryColor, 
+                  onTap: () => _navigateToHome(context)
                 ),
                 _buildDrawerItem(
-                  icon: Icons.history,
-                  title: 'Histórico',
-                  textColor: textColor,
-                  onTap: () => _navigateToHistorico(context),
+                  icon: Icons.history, 
+                  title: 'Histórico', 
+                  textColor: textColor, 
+                  primaryColor: primaryColor, 
+                  onTap: () => _navigateToHistorico(context)
                 ),
                 _buildDrawerItem(
-                  icon: Icons.people,
-                  title: 'Usuários',
-                  textColor: textColor,
-                  onTap: () => _navigateToUsuarios(context),
+                  icon: Icons.people, 
+                  title: 'Usuários', 
+                  textColor: textColor, 
+                  primaryColor: primaryColor, 
+                  onTap: () => _navigateToUsuarios(context)
                 ),
                 Divider(color: Colors.grey.withOpacity(0.3)),
                 _buildDrawerItem(
-                  icon: Icons.house,
-                  title: 'Minhas Casas',
-                  textColor: textColor,
-                  onTap: () => _navigateToMinhasCasas(context),
+                  icon: Icons.house, 
+                  title: 'Minhas Casas', 
+                  textColor: textColor, 
+                  primaryColor: primaryColor, 
+                  onTap: () => _navigateToMinhasCasas(context)
                 ),
                 _buildDrawerItem(
-                  icon: Icons.person,
-                  title: 'Meu Perfil',
-                  textColor: textColor,
-                  onTap: () => _navigateToPerfil(context),
+                  icon: Icons.person, 
+                  title: 'Meu Perfil', 
+                  textColor: textColor, 
+                  primaryColor: primaryColor, 
+                  onTap: () => _navigateToPerfil(context)
                 ),
                 _buildDrawerItem(
-                  icon: Icons.settings,
-                  title: 'Configurações',
-                  textColor: textColor,
-                  onTap: () => _navigateToConfig(context),
+                  icon: Icons.settings, 
+                  title: 'Configurações', 
+                  textColor: textColor, 
+                  primaryColor: primaryColor, 
+                  onTap: () => _navigateToConfig(context)
                 ),
               ],
             ),
@@ -227,136 +207,91 @@ class _EconomicoState extends State<Economico> {
   }
 
   Widget _buildDrawerHeader(ThemeService themeService) {
+    final primaryColor = themeService.primaryColor;
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      color: ThemeService.primaryColor,
+      color: primaryColor,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const CircleAvatar(
-              radius: 25,
-              backgroundColor: Colors.white,
-              child: Text(
-                "TD",
-                style: TextStyle(
-                  color: Color(0xFF133A67),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              radius: 25, 
+              backgroundColor: Colors.white, 
+              child: Text("TD", style: TextStyle(color: Color(0xFF133A67), fontWeight: FontWeight.bold))
             ),
             const SizedBox(height: 16),
             Text(
-              widget.casa['nome'] ?? 'Minha Casa',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              widget.casa['nome'] ?? 'Minha Casa', 
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Usuário',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
-            ),
+            const Text('Usuário', style: TextStyle(color: Colors.white70, fontSize: 14)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required Color textColor,
-    required VoidCallback onTap,
+  Widget _buildDrawerItem({ 
+    required IconData icon, 
+    required String title, 
+    required Color textColor, 
+    required Color primaryColor, 
+    required VoidCallback onTap 
   }) {
     return ListTile(
-      leading: Icon(icon, color: ThemeService.primaryColor),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: textColor,
-        ),
-      ),
+      leading: Icon(icon, color: primaryColor),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w500, color: textColor)),
       onTap: onTap,
     );
   }
 
-  // Métodos de navegação
   void _navigateToHome(BuildContext context) {
     Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomePage(casa: widget.casa),
-      ),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(casa: widget.casa)));
   }
 
   void _navigateToHistorico(BuildContext context) {
     Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HistoricoPage(transacoes: historicoTransacoes),
-      ),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => HistoricoPage(transacoes: historicoTransacoes)));
   }
 
   void _navigateToUsuarios(BuildContext context) {
     Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const Usuarios()),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const Usuarios()));
   }
 
   void _navigateToMinhasCasas(BuildContext context) {
     Navigator.pop(context);
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const MeuCasas()),
-      (route) => false,
-    );
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MeuCasas()), (route) => false);
   }
 
   void _navigateToPerfil(BuildContext context) {
     Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PerfilPage()),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
   }
 
   void _navigateToConfig(BuildContext context) {
     Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ConfigPage()),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigPage()));
   }
 
-  // ✅ MÉTODO build ADICIONADO (estava faltando)
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeService>(
       builder: (context, themeService, child) {
+        final primaryColor = themeService.primaryColor;
+        
         return Scaffold(
           appBar: AppBar(
             title: const Text('Econômico'),
-            backgroundColor: ThemeService.primaryColor,
+            backgroundColor: primaryColor,
             foregroundColor: Colors.white,
             actions: [
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: _mostrarModalAlterarValor,
-              ),
+              IconButton(icon: const Icon(Icons.add), onPressed: _mostrarModalAlterarValor),
             ],
           ),
           drawer: _buildDrawer(context, themeService),
@@ -365,15 +300,10 @@ class _EconomicoState extends State<Economico> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cards de Resumo
                 _buildResumoCards(),
                 const SizedBox(height: 24),
-                
-                // Gráfico
-                _buildGraficoSection(),
+                _buildGraficoSection(themeService),
                 const SizedBox(height: 24),
-                
-                // Histórico Recente
                 _buildHistoricoRecente(),
               ],
             ),
@@ -386,93 +316,45 @@ class _EconomicoState extends State<Economico> {
   Widget _buildResumoCards() {
     return Row(
       children: [
-        Expanded(
-          child: _buildResumoCard(
-            title: 'Saldo',
-            valor: saldo,
-            cor: saldo >= 0 ? Colors.green : Colors.red,
-            icon: Icons.account_balance_wallet,
-          ),
-        ),
+        Expanded(child: _buildResumoCard(title: 'Saldo', valor: saldo, cor: saldo >= 0 ? Colors.green : Colors.red, icon: Icons.account_balance_wallet)),
         const SizedBox(width: 12),
-        Expanded(
-          child: _buildResumoCard(
-            title: 'Receitas',
-            valor: renda,
-            cor: Colors.green,
-            icon: Icons.arrow_upward,
-          ),
-        ),
+        Expanded(child: _buildResumoCard(title: 'Receitas', valor: renda, cor: Colors.green, icon: Icons.arrow_upward)),
         const SizedBox(width: 12),
-        Expanded(
-          child: _buildResumoCard(
-            title: 'Despesas',
-            valor: gastos,
-            cor: Colors.red,
-            icon: Icons.arrow_downward,
-          ),
-        ),
+        Expanded(child: _buildResumoCard(title: 'Despesas', valor: gastos, cor: Colors.red, icon: Icons.arrow_downward)),
       ],
     );
   }
 
-  Widget _buildResumoCard({
-    required String title,
-    required double valor,
-    required Color cor,
-    required IconData icon,
-  }) {
+  Widget _buildResumoCard({ required String title, required double valor, required Color cor, required IconData icon }) {
     return Card(
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: cor, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'R\$${valor.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: cor,
-              ),
-            ),
-          ],
-        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(icon, color: cor, size: 24),
+          const SizedBox(height: 8),
+          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text('R\$${valor.toStringAsFixed(2)}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: cor)),
+        ]),
       ),
     );
   }
 
-  Widget _buildGraficoSection() {
+  Widget _buildGraficoSection(ThemeService themeService) {
     return Card(
-      elevation: 2,
+      elevation: 2, 
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16), 
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start, 
           children: [
-            const Text(
-              'Resumo Mensal',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildGrafico(),
-          ],
-        ),
-      ),
+            const Text('Resumo Mensal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), 
+            const SizedBox(height: 16), 
+            _buildGrafico(themeService)
+          ]
+        )
+      )
     );
   }
 
@@ -484,27 +366,21 @@ class _EconomicoState extends State<Economico> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start, 
           children: [
             Row(
               children: [
-                const Text(
-                  'Histórico Recente',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                const Text('Histórico Recente', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 TextButton(
-                  onPressed: () => _navigateToHistorico(context),
-                  child: const Text('Ver tudo'),
+                  onPressed: () => _navigateToHistorico(context), 
+                  child: const Text('Ver tudo')
                 ),
-              ],
+              ]
             ),
             const SizedBox(height: 12),
             ...transacoesRecentes.map((transacao) => _buildItemHistorico(transacao)),
-          ],
+          ]
         ),
       ),
     );
@@ -513,248 +389,289 @@ class _EconomicoState extends State<Economico> {
   Widget _buildItemHistorico(Transacao transacao) {
     return ListTile(
       leading: Icon(
-        transacao.tipo == 'entrada' ? Icons.arrow_upward : Icons.arrow_downward,
-        color: transacao.tipo == 'entrada' ? Colors.green : Colors.red,
+        transacao.tipo == 'entrada' ? Icons.arrow_upward : Icons.arrow_downward, 
+        color: transacao.tipo == 'entrada' ? Colors.green : Colors.red
       ),
       title: Text(transacao.local),
       subtitle: Text('${transacao.data.day}/${transacao.data.month}/${transacao.data.year}'),
       trailing: Text(
-        'R\$${transacao.valor.toStringAsFixed(2)}',
+        'R\$${transacao.valor.toStringAsFixed(2)}', 
         style: TextStyle(
-          color: transacao.tipo == 'entrada' ? Colors.green : Colors.red,
-          fontWeight: FontWeight.bold,
-        ),
+          color: transacao.tipo == 'entrada' ? Colors.green : Colors.red, 
+          fontWeight: FontWeight.bold
+        )
       ),
     );
   }
 
-  // ------------------- MODAL: Alterar Valor -------------------
   void _mostrarModalAlterarValor() {
     final TextEditingController valorController = TextEditingController();
     final TextEditingController localController = TextEditingController();
-    String acao = 'entrada';
-    String categoria = 'outros';
 
     showDialog(
       context: context,
       builder: (context) {
-        return Consumer<ThemeService>(
-          builder: (context, themeService, child) {
-            final cardColor = themeService.cardColor;
-            final textColor = themeService.textColor;
-            
+        String acao = 'entrada';
+        String categoria = 'outros';
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
             return Dialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              backgroundColor: cardColor,
+              backgroundColor: Theme.of(context).cardColor,
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(
-                      'Adicionar Transação',
-                      style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    // Campo Valor
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Valor (R\$):',
-                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: valorController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      style: TextStyle(color: textColor),
-                      decoration: InputDecoration(
-                        hintText: '0,00',
-                        hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
-                        filled: true,
-                        fillColor: themeService.backgroundColor.withOpacity(0.8),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min, 
+                    children: [
+                      Text(
+                        'Adicionar Transação', 
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface, 
+                          fontSize: 20, 
+                          fontWeight: FontWeight.bold
+                        )
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    // Campo Local
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Descrição:',
-                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: localController,
-                      style: TextStyle(color: textColor),
-                      decoration: InputDecoration(
-                        hintText: 'Informe a descrição',
-                        hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
-                        filled: true,
-                        fillColor: themeService.backgroundColor.withOpacity(0.8),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                      const SizedBox(height: 12),
+
+                      Align(
+                        alignment: Alignment.centerLeft, 
+                        child: Text(
+                          'Valor (R\$):', 
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), 
+                            fontWeight: FontWeight.bold
+                          )
+                        )
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    // Seletor de Ação
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Tipo:',
-                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                          color: themeService.backgroundColor.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: DropdownButton<String>(
-                        value: acao,
-                        dropdownColor: cardColor,
-                        underline: const SizedBox(),
-                        isExpanded: true,
-                        items: [
-                          DropdownMenuItem(
-                              value: 'entrada',
-                              child: Text('Entrada (Renda)',
-                                  style: TextStyle(color: textColor))),
-                          DropdownMenuItem(
-                              value: 'saida',
-                              child: Text('Saída (Gasto)',
-                                  style: TextStyle(color: textColor))),
-                        ],
-                        onChanged: (v) => setState(() => acao = v ?? 'entrada'),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Seletor de Categoria
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Categoria:',
-                          style: TextStyle(color: textColor.withOpacity(0.7), fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                          color: themeService.backgroundColor.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: DropdownButton<String>(
-                        value: categoria,
-                        dropdownColor: cardColor,
-                        underline: const SizedBox(),
-                        isExpanded: true,
-                        items: [
-                          DropdownMenuItem(
-                              value: 'alimentacao',
-                              child: Text('Alimentação',
-                                  style: TextStyle(color: textColor))),
-                          DropdownMenuItem(
-                              value: 'transporte',
-                              child: Text('Transporte',
-                                  style: TextStyle(color: textColor))),
-                          DropdownMenuItem(
-                              value: 'lazer',
-                              child: Text('Lazer',
-                                  style: TextStyle(color: textColor))),
-                          DropdownMenuItem(
-                              value: 'saude',
-                              child: Text('Saúde',
-                                  style: TextStyle(color: textColor))),
-                          DropdownMenuItem(
-                              value: 'educacao',
-                              child: Text('Educação',
-                                  style: TextStyle(color: textColor))),
-                          DropdownMenuItem(
-                              value: 'outros',
-                              child: Text('Outros',
-                                  style: TextStyle(color: textColor))),
-                        ],
-                        onChanged: (v) => setState(() => categoria = v ?? 'outros'),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                            ),
-                            child: const Text('Cancelar',
-                                style: TextStyle(color: Colors.white)),
-                          ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: valorController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          hintText: '0,00', 
+                          filled: true, 
+                          fillColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.04), 
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8), 
+                            borderSide: BorderSide.none
+                          )
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              final valor = double.tryParse(
-                                      valorController.text.replaceAll(',', '.')) ??
-                                  0;
-                              final descricao = localController.text.trim();
-                              
-                              if (valor > 0 && descricao.isNotEmpty) {
-                                // Adicionar nova transação
-                                final novaTransacao = Transacao(
-                                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                                  valor: valor,
-                                  local: descricao,
-                                  data: DateTime.now(),
-                                  tipo: acao,
-                                  categoria: categoria,
-                                );
-                                
-                                setState(() {
-                                  historicoTransacoes.insert(0, novaTransacao);
-                                  _atualizarValores();
-                                  _atualizarGrafico();
-                                });
-                                
+                      ),
+                      const SizedBox(height: 12),
+
+                      Align(
+                        alignment: Alignment.centerLeft, 
+                        child: Text(
+                          'Descrição:', 
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), 
+                            fontWeight: FontWeight.bold
+                          )
+                        )
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: localController, 
+                        decoration: InputDecoration(
+                          hintText: 'Informe a descrição', 
+                          filled: true, 
+                          fillColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.04), 
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8), 
+                            borderSide: BorderSide.none
+                          )
+                        )
+                      ),
+                      const SizedBox(height: 12),
+
+                      Align(
+                        alignment: Alignment.centerLeft, 
+                        child: Text(
+                          'Tipo:', 
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), 
+                            fontWeight: FontWeight.bold
+                          )
+                        )
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.04), 
+                          borderRadius: BorderRadius.circular(8)
+                        ),
+                        child: DropdownButton<String>(
+                          value: acao,
+                          dropdownColor: Theme.of(context).cardColor,
+                          underline: const SizedBox(),
+                          isExpanded: true,
+                          items: [
+                            DropdownMenuItem(
+                              value: 'entrada', 
+                              child: Text(
+                                'Entrada (Renda)', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                            DropdownMenuItem(
+                              value: 'saida', 
+                              child: Text(
+                                'Saída (Gasto)', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                          ],
+                          onChanged: (v) => setModalState(() => acao = v ?? 'entrada'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Align(
+                        alignment: Alignment.centerLeft, 
+                        child: Text(
+                          'Categoria:', 
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), 
+                            fontWeight: FontWeight.bold
+                          )
+                        )
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.04), 
+                          borderRadius: BorderRadius.circular(8)
+                        ),
+                        child: DropdownButton<String>(
+                          value: categoria,
+                          dropdownColor: Theme.of(context).cardColor,
+                          underline: const SizedBox(),
+                          isExpanded: true,
+                          items: [
+                            DropdownMenuItem(
+                              value: 'alimentacao', 
+                              child: Text(
+                                'Alimentação', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                            DropdownMenuItem(
+                              value: 'transporte', 
+                              child: Text(
+                                'Transporte', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                            DropdownMenuItem(
+                              value: 'lazer', 
+                              child: Text(
+                                'Lazer', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                            DropdownMenuItem(
+                              value: 'saude', 
+                              child: Text(
+                                'Saúde', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                            DropdownMenuItem(
+                              value: 'educacao', 
+                              child: Text(
+                                'Educação', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                            DropdownMenuItem(
+                              value: 'outros', 
+                              child: Text(
+                                'Outros', 
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
+                              )
+                            ),
+                          ],
+                          onChanged: (v) => setModalState(() => categoria = v ?? 'outros'),
+                        ),
+                      ),
+
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
                                 Navigator.pop(context);
-                                _mostrarModalConfirmacao();
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Preencha todos os campos corretamente'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red, 
+                                padding: const EdgeInsets.symmetric(vertical: 12), 
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+                              ),
+                              child: const Text('Cancelar', style: TextStyle(color: Colors.white)),
                             ),
-                            child: const Text('Confirmar',
-                                style: TextStyle(color: Colors.white)),
                           ),
-                        ),
-                      ],
-                    ),
-                  ]),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                final raw = valorController.text.replaceAll(',', '.');
+                                final valor = double.tryParse(raw) ?? 0.0;
+                                final descricao = localController.text.trim();
+
+                                if (valor > 0 && descricao.isNotEmpty) {
+                                  final novaTransacao = Transacao(
+                                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                    valor: valor,
+                                    local: descricao,
+                                    data: DateTime.now(),
+                                    tipo: acao,
+                                    categoria: categoria,
+                                  );
+
+                                  setState(() {
+                                    historicoTransacoes.insert(0, novaTransacao);
+                                    _atualizarValores();
+                                    _atualizarGrafico();
+                                  });
+
+                                  Navigator.pop(context);
+                                  _mostrarModalConfirmacao(context);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Preencha todos os campos corretamente'), 
+                                      backgroundColor: Colors.red
+                                    )
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green, 
+                                padding: const EdgeInsets.symmetric(vertical: 12), 
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+                              ),
+                              child: const Text('Confirmar', style: TextStyle(color: Colors.white)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ]
+                  ),
                 ),
               ),
             );
-          },
+          }
         );
       },
     );
   }
 
-  void _mostrarModalConfirmacao() {
+  void _mostrarModalConfirmacao(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
@@ -762,33 +679,40 @@ class _EconomicoState extends State<Economico> {
           builder: (context, themeService, child) {
             final cardColor = themeService.cardColor;
             final textColor = themeService.textColor;
+            final primaryColor = themeService.primaryColor;
             
             return Dialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               backgroundColor: cardColor,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 22),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 60),
-                  const SizedBox(height: 12),
-                  const Text('Transação adicionada!',
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, 
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green, size: 60),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Transação adicionada!', 
                       style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: ThemeService.primaryColor,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8))),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: Text('OK', style: TextStyle(color: Colors.white)),
+                        color: textColor, 
+                        fontSize: 18, 
+                        fontWeight: FontWeight.bold
+                      )
                     ),
-                  ),
-                ]),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context), 
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor, 
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+                      ), 
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), 
+                        child: Text('OK', style: TextStyle(color: Colors.white))
+                      )
+                    ),
+                  ]
+                ),
               ),
             );
           },

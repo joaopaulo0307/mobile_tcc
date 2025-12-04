@@ -54,10 +54,11 @@ class _PerfilPageState extends State<PerfilPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return Consumer<ThemeService>(
+        return Consumer<BaseThemeService>( // ✅ ALTERADO: BaseThemeService
           builder: (context, themeService, child) {
             final backgroundColor = themeService.backgroundColor;
             final textColor = themeService.textColor;
+            final primaryColor = themeService.primaryColor; // ✅ Agora usa instância
             
             return AlertDialog(
               backgroundColor: backgroundColor,
@@ -79,14 +80,14 @@ class _PerfilPageState extends State<PerfilPage> {
                     final cor = _coresDisponiveis[index];
                     return GestureDetector(
                       onTap: () {
-                        _alterarCorTema(cor, themeService);
+                        _alterarCorTema(cor, themeService); 
                         Navigator.pop(context);
                       },
                       child: Container(
                         decoration: BoxDecoration(
                           color: cor,
                           shape: BoxShape.circle,
-                          border: ThemeService.primaryColor.value == cor.value
+                          border: primaryColor.value == cor.value // ✅ Usa primaryColor da instância
                               ? Border.all(color: Colors.white, width: 3)
                               : null,
                           boxShadow: [
@@ -97,7 +98,7 @@ class _PerfilPageState extends State<PerfilPage> {
                             ),
                           ],
                         ),
-                        child: ThemeService.primaryColor.value == cor.value
+                        child: primaryColor.value == cor.value // ✅ Usa primaryColor da instância
                             ? const Icon(Icons.check, color: Colors.white, size: 20)
                             : null,
                       ),
@@ -135,17 +136,19 @@ class _PerfilPageState extends State<PerfilPage> {
     final totalTarefas = UserService.tarefasRealizadas.length;
     final mostrarTodas = tarefasVisiveis >= totalTarefas;
 
-    return Consumer<ThemeService>(
+    return Consumer<BaseThemeService>( // ✅ ALTERADO: BaseThemeService
       builder: (context, themeService, child) {
         final backgroundColor = themeService.backgroundColor;
         final cardColor = themeService.cardColor;
         final textColor = themeService.textColor;
         final secondaryTextColor = textColor.withOpacity(0.7);
+        final primaryColor = themeService.primaryColor; // ✅ Obter da instância
+        final secondaryColor = themeService.secondaryColor; // ✅ Obter da instância
 
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: AppBar(
-            backgroundColor: ThemeService.primaryColor,
+            backgroundColor: primaryColor, // ✅ Usa primaryColor da instância
             title: const Text(
               'MEU PERFIL',
               style: TextStyle(color: Colors.white),
@@ -169,7 +172,7 @@ class _PerfilPageState extends State<PerfilPage> {
               children: [
                 // Cabeçalho com foto e nome
                 Container(
-                  color: ThemeService.primaryColor.withOpacity(0.9),
+                  color: primaryColor.withOpacity(0.9), // ✅ Usa primaryColor
                   padding: const EdgeInsets.only(top: 40, bottom: 30),
                   child: Center(
                     child: Column(
@@ -195,7 +198,7 @@ class _PerfilPageState extends State<PerfilPage> {
                                 width: 30,
                                 height: 30,
                                 decoration: BoxDecoration(
-                                  color: ThemeService.secondaryColor,
+                                  color: secondaryColor, // ✅ Usa secondaryColor
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white, width: 2),
                                 ),
@@ -229,7 +232,7 @@ class _PerfilPageState extends State<PerfilPage> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
-                            foregroundColor: ThemeService.primaryColor,
+                            foregroundColor: primaryColor, // ✅ Usa primaryColor
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
@@ -254,11 +257,11 @@ class _PerfilPageState extends State<PerfilPage> {
                   child: Column(
                     children: [
                       // Seção Estatísticas
-                      _buildStatsCard(cardColor, textColor),
+                      _buildStatsCard(cardColor, textColor, primaryColor, secondaryColor),
                       const SizedBox(height: 20),
 
                       // Seção Sobre
-                      _buildAboutSection(cardColor, textColor, secondaryTextColor),
+                      _buildAboutSection(cardColor, textColor, secondaryTextColor, primaryColor),
                       const SizedBox(height: 20),
 
                       // Seção Tarefas Realizadas
@@ -267,20 +270,22 @@ class _PerfilPageState extends State<PerfilPage> {
                         textColor, 
                         secondaryTextColor, 
                         totalTarefas, 
-                        mostrarTodas
+                        mostrarTodas,
+                        primaryColor,
+                        secondaryColor
                       ),
                       const SizedBox(height: 20),
 
                       // Seção Descrição
-                      _buildDescriptionSection(cardColor, textColor, secondaryTextColor),
+                      _buildDescriptionSection(cardColor, textColor, secondaryTextColor, primaryColor),
                       const SizedBox(height: 30),
 
                       // Seção Personalização
-                      _buildCustomizationSection(cardColor, textColor, themeService),
+                      _buildCustomizationSection(cardColor, textColor, themeService, primaryColor),
                       const SizedBox(height: 30),
 
                       // Rodapé
-                      _buildFooter(textColor, secondaryTextColor),
+                      _buildFooter(textColor, secondaryTextColor, primaryColor),
                     ],
                   ),
                 ),
@@ -292,7 +297,7 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildStatsCard(Color cardColor, Color textColor) {
+  Widget _buildStatsCard(Color cardColor, Color textColor, Color primaryColor, Color secondaryColor) {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -309,31 +314,31 @@ class _PerfilPageState extends State<PerfilPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('Tarefas Concluídas', UserService.tarefasRealizadas.length.toString(), Icons.check_circle),
-          _buildStatItem('Dias Ativo', '127', Icons.calendar_today),
-          _buildStatItem('Pontos', '1.2K', Icons.emoji_events),
+          _buildStatItem('Tarefas Concluídas', UserService.tarefasRealizadas.length.toString(), Icons.check_circle, primaryColor),
+          _buildStatItem('Dias Ativo', '127', Icons.calendar_today, primaryColor),
+          _buildStatItem('Pontos', '1.2K', Icons.emoji_events, primaryColor),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon) {
+  Widget _buildStatItem(String label, String value, IconData icon, Color primaryColor) {
     return Column(
       children: [
         Container(
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: ThemeService.primaryColor.withOpacity(0.1),
+            color: primaryColor.withOpacity(0.1), // ✅ Usa primaryColor
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: ThemeService.primaryColor, size: 24),
+          child: Icon(icon, color: primaryColor, size: 24), // ✅ Usa primaryColor
         ),
         const SizedBox(height: 8),
         Text(
           value,
           style: TextStyle(
-            color: ThemeService.primaryColor,
+            color: primaryColor, // ✅ Usa primaryColor
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -351,7 +356,7 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildAboutSection(Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildAboutSection(Color cardColor, Color textColor, Color secondaryTextColor, Color primaryColor) {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -370,7 +375,7 @@ class _PerfilPageState extends State<PerfilPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.info, color: ThemeService.primaryColor),
+              Icon(Icons.info, color: primaryColor), // ✅ Usa primaryColor
               const SizedBox(width: 8),
               Text(
                 "Sobre",
@@ -424,7 +429,8 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildTarefasSection(Color cardColor, Color textColor, Color secondaryTextColor, int totalTarefas, bool mostrarTodas) {
+  Widget _buildTarefasSection(Color cardColor, Color textColor, Color secondaryTextColor, 
+                              int totalTarefas, bool mostrarTodas, Color primaryColor, Color secondaryColor) {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -443,7 +449,7 @@ class _PerfilPageState extends State<PerfilPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.work_history, color: ThemeService.primaryColor),
+              Icon(Icons.work_history, color: primaryColor), // ✅ Usa primaryColor
               const SizedBox(width: 8),
               Text(
                 "Tarefas Realizadas",
@@ -484,7 +490,7 @@ class _PerfilPageState extends State<PerfilPage> {
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: Row(
                       children: [
-                        Icon(Icons.check_circle, color: ThemeService.secondaryColor, size: 16),
+                        Icon(Icons.check_circle, color: secondaryColor, size: 16), // ✅ Usa secondaryColor
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -510,14 +516,14 @@ class _PerfilPageState extends State<PerfilPage> {
                           Text(
                             mostrarTodas ? "Mostrar menos" : "Mostrar mais ($totalTarefas)",
                             style: TextStyle(
-                              color: ThemeService.primaryColor,
+                              color: primaryColor, // ✅ Usa primaryColor
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Icon(
                             mostrarTodas ? Icons.expand_less : Icons.expand_more,
-                            color: ThemeService.primaryColor,
+                            color: primaryColor, // ✅ Usa primaryColor
                             size: 16,
                           ),
                         ],
@@ -532,7 +538,7 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildDescriptionSection(Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildDescriptionSection(Color cardColor, Color textColor, Color secondaryTextColor, Color primaryColor) {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -551,7 +557,7 @@ class _PerfilPageState extends State<PerfilPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.description, color: ThemeService.primaryColor),
+              Icon(Icons.description, color: primaryColor), // ✅ Usa primaryColor
               const SizedBox(width: 8),
               Text(
                 "Descrição Pessoal",
@@ -577,7 +583,7 @@ class _PerfilPageState extends State<PerfilPage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: ThemeService.primaryColor),
+                borderSide: BorderSide(color: primaryColor), // ✅ Usa primaryColor
               ),
             ),
           ),
@@ -586,7 +592,7 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildCustomizationSection(Color cardColor, Color textColor, ThemeService themeService) {
+  Widget _buildCustomizationSection(Color cardColor, Color textColor, BaseThemeService themeService, Color primaryColor) {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -605,7 +611,7 @@ class _PerfilPageState extends State<PerfilPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.palette, color: ThemeService.primaryColor),
+              Icon(Icons.palette, color: primaryColor), // ✅ Usa primaryColor
               const SizedBox(width: 8),
               Text(
                 "Personalização",
@@ -628,9 +634,9 @@ class _PerfilPageState extends State<PerfilPage> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: ThemeService.primaryColor.withOpacity(0.1),
+                color: primaryColor.withOpacity(0.1), // ✅ Usa primaryColor
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: ThemeService.primaryColor),
+                border: Border.all(color: primaryColor), // ✅ Usa primaryColor
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -641,7 +647,7 @@ class _PerfilPageState extends State<PerfilPage> {
                         width: 20,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: ThemeService.primaryColor,
+                          color: primaryColor, // ✅ Usa primaryColor
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -667,7 +673,7 @@ class _PerfilPageState extends State<PerfilPage> {
                 onChanged: (value) {
                   themeService.setDarkMode(value);
                 },
-                activeColor: ThemeService.primaryColor,
+                activeColor: primaryColor, // ✅ Usa primaryColor
               ),
             ],
           ),
@@ -676,7 +682,7 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildFooter(Color textColor, Color secondaryTextColor) {
+  Widget _buildFooter(Color textColor, Color secondaryTextColor, Color primaryColor) {
     return Column(
       children: [
         const SizedBox(height: 10),
@@ -690,13 +696,13 @@ class _PerfilPageState extends State<PerfilPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildSocialIcon(FontAwesomeIcons.facebook),
+            _buildSocialIcon(FontAwesomeIcons.facebook, primaryColor),
             const SizedBox(width: 20),
-            _buildSocialIcon(Icons.camera_alt),
+            _buildSocialIcon(Icons.camera_alt, primaryColor),
             const SizedBox(width: 20),
-            _buildSocialIcon(Icons.mail),
+            _buildSocialIcon(Icons.mail, primaryColor),
             const SizedBox(width: 20),
-            _buildSocialIcon(FontAwesomeIcons.whatsapp),
+            _buildSocialIcon(FontAwesomeIcons.whatsapp, primaryColor),
           ],
         ),
         const SizedBox(height: 20),
@@ -708,12 +714,12 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildSocialIcon(IconData icon) {
+  Widget _buildSocialIcon(IconData icon, Color primaryColor) {
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: ThemeService.primaryColor,
+        color: primaryColor, // ✅ Usa primaryColor
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: Colors.white, size: 18),

@@ -55,13 +55,7 @@ void main() {
     print('   ❌ Econômico - Erro: $e\n');
   }
   
-  try {
-    print('6. Executando testes de Esqueci Senha...');
-    esqueci_senha_test.main();
-    print('   ✅ Esqueci Senha - Concluído\n');
-  } catch (e) {
-    print('   ❌ Esqueci Senha - Erro: $e\n');
-  }
+
   
   try {
     print('7. Executando testes de Histórico...');

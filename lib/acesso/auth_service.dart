@@ -8,17 +8,38 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
 class AuthService {
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
-  static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static final DatabaseReference _database = FirebaseDatabase.instance.ref();
-  static String? _token;
+  // Instâncias do Firebase
+  final FirebaseAuth _auth;
+  final FirebaseAnalytics _analytics;
+  final FirebaseFirestore _firestore;
+  final DatabaseReference _database;
+  String? _token;
+
+  // Singleton (opcional)
+  static AuthService? _instance;
+  
+  factory AuthService() {
+    _instance ??= AuthService._internal(
+      FirebaseAuth.instance,
+      FirebaseAnalytics.instance,
+      FirebaseFirestore.instance,
+      FirebaseDatabase.instance.ref(),
+    );
+    return _instance!;
+  }
+  
+  AuthService._internal(
+    this._auth,
+    this._analytics,
+    this._firestore,
+    this._database,
+  );
 
   // Getter para o token
-  static String? get token => _token;
+  String? get token => _token;
 
   // ==================== INICIALIZAÇÃO ====================
-  static Future<void> initialize() async {
+  Future<void> initialize() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _token = prefs.getString('token');
@@ -36,8 +57,32 @@ class AuthService {
     }
   }
 
+  // ==================== RECUPERAR SENHA ====================
+  Future<Map<String, dynamic>> esqueciSenha(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+
+      return {
+        'success': true,
+        'message': 'Enviamos um email com instruções para redefinição de senha.'
+      };
+    } on FirebaseAuthException catch (e) {
+      return {
+        'success': false,
+        'message': _getFirebaseErrorMessage(e),
+        'errorCode': e.code,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erro inesperado ao tentar recuperar senha.',
+        'error': e.toString(),
+      };
+    }
+  }
+
   // ==================== CADASTRO ====================
-  static Future<Map<String, dynamic>> cadastrar({
+  Future<Map<String, dynamic>> cadastrar({
     required String nome,
     required String email,
     required String senha,
@@ -122,7 +167,7 @@ class AuthService {
   }
 
   // ==================== CRIAR CASA AUTOMÁTICA ====================
-  static Future<void> _criarCasaAutomatica(String userId, String nome, String email) async {
+  Future<void> _criarCasaAutomatica(String userId, String nome, String email) async {
     try {
       final userName = nome.split(' ').first;
       
@@ -172,7 +217,7 @@ class AuthService {
   }
 
   // ==================== LOGIN ====================
-  static Future<Map<String, dynamic>> login({
+  Future<Map<String, dynamic>> login({
     required String email,
     required String senha,
   }) async {
@@ -230,48 +275,24 @@ class AuthService {
     }
   }
 
-  // ==================== RECUPERAR SENHA ====================
-  static Future<Map<String, dynamic>> esqueciSenha(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email.trim());
-
-      return {
-        'success': true,
-        'message': 'Enviamos um email com instruções para redefinição de senha.'
-      };
-    } on FirebaseAuthException catch (e) {
-      return {
-        'success': false,
-        'message': _getFirebaseErrorMessage(e),
-        'errorCode': e.code,
-      };
-    } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erro inesperado ao tentar recuperar senha.',
-        'error': e.toString(),
-      };
-    }
-  }
-
   // ==================== MÉTODOS AUXILIARES ====================
-  static Future<void> _saveToken(String token) async {
+  Future<void> _saveToken(String token) async {
     _token = token;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
   }
 
-  static Future<void> _saveUserData(Map<String, dynamic> userData) async {
+  Future<void> _saveUserData(Map<String, dynamic> userData) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userData', json.encode(userData));
   }
 
-  static String _getPlatform() {
+  String _getPlatform() {
     if (kIsWeb) return 'web';
     return Platform.operatingSystem;
   }
 
-  static String _getFirebaseErrorMessage(FirebaseAuthException e) {
+  String _getFirebaseErrorMessage(FirebaseAuthException e) {
     switch (e.code) {
       case 'email-already-in-use': return 'Este email já está cadastrado.';
       case 'invalid-email': return 'O formato do email é inválido.';
@@ -285,7 +306,7 @@ class AuthService {
   }
 
   // ==================== MÉTODOS PÚBLICOS ====================
-  static Future<void> logout() async {
+  Future<void> logout() async {
     await _auth.signOut();
     _token = null;
 
@@ -294,9 +315,9 @@ class AuthService {
     prefs.remove('userData');
   }
 
-  static Future<bool> isAuthenticated() async {
+  Future<bool> isAuthenticated() async {
     return _auth.currentUser != null;
   }
 
-  static User? get currentUser => _auth.currentUser;
+  User? get currentUser => _auth.currentUser;
 }

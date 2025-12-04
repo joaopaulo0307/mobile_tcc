@@ -206,7 +206,7 @@ class _MeuCasasState extends State<MeuCasas> {
       builder: (context) {
         final themeService = Provider.of<ThemeService>(context, listen: false);
         final textColor = themeService.textColor;
-        final primaryColor = ThemeService.primaryColor;
+        final primaryColor = themeService.primaryColor;
 
         return AlertDialog(
           backgroundColor: themeService.cardColor,
@@ -355,7 +355,7 @@ class _MeuCasasState extends State<MeuCasas> {
         final backgroundColor = themeService.backgroundColor;
         final textColor = themeService.textColor;
         final secondaryTextColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
-        final primaryColor = ThemeService.primaryColor;
+        final primaryColor = themeService.primaryColor;
 
         return Scaffold(
           appBar: AppBar(

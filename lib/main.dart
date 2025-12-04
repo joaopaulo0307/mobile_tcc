@@ -924,7 +924,8 @@ class _LandingPageState extends State<LandingPage> {
                   'lib/assets/images/fundo-tcc-mobile.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    return Container(color: ThemeService.primaryColor);
+                    return Container(color: themeService.primaryColor); // ✅ Usa themeService
+
                   },
                 ),
               ),
@@ -1124,11 +1125,11 @@ class _LandingPageState extends State<LandingPage> {
                                             child: ElevatedButton(
                                               onPressed: _isLoading ? null : _fazerLogin,
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: ThemeService.primaryColor,
+                                                backgroundColor: themeService.primaryColor, // ✅ Usa themeService
                                                 foregroundColor: Colors.white,
                                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                                disabledBackgroundColor: ThemeService.primaryColor.withOpacity(0.5),
+                                                disabledBackgroundColor: themeService.primaryColor.withOpacity(0.5), // ✅ Usa themeService
                                               ),
                                               child: _isLoading
                                                   ? const SizedBox(
